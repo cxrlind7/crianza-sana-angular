@@ -661,7 +661,10 @@
                   </div>
                   <div class="col-md-5">
                     <label class="blog-field-label">URL de imagen destacada</label>
-                    <input type="text" class="form-control blog-field-input" [ngModel]="modalData()['imageUrl']" (ngModelChange)="updateModalField('imageUrl', $event)" placeholder="https://..." />
+                    <input type="text" class="form-control blog-field-input mb-2" [ngModel]="modalData()['imageUrl']" (ngModelChange)="updateModalField('imageUrl', $event)" placeholder="https://..." />
+                    <input type="file" accept="image/*" class="form-control form-control-sm" (change)="onImageFileSelected($event, 'imageUrl')" [disabled]="isUploadingImage()" />
+                    @if (isUploadingImage()) { <small class="text-muted">Subiendo imagen...</small> }
+                    @if (uploadError()) { <small class="text-danger d-block">{{ uploadError() }}</small> }
                   </div>
                 </div>
                 @if (modalData()['imageUrl']) {
@@ -700,7 +703,10 @@
               } @else if (modalType() === 'ad' || modalType() === 'banner') {
                 <div class="mb-3">
                   <label class="form-label">Imagen URL *</label>
-                  <input type="text" class="form-control" [ngModel]="modalData()['imageSrc']" (ngModelChange)="updateModalField('imageSrc', $event)" placeholder="https://..." />
+                  <input type="text" class="form-control mb-2" [ngModel]="modalData()['imageSrc']" (ngModelChange)="updateModalField('imageSrc', $event)" placeholder="https://..." />
+                  <input type="file" accept="image/*" class="form-control form-control-sm" (change)="onImageFileSelected($event, 'imageSrc')" [disabled]="isUploadingImage()" />
+                  @if (isUploadingImage()) { <small class="text-muted">Subiendo imagen...</small> }
+                  @if (uploadError()) { <small class="text-danger d-block">{{ uploadError() }}</small> }
                   @if (modalData()['imageSrc']) {
                     <div class="mt-2 text-center"><img [src]="modalData()['imageSrc']" class="img-fluid rounded border" style="max-height: 180px" alt="preview" /></div>
                   }
@@ -724,7 +730,10 @@
               } @else if (modalType() === 'evento') {
                 <div class="mb-3">
                   <label class="form-label">Imagen URL</label>
-                  <input type="text" class="form-control" [ngModel]="modalData()['imageSrc']" (ngModelChange)="updateModalField('imageSrc', $event)" placeholder="https://..." />
+                  <input type="text" class="form-control mb-2" [ngModel]="modalData()['imageSrc']" (ngModelChange)="updateModalField('imageSrc', $event)" placeholder="https://..." />
+                  <input type="file" accept="image/*" class="form-control form-control-sm" (change)="onImageFileSelected($event, 'imageSrc')" [disabled]="isUploadingImage()" />
+                  @if (isUploadingImage()) { <small class="text-muted">Subiendo imagen...</small> }
+                  @if (uploadError()) { <small class="text-danger d-block">{{ uploadError() }}</small> }
                   @if (modalData()['imageSrc']) {
                     <div class="mt-2 text-center"><img [src]="modalData()['imageSrc']" class="img-fluid rounded border" style="max-height: 140px" alt="preview" /></div>
                   }
@@ -790,7 +799,10 @@
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Thumbnail URL</label>
-                  <input type="text" class="form-control" [ngModel]="modalData()['thumbnail']" (ngModelChange)="updateModalField('thumbnail', $event)" placeholder="https://..." />
+                  <input type="text" class="form-control mb-2" [ngModel]="modalData()['thumbnail']" (ngModelChange)="updateModalField('thumbnail', $event)" placeholder="https://..." />
+                  <input type="file" accept="image/*" class="form-control form-control-sm" (change)="onImageFileSelected($event, 'thumbnail')" [disabled]="isUploadingImage()" />
+                  @if (isUploadingImage()) { <small class="text-muted">Subiendo imagen...</small> }
+                  @if (uploadError()) { <small class="text-danger d-block">{{ uploadError() }}</small> }
                   @if (modalData()['thumbnail']) {
                     <div class="mt-2 text-center"><img [src]="modalData()['thumbnail']" class="img-fluid rounded border" style="max-height: 140px" alt="thumbnail" /></div>
                   }

@@ -151,7 +151,9 @@
   animation: fadeIn 0.2s ease;
 }
 
-.user-dropdown button {
+.user-dropdown button,
+.user-dropdown a {
+  display: block;
   width: 100%;
   background: none;
   border: none;
@@ -160,9 +162,11 @@
   color: var(--dm-text);
   cursor: pointer;
   border-radius: 4px;
+  text-decoration: none;
 }
 
-.user-dropdown button:hover {
+.user-dropdown button:hover,
+.user-dropdown a:hover {
   background-color: var(--dm-surface-2);
   color: #ed1c24;
 }

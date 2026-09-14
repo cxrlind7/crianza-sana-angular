@@ -329,7 +329,8 @@ app.post('/api/aws/upload-url', async (req, res) => {
   }
   try {
     const url = await s3.getSignedUrlPromise('putObject', params)
-    res.json({ url }) // Devolvemos { url } o { uploadUrl: url } según necesite el front
+    const publicUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.amazonaws.com/${finalKey}`
+    res.json({ url, publicUrl }) // Devolvemos { url } o { uploadUrl: url } según necesite el front
   } catch (error) {
     console.error('Error AWS Upload URL:', error)
     res.status(500).json({ error: 'Error generating upload URL' })

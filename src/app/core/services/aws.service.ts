@@ -24,18 +24,42 @@ export class AwsService {
     }
   }
 
-  async getUploadUrl(key: string, contentType: string): Promise<string | null> {
+  async getUploadUrl(key: string, contentType: string): Promise<{ url: string; publicUrl: string } | null> {
     if (!key) {
       console.error('❌ Error: Key no proporcionada para getUploadUrl');
       return null;
     }
     try {
-      const response = await firstValueFrom(
-        this.http.post<{ url: string }>(`${this.baseUrl}/api/aws/upload-url`, { key, contentType }),
+      return await firstValueFrom(
+        this.http.post<{ url: string; publicUrl: string }>(`${this.baseUrl}/api/aws/upload-url`, {
+          key,
+          contentType,
+        }),
       );
-      return response.url;
     } catch (error) {
       console.error('❌ Error obteniendo URL de subida del backend:', error);
+      return null;
+    }
+  }
+
+  async uploadFile(file: File, folder: string): Promise<string | null> {
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const key = `${folder}/${Date.now()}-${safeName}`;
+    const result = await this.getUploadUrl(key, file.type || 'application/octet-stream');
+    if (!result) return null;
+    try {
+      const putResponse = await fetch(result.url, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type || 'application/octet-stream' },
+        body: file,
+      });
+      if (!putResponse.ok) {
+        console.error('❌ Error subiendo archivo a S3:', putResponse.status);
+        return null;
+      }
+      return result.publicUrl;
+    } catch (error) {
+      console.error('❌ Error subiendo archivo a S3:', error);
       return null;
     }
   }
