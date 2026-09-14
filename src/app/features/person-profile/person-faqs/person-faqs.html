@@ -1,0 +1,44 @@
+@if (preguntas && preguntas.length) {
+  <div class="person-faq-section">
+    <div class="container-fluid main-container">
+      <div class="text-center mb-5 fade-in">
+        <h6 class="text-uppercase letter-spacing-2 text-muted mb-2">Dudas Resueltas</h6>
+        <h2 class="display-6 fw-bold text-dark">Preguntas Frecuentes</h2>
+      </div>
+
+      <div class="accordion-wrapper fade-in delay-1">
+        <div class="faq-scroll-container">
+          <div class="accordion accordion-flush" id="faqAccordion">
+            @for (faq of preguntas; track $index) {
+              <div class="accordion-item mb-2">
+                <h2 class="accordion-header" [id]="'heading' + $index">
+                  <button
+                    class="accordion-button collapsed px-0"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    [attr.data-bs-target]="'#collapse' + $index"
+                    aria-expanded="false"
+                    [attr.aria-controls]="'collapse' + $index"
+                    [style.--accent-color]="personColor"
+                  >
+                    {{ faq.pregunta }}
+                  </button>
+                </h2>
+                <div
+                  [id]="'collapse' + $index"
+                  class="accordion-collapse collapse"
+                  [attr.aria-labelledby]="'heading' + $index"
+                  data-bs-parent="#faqAccordion"
+                >
+                  <div class="accordion-body text-muted px-0 pb-3 pt-1">
+                    {{ faq.respuesta }}
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}

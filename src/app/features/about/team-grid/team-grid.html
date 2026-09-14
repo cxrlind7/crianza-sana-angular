@@ -1,0 +1,63 @@
+<div class="team-container">
+  <h2 class="section-title">Conócenos</h2>
+  <p class="section-subtitle">Somos un equipo comprometido con el bienestar familiar.</p>
+
+  <div class="team-grid">
+    @for (person of people(); track person.id; let index = $index) {
+      <article class="team-card" [style]="getCardStyle(person.color)" (click)="goToPersonPage(person.id)">
+        <div class="details-link-icon" title="Ver perfil completo">
+          <i class="fas fa-arrow-right"></i>
+        </div>
+
+        <div class="card-header-banner"></div>
+
+        <div class="profile-image-container">
+          <img [src]="person.image" [alt]="person.name" class="profile-image" />
+        </div>
+
+        <div class="card-body">
+          <h3 class="member-name">{{ person.name }}</h3>
+          <h4 class="member-title">{{ person.title }}</h4>
+
+          <p class="member-desc" [class.truncated]="!person.showFullDetails">
+            {{ person.description }}
+          </p>
+
+          @if (person.showFullDetails) {
+            <div class="full-details fade-in">
+              <h3 class="services-title">Servicios</h3>
+              <ul class="services-list">
+                @for (service of (person.servicios || []).slice(0, 5); track $index) {
+                  <li class="service-item">{{ service.titulo }}</li>
+                }
+              </ul>
+            </div>
+          }
+        </div>
+
+        <div class="card-footer">
+          @if (!person.showFullDetails) {
+            <div class="social-links">
+              @for (icon of person.socials; track $index) {
+                <a [href]="icon.link" class="social-icon" target="_blank" (click)="$event.stopPropagation()">
+                  <i [class]="icon.iconClass"></i>
+                </a>
+              }
+            </div>
+          }
+
+          <button (click)="$event.stopPropagation(); toggleContent(index)" class="btn-toggle" [class.btn-active]="person.showFullDetails">
+            {{ person.showFullDetails ? 'Ver menos' : 'Ver más' }}
+          </button>
+        </div>
+      </article>
+    }
+  </div>
+
+  <div class="scroll-indicator-container fade-in">
+    <div class="indicator-icon">
+      <i class="fas fa-chevron-right animated-arrow"></i>
+    </div>
+    <span class="indicator-text">Desliza para ver más equipo</span>
+  </div>
+</div>

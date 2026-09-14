@@ -1,0 +1,53 @@
+<div class="course-dashboard-content">
+  <div class="row">
+    <div class="col-lg-8 mb-4">
+      <div class="video-player-container ratio ratio-16x9 rounded-3 overflow-hidden shadow-lg mb-3">
+        @if (activeVideoUrl(); as videoUrl) {
+          <iframe
+            [src]="videoUrl"
+            title="YouTube video player"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+          ></iframe>
+        } @else {
+          <div class="d-flex flex-column align-items-center justify-content-center bg-light-blue h-100 text-muted p-5">
+            <i [class]="'bi display-1 mb-3 text-cyan ' + getIconForType(activeContent().type)"></i>
+            <h3 class="text-dark">Material Descargable</h3>
+            <p>Haz clic abajo para obtener el archivo.</p>
+            <a [href]="activeContent().url" class="btn btn-outline-cyan mt-3 px-4 py-2 fw-bold" target="_blank">
+              <i class="bi bi-download me-2"></i> Descargar {{ activeContent().format }}
+            </a>
+          </div>
+        }
+      </div>
+      <h3 class="fw-bold text-cyan">{{ activeContent().title }}</h3>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="content-list-card p-3 rounded-3">
+        <h5 class="mb-3 fw-bold px-2 text-dark">Módulos del Curso</h5>
+        <div class="list-group list-group-flush rounded-3 overflow-hidden">
+          @for (item of course.content; track $index) {
+            <button
+              class="list-group-item list-group-item-action d-flex align-items-center p-3 border-0"
+              [class.active-item]="activeIndex() === $index"
+              (click)="setActiveContent($index)"
+            >
+              <i [class]="'me-3 fs-5 ' + getIconForType(item.type) + ' ' + (activeIndex() === $index ? 'text-white' : 'text-cyan')"></i>
+              <div class="flex-grow-1">
+                <h6 class="m-0 fw-bold">{{ item.title }}</h6>
+                <small [class]="activeIndex() === $index ? 'text-white-50' : 'text-muted'">
+                  {{ item.duration || item.format }}
+                </small>
+              </div>
+              @if (activeIndex() === $index && item.type === 'video') {
+                <i class="bi bi-play-fill fs-4 ms-2"></i>
+              }
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

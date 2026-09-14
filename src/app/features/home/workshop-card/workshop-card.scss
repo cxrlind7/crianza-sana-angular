@@ -1,0 +1,165 @@
+.upcoming-events-section {
+  padding: 50px 0;
+  background-color: transparent;
+  font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+.main-container {
+  max-width: 1000px;
+  padding-left: 5%;
+  padding-right: 5%;
+}
+
+.section-title {
+  text-align: center;
+  color: var(--dm-text);
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.section-subtitle {
+  text-align: center;
+  color: var(--dm-text-secondary);
+  margin-bottom: 40px;
+}
+
+.image-container {
+  margin-bottom: 30px;
+}
+
+.flyer-image {
+  width: auto;
+  max-width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: 20px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.cta-container {
+  margin-top: 20px;
+}
+
+.register-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  padding: 16px 32px;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.btn-whatsapp {
+  background: linear-gradient(45deg, #25d366, #128c7e);
+  box-shadow: 0 10px 20px rgba(37, 211, 102, 0.25);
+}
+.btn-whatsapp:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px rgba(37, 211, 102, 0.4);
+  filter: brightness(1.05);
+}
+
+.btn-phone {
+  background: linear-gradient(45deg, #3498db, #2980b9);
+  box-shadow: 0 10px 20px rgba(52, 152, 219, 0.25);
+}
+.btn-phone:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 30px rgba(52, 152, 219, 0.4);
+  filter: brightness(1.05);
+}
+
+.icon-btn {
+  font-size: 1.4rem;
+  margin-right: 10px;
+}
+
+.cta-small-text {
+  font-size: 0.9rem;
+}
+
+.fade-in {
+  opacity: 0;
+  animation: fadeIn 0.8s ease-out forwards;
+}
+.delay-1 {
+  animation-delay: 0.2s;
+}
+.delay-2 {
+  animation-delay: 0.4s;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.fade-in-cycle {
+  animation: fadeInCycle 1s ease-out;
+}
+@keyframes fadeInCycle {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.indicator-dot {
+  height: 10px;
+  width: 10px;
+  margin: 0 5px;
+  background-color: #bbb;
+  border-radius: 50%;
+  display: inline-block;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+.indicator-dot.active {
+  background-color: #128c7e;
+  width: 12px;
+  height: 12px;
+}
+
+.toast-notification {
+  position: fixed;
+  top: 30px;
+  right: 30px;
+  background: var(--dm-surface);
+  color: var(--dm-text);
+  padding: 12px 20px;
+  margin-top: 3rem;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  z-index: 9999;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-left: 4px solid #48bb78;
+}
+
+.toast-icon {
+  color: #48bb78;
+  margin-right: 10px;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .register-btn {
+    width: 100%;
+    max-width: 350px;
+    font-size: 1rem;
+  }
+}

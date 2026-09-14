@@ -1,0 +1,53 @@
+@if (events().length > 0 && currentEvent(); as currentEvent) {
+  <section class="upcoming-events-section">
+    <div class="container-fluid main-container">
+      <div class="text-center mb-4 fade-in">
+        <h2 class="section-title">Próximos Eventos</h2>
+        <p class="section-subtitle">Talleres y conferencias para el cuidado de nuestros niños.</p>
+      </div>
+
+      <div class="fade-in-cycle">
+        <div class="image-container text-center delay-1">
+          <img [src]="currentEvent.imageSrc" [alt]="currentEvent.altText" class="flyer-image" />
+        </div>
+
+        <div class="cta-container text-center delay-2">
+          <a
+            [href]="actionLink()"
+            (click)="handleBtnClick($event)"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="register-btn"
+            [class.btn-whatsapp]="currentEvent.type === 'whatsapp'"
+            [class.btn-phone]="currentEvent.type === 'call'"
+          >
+            <i [class]="actionIcon()" class="icon-btn"></i>
+
+            {{ currentEvent.buttonText }}
+          </a>
+
+          <p class="cta-small-text mt-3 text-muted">
+            {{ helpText() }}
+          </p>
+        </div>
+      </div>
+
+      <div class="text-center mt-3">
+        @for (event of events(); track $index) {
+          <span
+            class="indicator-dot"
+            [class.active]="$index === currentEventIndex()"
+            (click)="manualChange($index)"
+          ></span>
+        }
+      </div>
+    </div>
+
+    @if (showToast()) {
+      <div class="toast-notification">
+        <i class="fas fa-check-circle toast-icon"></i>
+        <span>Número copiado al portapapeles</span>
+      </div>
+    }
+  </section>
+}

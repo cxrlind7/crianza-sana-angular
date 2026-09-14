@@ -1,0 +1,9 @@
+@if (banner(); as banner) {
+  <div class="thank-you-banner fade-in">
+    <div class="banner-content">
+      <div class="image-box">
+        <img [src]="banner.imageSrc" [alt]="banner.altText || 'Banner'" class="banner-img" />
+      </div>
+    </div>
+  </div>
+}

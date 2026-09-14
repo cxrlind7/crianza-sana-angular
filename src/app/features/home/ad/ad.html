@@ -1,0 +1,11 @@
+@if (currentAd(); as ad) {
+  <div
+    class="promo-image-container"
+    [class.expanded-mobile]="isMobileExpanded()"
+    (click)="handleToggle()"
+  >
+    <div class="close-btn" (click)="$event.stopPropagation(); closePromo()">×</div>
+
+    <img [src]="currentImageSrc()" [alt]="currentAltText()" />
+  </div>
+}

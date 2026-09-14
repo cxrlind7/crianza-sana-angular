@@ -1,0 +1,236 @@
+@if (showToast()) {
+  <div class="toast-notification">
+    <i class="fas fa-check-circle toast-icon"></i>
+    <span>¡Enlace copiado al portapapeles!</span>
+  </div>
+}
+
+<div class="gallery-page-container">
+  <div class="container mb-4 fade-in">
+    <button (click)="goBack()" class="btn-back">
+      <i class="fas fa-arrow-left"></i>
+      <span class="ms-2 d-none d-sm-inline">Regresar</span>
+    </button>
+  </div>
+
+  <div class="content-wrapper">
+    <header class="gallery-header text-center fade-in delay-1">
+      <h3 class="text-uppercase letter-spacing-2 text-dark mb-4 mt-0" style="font-size: 1.5rem; opacity: 0.8">
+        Galería de Álbumes
+      </h3>
+      <button class="btn-toggle-filters" (click)="showFilters.set(!showFilters())">
+        <i class="fas fa-sliders me-2"></i>
+        {{ showFilters() ? 'Ocultar Filtros' : 'Filtrar y Ordenar' }}
+      </button>
+    </header>
+
+    @if (showFilters()) {
+      <section class="controls-section mb-5">
+        <div class="controls-container">
+          @if (uniquePeople().length > 0) {
+            <div class="filter-group">
+              <label class="control-label">
+                <i class="fas fa-user-tie me-2"></i>Especialista:
+              </label>
+              <div class="select-wrapper">
+                <select class="form-select modern-select" [ngModel]="selectedPerson()" (ngModelChange)="selectedPerson.set($event)">
+                  <option [ngValue]="null">Todas las personas</option>
+                  @for (person of uniquePeople(); track person) {
+                    <option [ngValue]="person">{{ person }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+          }
+
+          <div class="filter-group sort-group">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="control-label mb-0">
+                <i class="fas fa-sort me-2"></i>Ordenar:
+              </label>
+              @if (selectedPerson()) {
+                <button class="clear-filters-btn" (click)="clearFilters()">Limpiar filtros ✖</button>
+              }
+            </div>
+
+            <div class="sort-segmented-control">
+              <button (click)="sortOrder.set('recent')" [class.active]="sortOrder() === 'recent'">Más Recientes</button>
+              <button (click)="sortOrder.set('oldest')" [class.active]="sortOrder() === 'oldest'">Más Antiguos</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    }
+
+    <div class="album-grid fade-in delay-2">
+      @for (album of filteredAndSortedAlbums(); track album.id) {
+        <div class="album-card-clean" (click)="openAlbum(album)">
+          <div class="thumbnail-wrapper">
+            <img [src]="album.images[0]?.url" [alt]="album.name" class="album-thumbnail-img" loading="lazy" />
+            <div class="view-overlay">
+              <div class="view-circle">
+                <i class="far fa-images view-icon-svg"></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-info">
+            <h3 class="card-title" [title]="album.name">{{ album.name }}</h3>
+
+            @if (getPersonName(album.name); as personName) {
+              <p class="card-person">
+                <i class="fas fa-user-tie me-1"></i>
+                {{ personName }}
+              </p>
+            }
+
+            <div class="card-meta">
+              @if (album.date) {
+                <span class="meta-date">
+                  <i class="far fa-calendar me-1"></i>
+                  {{ formatDate(album.date) }}
+                </span>
+              }
+              <span class="ms-auto photo-count-badge">{{ album.images.length }} fotos</span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (filteredAndSortedAlbums().length === 0) {
+      <div class="no-results-container fade-in delay-2">
+        <div class="empty-state-box">
+          <i class="far fa-images mb-3 fa-3x" style="opacity: 0.5"></i>
+          <h3>No se encontraron álbumes.</h3>
+          @if (selectedPerson()) {
+            <p>Intenta limpiar los filtros.</p>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (selectedAlbum(); as selectedAlbum) {
+    <div class="gallery-modal-overlay" (click)="$event.target === $event.currentTarget && closeAlbum()">
+      <div class="gallery-modal-container">
+        <button class="close-modal-btn-on-dark" (click)="closeAlbum()" title="Cerrar">✖</button>
+
+        <div class="modal-layout">
+          <div class="image-viewer-section">
+            @if (currentImage(); as currentImage) {
+              <div class="viewer-wrapper">
+                <img [src]="currentImage.url" class="main-viewer-image" [alt]="currentImage.title" />
+
+                @if (hasMultipleImages()) {
+                  <button class="nav-button left" (click)="$event.stopPropagation(); prevImage()">
+                    <i class="fas fa-chevron-left"></i>
+                  </button>
+                  <button class="nav-button right" (click)="$event.stopPropagation(); nextImage()">
+                    <i class="fas fa-chevron-right"></i>
+                  </button>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="gallery-details-section light-theme">
+            <div class="details-header">
+              <div>
+                <h2 class="modal-album-title">{{ selectedAlbum.name }}</h2>
+                @if (getPersonName(selectedAlbum.name); as personName) {
+                  <p class="modal-person-subtitle">
+                    <i class="fas fa-user-tie me-1"></i>
+                    {{ personName }}
+                  </p>
+                }
+              </div>
+            </div>
+
+            <div class="modal-album-meta">
+              <div class="d-flex align-items-center text-muted mb-3">
+                @if (selectedAlbum.date) {
+                  <span>
+                    <i class="far fa-calendar-alt me-1"></i>
+                    {{ formatDate(selectedAlbum.date) }}
+                  </span>
+                }
+              </div>
+
+              <div class="current-image-info d-flex justify-content-between align-items-center">
+                <h5 class="m-0 text-accent">{{ currentImage()?.title || 'Sin título' }}</h5>
+                <button class="btn-share-sm" (click)="$event.stopPropagation(); shareImage(currentImage())" title="Compartir esta imagen">
+                  <i class="fas fa-link"></i>
+                </button>
+              </div>
+
+              <div class="thumbnails-grid-container mt-3">
+                <div class="thumbnails-scroll">
+                  @for (img of selectedAlbum.images; track img.id; let idx = $index) {
+                    <img [src]="img.url" class="mini-thumbnail" [class.active]="idx === selectedImageIndex()" (click)="selectImageByIndex(idx)" loading="lazy" />
+                  }
+                </div>
+              </div>
+            </div>
+
+            <div class="comments-container">
+              <h4 class="comments-title">
+                Comentarios <span class="comment-count">({{ comments().length }})</span>
+              </h4>
+
+              <div class="comments-list light-scroll">
+                @if (comments().length) {
+                  @for (comment of comments(); track comment.id; let idx = $index) {
+                    <div class="comment-item">
+                      <img [src]="comment['image'] || defaultAvatar" alt="Avatar" class="comment-avatar" />
+
+                      <div class="comment-body light-comment-bg">
+                        <div class="comment-header">
+                          <span class="comment-author">{{ comment['userName'] }}</span>
+                          @if (comment['userId'] === currentUser()?.uid) {
+                            <div class="comment-menu">
+                              <button class="menu-trigger text-muted" (click)="toggleMenu(idx)">⋮</button>
+                              @if (activeMenu() === idx) {
+                                <div class="menu-dropdown light-dropdown-bg">
+                                  <button class="btn-delete" (click)="deleteComment(comment, idx)">
+                                    <i class="fas fa-trash-can"></i> Eliminar
+                                  </button>
+                                </div>
+                              }
+                            </div>
+                          }
+                        </div>
+                        <p class="comment-text">{{ comment['commentText'] }}</p>
+                      </div>
+                    </div>
+                  }
+                } @else {
+                  <div class="no-comments-placeholder text-muted">
+                    <i class="far fa-comments placeholder-icon-small"></i>
+                    <p>Sé el primero en comentar esta foto.</p>
+                  </div>
+                }
+              </div>
+
+              <div class="comment-input-wrapper light-border-top">
+                <img [src]="currentUser()?.photoURL || defaultAvatar" class="input-avatar" alt="Tu avatar" />
+                <div class="input-box">
+                  <input
+                    [ngModel]="newComment()"
+                    (ngModelChange)="newComment.set($event)"
+                    placeholder="Añadir un comentario..."
+                    class="comment-input-field light-input-bg"
+                    (keyup.enter)="addNewComment()"
+                  />
+                  <button class="send-comment-btn" (click)="addNewComment()" [disabled]="!newComment().trim()">
+                    <i class="fas fa-paper-plane"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

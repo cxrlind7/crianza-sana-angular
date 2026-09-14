@@ -1,0 +1,77 @@
+.course-sales-container {
+  font-family: 'Montserrat', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-image: radial-gradient(circle at 30% 70%, rgba(173, 216, 230, 0.35), transparent 60%),
+    radial-gradient(circle at 70% 30%, rgba(255, 182, 193, 0.4), transparent 60%);
+  background-size: 100% 100%;
+  color: var(--text-light);
+}
+
+.text-cyan {
+  color: var(--accent-cyan) !important;
+}
+.text-body {
+  color: var(--dm-text);
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 2rem;
+  padding: 10px 20px;
+  background-color: rgba(255, 255, 255, 0.8);
+  border: none;
+  border-radius: 30px;
+  color: var(--dm-text-secondary);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+}
+
+.btn-back:hover {
+  background-color: var(--dm-surface);
+  color: var(--dm-text);
+  transform: translateX(-5px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+  font-weight: 700;
+  position: relative;
+  padding-bottom: 1rem;
+  color: var(--dm-text);
+}
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background-color: var(--accent-cyan);
+}
+
+.preview-item {
+  background-color: rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+}
+.preview-item:hover {
+  background-color: var(--dm-surface);
+  border-color: var(--accent-cyan);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 1.5rem;
+  }
+}

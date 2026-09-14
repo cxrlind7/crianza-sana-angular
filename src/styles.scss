@@ -1,1 +1,184 @@
-/* You can add global styles to this file, and also import other style files */
+@use '@fontsource/inter';
+@use '@fortawesome/fontawesome-free/css/all.css';
+
+/* color palette from <https://github.com/vuejs/theme> */
+:root {
+  --vt-c-white: #ffffff;
+  --vt-c-white-soft: #f8f8f8;
+  --vt-c-white-mute: #f2f2f2;
+
+  --vt-c-black: #f5f5f5;
+  --vt-c-black-soft: #222222;
+  --vt-c-black-mute: #282828;
+
+  --vt-c-indigo: #2c3e50;
+
+  --vt-c-divider-light-1: rgba(60, 60, 60, 0.29);
+  --vt-c-divider-light-2: rgba(60, 60, 60, 0.12);
+  --vt-c-divider-dark-1: rgba(84, 84, 84, 0.65);
+  --vt-c-divider-dark-2: rgba(84, 84, 84, 0.48);
+
+  --vt-c-text-light-1: var(--vt-c-indigo);
+  --vt-c-text-light-2: rgba(60, 60, 60, 0.66);
+  --vt-c-text-dark-1: var(--vt-c-white);
+  --vt-c-text-dark-2: rgba(235, 235, 235, 0.64);
+}
+
+/* semantic color variables for this project */
+:root {
+  --color-background: var(--vt-c-white);
+  --color-background-soft: var(--vt-c-white-soft);
+  --color-background-mute: var(--vt-c-white-mute);
+
+  --color-border: var(--vt-c-divider-light-2);
+  --color-border-hover: var(--vt-c-divider-light-1);
+
+  --color-heading: var(--vt-c-text-light-1);
+  --color-text: #2c2c2c;
+
+  --section-gap: 160px;
+
+  /* Dark-mode-aware role variables used across components.
+     Components should prefer these over hardcoded hex values. */
+  --dm-bg: #ffffff;
+  --dm-bg-soft: #f8f9fa;
+  --dm-surface: #ffffff;
+  --dm-surface-2: #f5f6f8;
+  --dm-text: #2c2c2c;
+  --dm-text-secondary: #5a5a5a;
+  --dm-border: #e9ecef;
+  --dm-shadow: rgba(0, 0, 0, 0.1);
+
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --color-background: #121214;
+  --color-background-soft: #1a1a1e;
+  --color-background-mute: #202024;
+
+  --color-border: var(--vt-c-divider-dark-2);
+  --color-border-hover: var(--vt-c-divider-dark-1);
+
+  --color-heading: var(--vt-c-text-dark-1);
+  --color-text: #e4e4e7;
+
+  --dm-bg: #121214;
+  --dm-bg-soft: #1a1a1e;
+  --dm-surface: #1c1c20;
+  --dm-surface-2: #232328;
+  --dm-text: #e4e4e7;
+  --dm-text-secondary: #a8a8b3;
+  --dm-border: #35353c;
+  --dm-shadow: rgba(0, 0, 0, 0.45);
+
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  font-weight: normal;
+}
+
+html {
+  background-color: var(--dm-bg);
+}
+
+body {
+  min-height: 100vh;
+  color: var(--color-text);
+  background-color: var(--dm-bg);
+
+  transition:
+    color 0.3s ease,
+    background-color 0.3s ease;
+  line-height: 1.6;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    'Fira Sans',
+    'Droid Sans',
+    'Helvetica Neue',
+    sans-serif;
+  font-size: 15px;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/*
+  Dark mode override layer.
+  Bootstrap 5.3's [data-bs-theme="dark"] already re-themes most components
+  (cards, modals, dropdowns, tables, forms, navbars, offcanvas, accordions...).
+  This only patches the *static* utility classes Bootstrap does not
+  re-theme (bg-white, bg-light, text-dark, text-black...) plus a handful of
+  generic patterns used throughout this codebase's own scoped styles.
+*/
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+[data-theme='dark'] .bg-white {
+  background-color: var(--dm-surface) !important;
+}
+
+[data-theme='dark'] .bg-light {
+  background-color: var(--dm-surface-2) !important;
+}
+
+[data-theme='dark'] .text-dark,
+[data-theme='dark'] .text-black {
+  color: var(--dm-text) !important;
+}
+
+[data-theme='dark'] .border {
+  border-color: var(--dm-border) !important;
+}
+
+[data-theme='dark'] ::-webkit-scrollbar {
+  background-color: var(--dm-bg);
+}
+[data-theme='dark'] ::-webkit-scrollbar-thumb {
+  background-color: var(--dm-border);
+  border-radius: 6px;
+}
+
+[data-theme='dark'] .card,
+[data-theme='dark'] .modal-content {
+  border-color: var(--dm-border);
+}
+
+[data-theme='dark'] input,
+[data-theme='dark'] textarea,
+[data-theme='dark'] select {
+  color-scheme: dark;
+}
+
+app-root {
+  margin: 0 auto;
+  font-weight: normal;
+}
+
+a,
+.green {
+  text-decoration: none;
+  color: hsla(160, 100%, 37%, 1);
+  transition: 0.4s;
+  padding: 3px;
+}
+
+@media (hover: hover) {
+  a:hover {
+    background-color: hsla(160, 100%, 37%, 0.2);
+  }
+}

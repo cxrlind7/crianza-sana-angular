@@ -1,0 +1,45 @@
+<div class="mission-vision-section">
+  <div class="container">
+    @if (mision && vision) {
+      <div class="mission-vision-grid">
+        <div class="mv-card mission-card fade-in">
+          <div class="card-content p-4 p-lg-5">
+            <div class="d-flex align-items-center mb-4">
+              <div class="icon-box me-3">
+                <i class="fas fa-bullseye fa-lg text-primary-muted"></i>
+              </div>
+              <h3 class="card-title mb-0">Misión</h3>
+            </div>
+            <p class="card-description">{{ mision }}</p>
+          </div>
+        </div>
+        <div class="mv-card vision-card fade-in delay-1">
+          <div class="card-content p-4 p-lg-5">
+            <div class="d-flex align-items-center mb-4">
+              <div class="icon-box me-3">
+                <i class="fas fa-lightbulb fa-lg text-info-muted"></i>
+              </div>
+              <h3 class="card-title mb-0">Visión</h3>
+            </div>
+            <p class="card-description">{{ vision }}</p>
+          </div>
+        </div>
+      </div>
+    } @else if (mision || vision) {
+      <div class="single-card-wrapper fade-in">
+        <div class="mv-card single-card">
+          <div class="card-content p-4 p-lg-5 text-center">
+            <h3 class="card-title mb-4">Misión y Visión</h3>
+            <p class="card-description lead" style="max-width: 800px; margin: auto">
+              {{ mision || vision }}
+            </p>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <div class="text-center py-5 text-muted fade-in">
+        <p>No hay información disponible.</p>
+      </div>
+    }
+  </div>
+</div>

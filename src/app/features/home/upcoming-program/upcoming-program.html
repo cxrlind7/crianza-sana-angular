@@ -1,0 +1,58 @@
+@if (programa() && isUpcoming()) {
+  <h2 class="section-title">Próximo Programa</h2>
+  <section class="broadcast-container" [style]="cssVars()">
+    <div class="content-wrapper container">
+      <header class="header-section mb-4">
+        <div class="logos-top d-flex align-items-center justify-content-center flex-wrap gap-3 mb-3">
+          <img src="/csbdk.png" alt="Logo CSBDK" class="main-logo" />
+        </div>
+        <h1 class="main-headline text-center">
+          <span [innerHTML]="currentTema().name"></span>
+        </h1>
+      </header>
+
+      <div class="presenters-section row justify-content-center gx-lg-4">
+        <div class="col-12 col-md-5 text-center presenter-col mb-3 mb-md-0">
+          <div class="image-glow-ring">
+            <img [src]="fixedItem().image" [alt]="fixedItem().name" class="presenter-photo" />
+          </div>
+          <h3 class="presenter-name">{{ fixedItem().name }}</h3>
+          <h4 class="presenter-role">Presentadora</h4>
+        </div>
+
+        <div class="col-12 col-md-5 text-center presenter-col">
+          <div class="image-glow-ring">
+            <img [src]="currentItem().image" [alt]="currentItem().name" class="presenter-photo" />
+          </div>
+          <h3 class="presenter-name">{{ currentItem().name }}</h3>
+          <h4 class="presenter-role">{{ currentItem().title }}</h4>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer-section">
+      <div class="container-fluid p-0 d-flex align-items-end justify-content-between position-relative footer-content">
+        <div class="date-banner">
+          <div class="banner-content d-flex align-items-center">
+            <div class="date-big me-3">{{ eventInfo().day }}</div>
+            <div class="date-small me-4">
+              <span class="d-block font-weight-bold">{{ eventInfo().month }}</span>
+              <span class="d-block">{{ eventInfo().year }}</span>
+            </div>
+            <div class="vertical-separator me-4"></div>
+            <div class="time-info">
+              <div class="time-text">{{ eventInfo().time }}</div>
+              <div class="sintoniza-text">{{ eventInfo().message }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="middle-logo-container mx-3 mb-2 d-none d-md-block"></div>
+
+        <div class="bottom-logo-container pe-4 pe-md-5 mb-2">
+          <img src="/+pop.png" alt="Logo +Pop" class="bottom-logo" />
+        </div>
+      </div>
+    </footer>
+  </section>
+}

@@ -1,0 +1,77 @@
+<div class="profile-page-wrapper pt-5 pt-md-6">
+  <div class="container mb-4 mt-5 fade-in">
+    <button (click)="goBack()" class="btn-back">
+      <i class="fas fa-arrow-left"></i>
+      <span class="ms-2 d-none d-sm-inline">Regresar</span>
+    </button>
+  </div>
+
+  @if (person(); as person) {
+    <div class="container pb-5 main-container">
+      <div class="card profile-header-card shadow-lg border-0 mb-5 fade-in delay-1">
+        <div class="card-body p-0">
+          <div class="row g-0 h-100">
+            <div class="col-lg-5 image-column d-flex align-items-center justify-content-center p-5" [style.backgroundColor]="person.color + '0D'">
+              <div class="text-center">
+                <img [src]="person.image" [style.borderColor]="person.color" alt="Foto de perfil" class="img-fluid rounded-circle profile-image shadow" />
+              </div>
+            </div>
+
+            <div class="col-lg-7 p-4 p-md-5 d-flex flex-column justify-content-center">
+              <h6 class="text-uppercase letter-spacing-2 mb-3" [style.color]="person.color">
+                {{ person.title }}
+              </h6>
+              <h1 class="display-5 fw-bold text-dark mb-4">{{ person.name }}</h1>
+
+              <div class="bio-text lead text-muted mb-4" [innerHTML]="person.detalle"></div>
+
+              <ul class="list-inline social-list mb-0 mt-auto">
+                @for (social of person.socials; track $index) {
+                  <li class="list-inline-item">
+                    <a [href]="social.link" target="_blank" class="social-btn-link" [style.--hover-color]="person.color" [style.color]="person.color">
+                      <i [class]="social.iconClass + ' fa-lg'"></i>
+                      <span class="social-text">{{ getSocialName(social.iconClass) }}</span>
+                    </a>
+                  </li>
+                }
+
+                <li class="list-inline-item">
+                  <a [href]="person.direccion.link" target="_blank" class="social-btn-link map-link" [style.--hover-color]="person.color">
+                    <img src="/icons8-map-64.png" alt="Mapa" class="map-icon" />
+                    <span class="social-text">Ubicación</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-section mb-2 fade-in delay-2">
+        <app-mision-profile [mision]="person.mision" [vision]="person.vision" />
+      </div>
+      <div class="content-section mb-2 fade-in delay-3">
+        <app-services-profile [servicios]="person.servicios" [personColor]="person.color" />
+      </div>
+      <div class="content-section mb-2 fade-in delay-3">
+        <app-person-faqs [preguntas]="person.preguntasFrecuentes" [personColor]="person.color" />
+      </div>
+      <div class="content-section mb-2 fade-in delay-3">
+        <app-person-downloads [files]="person.files" [personColor]="person.color" />
+      </div>
+      <div class="content-section mb-2 fade-in delay-3">
+        <app-person-reels [instagramProfileData]="person.instagramProfileData || null" />
+      </div>
+      <div class="content-section mb-2 fade-in delay-3">
+        <app-person-blogs [personName]="person.name" [personColor]="person.color" />
+      </div>
+      <div class="content-section mb-2 fade-in delay-3">
+        <app-person-youtube [videos]="person.youtubeVideos || []" [channelUrl]="person.youtubeChannelUrl || ''" [personColor]="person.color" />
+      </div>
+    </div>
+  } @else {
+    <div class="container py-5 text-center">
+      <p class="text-muted">Persona no encontrada.</p>
+    </div>
+  }
+</div>

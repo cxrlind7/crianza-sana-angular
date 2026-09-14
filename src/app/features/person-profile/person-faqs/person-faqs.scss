@@ -1,0 +1,117 @@
+.person-faq-section {
+  padding: 40px 0;
+}
+
+.main-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.letter-spacing-2 {
+  letter-spacing: 2px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.accordion-wrapper {
+  background: var(--dm-surface);
+  border-radius: 24px;
+  padding: 30px 30px 10px 30px;
+  box-shadow:
+    0 20px 40px rgba(50, 50, 93, 0.08),
+    0 10px 20px rgba(0, 0, 0, 0.05) !important;
+}
+
+.faq-scroll-container {
+  max-height: 450px;
+  overflow-y: auto;
+  padding-right: 15px;
+  margin-bottom: 20px;
+}
+
+.faq-scroll-container::-webkit-scrollbar {
+  width: 5px;
+}
+
+.faq-scroll-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 10px;
+}
+
+.faq-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 10px;
+}
+
+.faq-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.accordion-item {
+  background-color: transparent;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+}
+
+.accordion-item:last-child {
+  border-bottom: none !important;
+}
+
+.accordion-button {
+  background-color: transparent;
+  box-shadow: none;
+  padding: 1rem 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--dm-text);
+  transition: all 0.3s ease;
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: transparent !important;
+  color: var(--accent-color) !important;
+  box-shadow: none !important;
+}
+
+.accordion-button:focus {
+  box-shadow: none !important;
+  border-color: transparent !important;
+  color: var(--accent-color);
+}
+
+.accordion-button::after {
+  background-size: 1rem;
+  transition: all 0.3s ease;
+  opacity: 0.5;
+}
+
+.accordion-button:not(.collapsed):after {
+  filter: drop-shadow(0 0 0 var(--accent-color)) saturate(1000%);
+  opacity: 1;
+  transform: rotate(180deg);
+}
+
+.accordion-body {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--dm-text-secondary);
+}
+
+.fade-in {
+  opacity: 0;
+  animation: fadeIn 0.8s ease-out forwards;
+}
+.delay-1 {
+  animation-delay: 0.2s;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,0 +1,11 @@
+@if (showBanner()) {
+  <div class="anniversary-chip" role="status">
+    <span class="anniversary-emoji" aria-hidden="true">🎉</span>
+    <span class="anniversary-text">
+      ¡Estamos de fiesta! Celebramos nuestro aniversario durante todo septiembre
+    </span>
+    <button class="anniversary-close" (click)="dismiss()" aria-label="Cerrar aviso de aniversario">
+      <i class="bi bi-x-lg"></i>
+    </button>
+  </div>
+}

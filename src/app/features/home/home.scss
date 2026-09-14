@@ -1,0 +1,60 @@
+.icon-box {
+  background: rgba(255, 255, 255, 0.6);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.heart-icon {
+  width: 24px;
+  height: 24px;
+  color: #ff8fa3;
+}
+
+.main-message {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--dm-text-secondary);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.main-message strong {
+  color: var(--dm-text);
+  font-weight: 700;
+}
+
+.divider {
+  width: 40px;
+  height: 2px;
+  background-color: rgba(0, 0, 0, 0.05);
+  margin: 15px auto;
+}
+
+.wishes {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--dm-text-secondary);
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin: 0;
+  font-style: italic;
+}
+
+.wishes strong {
+  color: #d53f8c;
+}
+
+.todo {
+  position: relative;
+  z-index: 2;
+}
+
+.profile-page-wrapper {
+  position: relative;
+  min-height: 100vh;
+}

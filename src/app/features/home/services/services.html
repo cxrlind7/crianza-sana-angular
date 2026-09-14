@@ -1,0 +1,44 @@
+<section class="services-section">
+  <h2 class="section-title">Nuestros Servicios Integrales</h2>
+  <p class="section-subtitle">
+    Un equipo multidisciplinario enfocado en la generación de las crianzas responsables.
+  </p>
+
+  <div class="swiper-container-wrapper">
+    <swiper-container #swiperContainer init="false" class="services-swiper">
+      @for (servicio of servicios; track servicio.personId) {
+        <swiper-slide>
+          <a [routerLink]="['/person', servicio.personId]" class="service-card">
+            <div class="image-wrapper">
+              <img [src]="servicio.image" [alt]="servicio.title" class="rounded-image" />
+            </div>
+
+            <div class="info-container">
+              <h4 class="title">{{ servicio.title }}</h4>
+              <p class="description">{{ servicio.description }}</p>
+            </div>
+
+            <div class="card-cta">
+              <a [href]="getWhatsAppLink(servicio.title)" target="_blank" class="whatsapp-btn" (click)="$event.stopPropagation()">
+                <i class="fab fa-whatsapp"></i>
+                <span>Contactar</span>
+              </a>
+
+              <div class="view-profile-link">
+                <span>Ver especialista</span>
+                <i class="fas fa-arrow-right"></i>
+              </div>
+            </div>
+          </a>
+        </swiper-slide>
+      }
+
+      <div class="custom-prev-arrow" slot="container-end">
+        <i class="fas fa-chevron-left"></i>
+      </div>
+      <div class="custom-next-arrow" slot="container-end">
+        <i class="fas fa-chevron-right"></i>
+      </div>
+    </swiper-container>
+  </div>
+</section>

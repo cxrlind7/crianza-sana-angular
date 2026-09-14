@@ -1,0 +1,58 @@
+<div class="store-page-container">
+  <div class="container mb-0 fade-in">
+    <button (click)="goBack()" class="btn-back">
+      <i class="fas fa-arrow-left"></i>
+      <span class="ms-2 d-none d-sm-inline">Regresar</span>
+    </button>
+  </div>
+
+  <div class="content-wrapper">
+    <header class="store-header text-center fade-in delay-1">
+      <h3 class="text-uppercase letter-spacing-2 text-dark mb-4 mt-0" style="font-size: 1.5rem; opacity: 0.8">
+        Tienda de Cursos
+      </h3>
+    </header>
+
+    <div class="course-grid fade-in delay-2">
+      @for (course of courses; track course.id) {
+        <div class="course-card-clean" (click)="goToCourse(course.id)">
+          <div class="thumbnail-wrapper">
+            <img [src]="course.presenter.image" [alt]="course.title" class="course-thumbnail-img" />
+            <div class="view-overlay">
+              <div class="view-circle">
+                <i class="fas fa-eye view-icon-svg"></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-info">
+            <h3 class="card-title" [title]="course.title">{{ course.title }}</h3>
+
+            <p class="card-presenter">
+              <i class="fas fa-user-tie me-1"></i>
+              {{ course.presenter.name }}
+            </p>
+
+            <div class="card-meta">
+              <span class="meta-price">
+                {{ formatPrice(course.price.discounted) }} {{ course.price.currency }}
+              </span>
+              <span class="meta-original-price text-muted text-decoration-line-through ms-2">
+                {{ formatPrice(course.price.original) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (courses.length === 0) {
+      <div class="no-results-container fade-in delay-2">
+        <div class="empty-state-box">
+          <i class="fas fa-search mb-3 fa-3x" style="opacity: 0.5"></i>
+          <h3>No se encontraron cursos disponibles.</h3>
+        </div>
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,167 @@
+<div class="blog-container fade-in">
+  <div class="container mb-4 fade-in">
+    <button (click)="goBack()" class="btn-back">
+      <i class="fas fa-arrow-left"></i>
+      <span class="ms-2 d-none d-sm-inline">Regresar</span>
+    </button>
+  </div>
+
+  @if (blog(); as blog) {
+    <div class="blog-detail-card">
+      <header class="blog-header">
+        @if (blog.category) {
+          <span class="blog-category-pill" [style.backgroundColor]="blog.categoryColor || '#3b82f6'">
+            {{ blog.category }}
+          </span>
+        }
+
+        <h1 class="blog-title">{{ blog.title }}</h1>
+        @if (blog.title1) {
+          <h2 class="blog-subtitle">{{ blog.title1 }}</h2>
+        }
+
+        <div class="blog-meta-wrapper">
+          <div class="author-meta">
+            <img [src]="getImagePerCategory(blog.authorName)" alt="Author" class="author-avatar" />
+            <div class="author-details">
+              <span class="author-name">{{ blog.authorName }}</span>
+              <span class="meta-date">{{ formattedDate() }}</span>
+            </div>
+          </div>
+
+          <div class="share-actions">
+            <span class="share-label">Compartir:</span>
+            <button class="share-btn copy-btn" (click)="shareBlog(blog.id)" title="Copiar enlace">
+              <i class="fas fa-link"></i>
+            </button>
+            <button class="share-btn facebook-btn" (click)="shareToFacebook(blog.id)" title="Compartir en Facebook">
+              <i class="fab fa-facebook-f"></i>
+            </button>
+            <button
+              class="share-btn instagram-btn"
+              (click)="generateInstagramStory()"
+              title="Compartir en Historias (Descargar Imagen)"
+              [disabled]="isGeneratingImage()"
+            >
+              @if (!isGeneratingImage()) {
+                <i class="fab fa-instagram"></i>
+              } @else {
+                <div class="spinner-border spinner-border-sm" role="status"></div>
+              }
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div class="featured-image-container">
+        <img [src]="blog.imageUrl" [alt]="blog.title" class="featured-image" />
+      </div>
+
+      <article class="blog-body">
+        <div class="blog-content-typography" [innerHTML]="formattedText()"></div>
+      </article>
+
+      <section class="comments-section">
+        <h3 class="comments-title">
+          Comentarios <span class="comments-count">({{ comments().length }})</span>
+        </h3>
+
+        <div class="comment-input-wrapper">
+          <img [src]="authUser()?.photoURL || defaultAvatar" alt="Tu avatar" class="current-user-avatar" />
+          <div class="input-group-modern">
+            <input
+              [ngModel]="newComment()"
+              (ngModelChange)="newComment.set($event)"
+              placeholder="Escribe un comentario..."
+              class="comment-input-modern"
+              (keyup.enter)="addNewComment()"
+            />
+            <button class="send-button-modern" (click)="addNewComment()" [disabled]="!newComment().trim()" title="Enviar comentario">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="comments-list">
+          @for (comment of comments(); track comment.id; let idx = $index) {
+            <div class="comment-item">
+              <img [src]="comment['image'] || defaultAvatar" alt="User Avatar" class="comment-avatar" />
+
+              <div class="comment-bubble">
+                <div class="comment-header">
+                  <span class="comment-author-name">{{ comment['userName'] }}</span>
+
+                  @if (comment['userId'] === authUser()?.uid) {
+                    <div class="comment-options">
+                      <button class="options-btn" (click)="$event.stopPropagation(); toggleMenu(idx)">⋮</button>
+                      @if (activeMenu() === idx) {
+                        <div class="options-dropdown">
+                          <button class="dropdown-item text-danger" (click)="deleteComment(comment, idx)">
+                            <i class="fas fa-trash me-2"></i> Eliminar
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+                <p class="comment-text">{{ comment['commentText'] }}</p>
+              </div>
+            </div>
+          }
+        </div>
+
+        @if (comments().length === 0) {
+          <div class="no-comments-state">
+            <p>Aún no hay comentarios. ¡Sé el primero en opinar!</p>
+          </div>
+        }
+      </section>
+    </div>
+  } @else {
+    <div class="loading-container">
+      <p>Cargando artículo o no encontrado...</p>
+    </div>
+  }
+
+  <div class="instagram-story-wrapper">
+    @if (blog(); as blog) {
+      <div #instagramStoryRef class="instagram-story-template">
+        <div class="story-background" [style.background]="getStoryGradient(blog)">
+          <div class="story-header">
+            <span class="story-brand">Crianza Sana</span>
+          </div>
+
+          <div class="story-content">
+            <div class="story-image-container">
+              <div class="story-main-image-bg" [style.backgroundImage]="'url(' + blog.imageUrl + ')'"></div>
+            </div>
+
+            <div class="story-text-container">
+              <span class="story-category" [style.backgroundColor]="getCategoryColor(blog)">
+                {{ blog.category }}
+              </span>
+              <h1 class="story-title">{{ blog.title }}</h1>
+              <div class="story-author">
+                <img [src]="getImagePerCategory(blog.authorName)" crossorigin="anonymous" class="story-author-img" />
+                <span>{{ blog.authorName }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="story-footer">
+            <div class="story-listen-badge">
+              <span>Leer en el blog</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (showToast()) {
+    <div class="toast-notification">
+      <i class="fas fa-check-circle toast-icon"></i>
+      <span>Enlace copiado al portapapeles</span>
+    </div>
+  }
+</div>

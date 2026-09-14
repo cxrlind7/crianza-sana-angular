@@ -1,0 +1,28 @@
+@if (isVisible()) {
+  <div class="mascot-wrap">
+    @if (showBubble()) {
+      <div class="mascot-bubble">
+        <button class="mascot-bubble-close" (click)="closeBubble()" aria-label="Cerrar mensaje">
+          <i class="bi bi-x-lg"></i>
+        </button>
+        <p class="mascot-bubble-text">{{ currentMessage().text }}</p>
+        @if (currentMessage().blogId) {
+          <button class="mascot-bubble-cta" (click)="goToBlog()">
+            Leer blog <i class="bi bi-arrow-right"></i>
+          </button>
+        }
+      </div>
+    }
+
+    <div class="mascot-controls">
+      <button class="mascot-avatar" (click)="toggleBubble()" aria-label="Mostrar mensaje de bienvenida">
+        <span class="mascot-hat" aria-hidden="true">🎉</span>
+        <span class="mascot-emoji">👦</span>
+      </button>
+
+      <button class="confetti-btn" (click)="throwConfetti()" aria-label="Lanzar más confetti" title="¡Lanza confetti!">
+        <span class="confetti-btn-emoji">🎊</span>
+      </button>
+    </div>
+  </div>
+}

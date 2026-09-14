@@ -1,0 +1,58 @@
+@if (instaData(); as instaData) {
+  <section class="instagram-profile-replica fade-in">
+    <div class="container-fluid main-container">
+      <div class="text-center mb-5 fade-in">
+        <h6 class="text-uppercase letter-spacing-2 text-muted mb-2">Contenido Multimedia</h6>
+        <h2 class="display-6 fw-bold text-dark">Social Media</h2>
+      </div>
+
+      <div class="card-container">
+        <div class="profile-header">
+          <div class="header-pic-col">
+            <div class="insta-pic-wrapper">
+              <img [src]="instaData.profileImage" alt="Profile Picture" class="insta-pic" />
+            </div>
+          </div>
+
+          <div class="header-info-col">
+            <div class="info-row-top">
+              <h2 class="insta-username">{{ instaData.username }}</h2>
+              <div class="header-actions">
+                <a [href]="instaData.url" target="_blank" rel="noopener noreferrer" class="insta-btn btn-primary">
+                  Seguir
+                </a>
+                <a [href]="instaData.url" target="_blank" rel="noopener noreferrer" class="insta-btn btn-secondary">
+                  Enviar mensaje
+                </a>
+              </div>
+            </div>
+
+            <ul class="insta-stats-row">
+              <li>
+                <span class="stat-bold">{{ formatNumber(instaData.stats.posts) }}</span>
+                publicaciones
+              </li>
+              <li>
+                <a [href]="instaData.url" target="_blank" rel="noopener noreferrer" class="stat-link">
+                  <span class="stat-bold">{{ formatNumber(instaData.stats.followers) }}</span>
+                  seguidores
+                </a>
+              </li>
+              <li>
+                <a [href]="instaData.url" target="_blank" rel="noopener noreferrer" class="stat-link">
+                  <span class="stat-bold">{{ formatNumber(instaData.stats.following) }}</span>
+                  seguidos
+                </a>
+              </li>
+            </ul>
+
+            <div class="insta-bio-block">
+              <h1 class="insta-fullname">{{ instaData.fullName }}</h1>
+              <div class="insta-bio-text" [innerHTML]="formattedBio()"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+}
