@@ -1,0 +1,137 @@
+@if (showToast()) {
+  <div class="toast-notification">
+    <i class="fas fa-check-circle me-2"></i>
+    <span>Enlace copiado al portapapeles</span>
+    <button (click)="showToast.set(false)" class="toast-close">✖</button>
+  </div>
+}
+
+<div class="blogs-page-container">
+  <div class="container mb-4 fade-in">
+    <button (click)="goBack()" class="btn-back">
+      <i class="fas fa-arrow-left"></i>
+      <span class="ms-2 d-none d-sm-inline">Regresar</span>
+    </button>
+  </div>
+  <header class="blogs-header text-center fade-in">
+    <h3 class="text-uppercase letter-spacing-2 text-dark mb-4 mt-0" style="font-size: 1.5rem; opacity: 0.8">
+      Nuestro Blog
+    </h3>
+
+    <button class="btn-toggle-filters fade-in delay-1" (click)="showFilters.set(!showFilters())">
+      <i class="fas fa-sliders-h me-2"></i>
+      {{ showFilters() ? 'Ocultar Filtros' : 'Filtrar y Ordenar' }}
+    </button>
+  </header>
+
+  @if (showFilters()) {
+    <section class="blog-controls-section">
+      <div class="controls-container">
+        <div class="filter-group">
+          <label class="control-label">
+            <i class="fas fa-filter me-2"></i>Filtrar por Categoría:
+          </label>
+          <div class="category-pills">
+            @for (cat of uniqueCategories(); track cat) {
+              <button
+                class="category-pill"
+                [class.active]="selectedCategories().includes(cat)"
+                [style]="selectedCategories().includes(cat) ? { backgroundColor: getCategoryColor(cat), borderColor: getCategoryColor(cat) } : {}"
+                (click)="toggleCategory(cat)"
+              >
+                {{ cat }}
+              </button>
+            }
+            @if (selectedCategories().length) {
+              <button class="clear-filters-btn" (click)="clearFilters()">Limpiar ✖</button>
+            }
+          </div>
+        </div>
+
+        <div class="sort-group">
+          <label class="control-label"><i class="fas fa-sort me-2"></i>Ordenar por:</label>
+          <div class="sort-segmented-control">
+            <button (click)="sortOrder.set('recent')" [class.active]="sortOrder() === 'recent'">Más Recientes</button>
+            <button (click)="sortOrder.set('oldest')" [class.active]="sortOrder() === 'oldest'">Más Antiguos</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  }
+
+  <section class="blog-grid-section fade-in delay-2">
+    @if (paginatedBlogs().length > 0) {
+      <div class="blog-grid">
+        @for (blog of paginatedBlogs(); track blog.id) {
+          <article class="blog-card-modern">
+            <div class="blog-card-image-wrapper">
+              <img [src]="blog.imageUrl" [alt]="blog.title" class="blog-card-image" />
+              @if (blog.category) {
+                <span class="blog-card-category" [style.backgroundColor]="blog.categoryColor || '#2563eb'">
+                  {{ blog.category }}
+                </span>
+              }
+              <button class="share-btn-floating" (click)="$event.stopPropagation(); shareBlog(blog.id)" title="Compartir">
+                <i class="fas fa-share-from-square"></i>
+              </button>
+            </div>
+
+            <div class="blog-card-content">
+              <div class="blog-card-meta">
+                <span class="blog-date">
+                  <i class="far fa-calendar-alt me-2"></i>{{ getFormattedFirestoreDate(blog.date) }}
+                </span>
+              </div>
+
+              <h3 class="blog-card-title">
+                <a [href]="'/blog/' + blog.id" (click)="$event.preventDefault(); goToBlogDetail(blog.id)">
+                  {{ blog.title }}
+                </a>
+              </h3>
+
+              <p class="blog-card-excerpt">{{ truncateText(blog.description, 120) }}</p>
+
+              <div class="blog-card-footer">
+                <div class="blog-author-info">
+                  <img [src]="getImagePerCategory(blog.authorName)" alt="Author" class="author-avatar" />
+                  <span class="author-name">{{ blog.authorName }}</span>
+                </div>
+                <button class="read-more-btn" (click)="goToBlogDetail(blog.id)">
+                  Leer más <i class="fas fa-arrow-right ms-2"></i>
+                </button>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    } @else {
+      <div class="no-results text-center py-5">
+        <div class="empty-state-container">
+          <i class="fas fa-search fa-3x mb-3"></i>
+          <h4>No se encontraron artículos.</h4>
+          <p>Intenta seleccionar otras categorías.</p>
+        </div>
+      </div>
+    }
+  </section>
+
+  @if (totalPages() > 1) {
+    <nav class="pagination-modern fade-in delay-3">
+      <button (click)="prevPage()" [disabled]="currentPage() === 1" class="pagination-arrow" title="Anterior">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+
+      <div class="pagination-pages">
+        @for (page of pageNumbers(); track page) {
+          <button (click)="goToPage(page)" class="pagination-page-btn" [class.active]="currentPage() === page">
+            {{ page }}
+          </button>
+        }
+      </div>
+
+      <button (click)="nextPage()" [disabled]="currentPage() === totalPages()" class="pagination-arrow" title="Siguiente">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </nav>
+  }
+</div>

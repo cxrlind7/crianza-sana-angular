@@ -1,0 +1,46 @@
+@if (videos && videos.length > 0) {
+  <div class="person-youtube-section">
+    <div class="container-fluid main-container">
+      <div class="text-center mb-5 fade-in">
+        <h6 class="text-uppercase letter-spacing-2 text-muted mb-2">Canal de YouTube</h6>
+        <h2 class="display-6 fw-bold text-dark">Videos Recientes</h2>
+        @if (channelUrl) {
+          <a [href]="channelUrl" target="_blank" rel="noopener" class="channel-link" [style.color]="personColor">
+            <i class="fab fa-youtube me-2"></i>Ver canal completo
+          </a>
+        }
+      </div>
+
+      <div class="carousel-container position-relative fade-in delay-1" [style.--arrow-color]="personColor">
+        <swiper-container #swiperContainer init="false" class="youtube-swiper" [style.--swiper-pagination-color]="personColor">
+          @for (video of videos; track video.id) {
+            <swiper-slide class="h-auto">
+              <a class="video-card h-100" [href]="'https://www.youtube.com/watch?v=' + video.id" target="_blank" rel="noopener">
+                <div class="video-image-wrapper">
+                  <img [src]="thumbnailUrl(video.id)" [alt]="video.title" class="video-image" loading="lazy" />
+                  <span class="play-badge" [style.backgroundColor]="personColor || '#ff0000'">
+                    <i class="fas fa-play"></i>
+                  </span>
+                </div>
+
+                <div class="video-content">
+                  <h3 class="video-title">{{ video.title }}</h3>
+                  <span class="watch-more" [style.color]="personColor">
+                    Ver en YouTube <i class="fas fa-arrow-right ms-1"></i>
+                  </span>
+                </div>
+              </a>
+            </swiper-slide>
+          }
+        </swiper-container>
+
+        <div class="custom-arrow yt-custom-prev">
+          <i class="fas fa-chevron-left"></i>
+        </div>
+        <div class="custom-arrow yt-custom-next">
+          <i class="fas fa-chevron-right"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+}

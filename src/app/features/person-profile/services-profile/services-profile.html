@@ -1,0 +1,33 @@
+<div class="services-section-wrapper">
+  <div class="container-fluid main-container">
+    <div class="text-center mb-5 fade-in">
+      <h6 class="text-uppercase letter-spacing-2 text-muted mb-2">Lo que ofrecemos</h6>
+      <h2 class="display-6 fw-bold text-dark">Nuestros Servicios</h2>
+    </div>
+
+    <div class="carousel-container position-relative fade-in delay-1" [style.--arrow-color]="personColor">
+      <swiper-container #swiperContainer init="false" class="services-swiper" [style.--swiper-pagination-color]="personColor">
+        @for (service of servicios; track $index) {
+          <swiper-slide class="h-auto">
+            <div class="service-card h-100">
+              <div class="card-content">
+                <div class="icon-wrapper mb-4" [style.borderColor]="personColor">
+                  <div class="service-icon-img" [style.backgroundImage]="'url(' + service.image + ')'" role="img" aria-label="Icono del servicio"></div>
+                </div>
+                <h4 class="service-title mb-3">{{ service.titulo }}</h4>
+                <p class="service-description text-muted mb-0">{{ service.descripcion }}</p>
+              </div>
+            </div>
+          </swiper-slide>
+        }
+      </swiper-container>
+
+      <div class="custom-arrow custom-prev">
+        <i class="fas fa-chevron-left"></i>
+      </div>
+      <div class="custom-arrow custom-next">
+        <i class="fas fa-chevron-right"></i>
+      </div>
+    </div>
+  </div>
+</div>

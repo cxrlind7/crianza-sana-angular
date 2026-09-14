@@ -1,0 +1,97 @@
+<section class="spotify-section py-5" id="spotify-player-anchor">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-9 col-xl-8">
+        <div class="text-center mb-4">
+          <h2 class="fw-bold mb-2 spotify-title">
+            <i class="bi bi-spotify me-2"></i>Escúchanos en Spotify
+          </h2>
+          <p class="text-muted mb-0 small">Últimos episodios y contenidos exclusivos.</p>
+        </div>
+
+        @if (currentEpisodeEmbedUrl(); as embedUrl) {
+          <div class="active-player-wrapper mb-3 shadow-sm rounded-4 overflow-hidden">
+            <iframe
+              style="border-radius: 12px"
+              [src]="embedUrl"
+              width="100%"
+              height="152"
+              frameBorder="0"
+              allowfullscreen
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              loading="lazy"
+            >
+            </iframe>
+          </div>
+        }
+
+        @if (loading()) {
+          <div class="text-center py-4 text-muted small">
+            <div class="spinner-border spinner-border-sm text-success mb-2" role="status"></div>
+            <p class="mb-0">Cargando episodios...</p>
+          </div>
+        } @else if (error()) {
+          <div class="text-center py-4 text-danger small">
+            <i class="bi bi-exclamation-triangle-fill fs-5 mb-2"></i>
+            <p class="mb-0">No se pudieron cargar los episodios.</p>
+          </div>
+        } @else {
+          <div>
+            <div class="text-center mb-3">
+              <button class="btn btn-toggle-list btn-sm rounded-pill px-4" (click)="toggleList()">
+                @if (!showList()) {
+                  <span><i class="bi bi-list-ul me-2"></i>Ver más episodios</span>
+                } @else {
+                  <span><i class="bi bi-chevron-up me-2"></i>Ocultar lista</span>
+                }
+              </button>
+            </div>
+
+            @if (showList()) {
+              <div class="custom-episode-list shadow-sm rounded-4 bg-white overflow-hidden">
+                @for (episode of episodes(); track episode.id) {
+                  <div
+                    class="episode-item d-flex align-items-center p-2 border-bottom"
+                    [class.bg-selected]="currentEpisodeId() === episode.id"
+                    (click)="playEpisode(episode.id)"
+                  >
+                    <img
+                      [src]="episode.images[2].url"
+                      alt="Portada"
+                      class="episode-img rounded-3 me-3"
+                      width="48"
+                      height="48"
+                    />
+
+                    <div class="episode-info flex-grow-1 pe-3 overflow-hidden">
+                      <h6 class="episode-title mb-1 text-dark text-truncate">{{ episode.name }}</h6>
+                      <div class="d-flex align-items-center text-muted extra-small">
+                        <span class="me-2"
+                          ><i class="bi bi-calendar3 me-1"></i
+                          >{{ formatDate(episode.release_date) }}</span
+                        >
+                        <span
+                          ><i class="bi bi-clock me-1"></i
+                          >{{ formatDuration(episode.duration_ms) }} min</span
+                        >
+                      </div>
+                      <p class="episode-description text-muted mb-0 mt-1 d-none d-md-block text-truncate">
+                        {{ episode.description }}
+                      </p>
+                    </div>
+
+                    <div class="play-btn-container ms-auto align-self-center">
+                      <button class="btn btn-spotify-play rounded-circle shadow-sm">
+                        <i [class]="currentEpisodeId() === episode.id ? 'bi bi-bar-chart-fill' : 'bi bi-play-fill'"></i>
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</section>

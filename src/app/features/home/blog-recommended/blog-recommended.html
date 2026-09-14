@@ -1,0 +1,46 @@
+<h2 class="section-title">Recomendado</h2>
+
+<section class="blog-recommended-section">
+  @if (blog(); as blog) {
+    <div class="blog-display-wrapper">
+      <article class="blog-card">
+        <div class="blog-card__image-container">
+          <img [src]="blog.imageUrl" [alt]="blog.title" class="blog-card__image" />
+        </div>
+
+        <div class="blog-card__content">
+          <div class="blog-card__header">
+            <div class="accent-line"></div>
+            <h2 class="blog-title">{{ blog.title }}</h2>
+          </div>
+
+          <p class="blog-description">{{ blog.description }}</p>
+
+          <div class="blog-card__footer">
+            <a
+              [routerLink]="['/blog', blog.id]"
+              class="read-more-btn"
+              (click)="trackBlogClick(blog.title)"
+            >
+              Leer artículo
+            </a>
+          </div>
+        </div>
+      </article>
+    </div>
+  }
+
+  @if (blogCycle().length > 1) {
+    <div class="pagination-container">
+      @for (item of blogCycle(); track $index) {
+        <span
+          class="pagination-dot"
+          [class.active]="$index === currentIndex()"
+          (click)="goToIndex($index)"
+          role="button"
+          [attr.aria-label]="'Ir al elemento ' + ($index + 1)"
+        ></span>
+      }
+    </div>
+  }
+</section>

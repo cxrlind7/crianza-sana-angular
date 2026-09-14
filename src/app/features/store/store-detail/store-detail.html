@@ -1,0 +1,67 @@
+@if (course(); as course) {
+  <div
+    class="course-sales-container"
+    style="--bg-primary: var(--dm-bg-soft); --bg-secondary: var(--dm-surface); --accent-cyan: #06B6D4; --text-light: var(--dm-text); --text-muted: var(--dm-text-secondary);"
+  >
+    <div class="container mt-5 fade-in">
+      <a routerLink="/store" class="btn-back text-decoration-none">
+        <i class="fas fa-arrow-left"></i>
+        <span class="ms-2 d-none d-sm-inline">Regresar a la Tienda</span>
+      </a>
+    </div>
+
+    @if (!hasPurchased()) {
+      <main class="sales-content container pb-5">
+        <app-course-hero [course]="course" />
+
+        <div class="row mt-5 gx-lg-5">
+          <div class="col-lg-7 mb-5 mb-lg-0">
+            <section class="course-description mb-5">
+              <h2 class="section-title mb-4">¿Qué lograrás con este curso?</h2>
+              <p class="lead text-body">{{ course.description }}</p>
+            </section>
+
+            <section class="course-preview">
+              <h3 class="section-title mb-4">Estructura del Programa</h3>
+              <div class="preview-list">
+                @for (item of course.content; track $index) {
+                  <div class="preview-item d-flex align-items-center mb-3 p-3">
+                    <i [class]="'me-3 fs-4 ' + (item.type === 'video' ? 'bi bi-play-circle-fill text-cyan' : 'bi bi-file-earmark-text-fill text-info')"></i>
+                    <div>
+                      <h5 class="m-0 text-dark">{{ item.title }}</h5>
+                      @if (item.duration) {
+                        <small class="text-muted">{{ item.duration }}</small>
+                      } @else {
+                        <small class="text-muted">{{ item.format }}</small>
+                      }
+                    </div>
+                    <i class="bi bi-lock-fill ms-auto text-muted fs-5" title="Contenido bloqueado"></i>
+                  </div>
+                }
+              </div>
+            </section>
+          </div>
+
+          <div class="col-lg-5">
+            <div class="sticky-lg-top" style="top: 2rem; z-index: 10">
+              <app-course-pricing id="pricing-section" [course]="course" (triggerPurchase)="simulatePurchase()" />
+            </div>
+          </div>
+        </div>
+      </main>
+    } @else {
+      <main class="content-dashboard container pb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h2 class="fw-bold m-0 text-dark">Panel de Alumno</h2>
+          <span class="badge bg-cyan text-white">Acceso Total</span>
+        </div>
+        <app-course-content [course]="course" />
+      </main>
+    }
+  </div>
+} @else {
+  <div class="container mt-5 text-center">
+    <h3>Curso no encontrado</h3>
+    <a routerLink="/store" class="btn btn-primary mt-3">Volver a la tienda</a>
+  </div>
+}

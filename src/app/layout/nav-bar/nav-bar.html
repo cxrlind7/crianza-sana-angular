@@ -1,0 +1,57 @@
+<nav class="navbar" [class.navbar-scrolled]="isScrolled()">
+  <div class="navbar-container">
+    <a routerLink="/" class="navbar-logo">
+      <img src="/logo_sin_fondo.png" alt="Logo Crianza Sana" />
+    </a>
+
+    <button
+      class="menu-toggle"
+      (click)="toggleMenu()"
+      aria-label="Toggle navigation menu"
+      [attr.aria-expanded]="isMenuOpen()"
+    >
+      <i class="fas" [class.fa-times]="isMenuOpen()" [class.fa-bars]="!isMenuOpen()"></i>
+    </button>
+
+    <div class="nav-menu" [class.nav-menu-active]="isMenuOpen()">
+      <ul class="nav-list">
+        @for (link of links; track link.name) {
+          <li class="nav-item">
+            <a [routerLink]="link.path" class="nav-link" routerLinkActive="active-link" (click)="closeMenu()">
+              {{ link.name }}
+            </a>
+          </li>
+        }
+        <li class="nav-item">
+          <a routerLink="/programs" class="nav-link construction-link" (click)="closeMenu()">
+            Programas
+          </a>
+        </li>
+      </ul>
+
+      <div class="user-section">
+        <app-dark-mode-toggle class="theme-toggle-slot" />
+        @if (currentUser()) {
+          <div class="user-profile" (click)="toggleUserMenu()">
+            <img
+              [src]="currentUser()?.photoURL || '/defaultAvatar5.jpg'"
+              alt="Perfil"
+              class="user-avatar"
+            />
+            @if (showUserMenu()) {
+              <div class="user-dropdown">
+                <button (click)="handleSignOut()">Cerrar sesión</button>
+              </div>
+            }
+          </div>
+        } @else {
+          <button class="login-btn" (click)="goToLogin()">Iniciar sesión</button>
+        }
+      </div>
+    </div>
+
+    @if (isMenuOpen()) {
+      <div class="mobile-overlay" (click)="closeMenu()"></div>
+    }
+  </div>
+</nav>

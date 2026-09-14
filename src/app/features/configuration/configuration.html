@@ -1,0 +1,821 @@
+<div class="cfg-root">
+  @if (!isAdmin()) {
+    <div class="cfg-denied-wrap">
+      <div class="cfg-denied-card">
+        <div class="cfg-denied-icon">🔒</div>
+        <h3>Acceso restringido</h3>
+        <p>Esta sección es solo para administradores. Inicia sesión con una cuenta autorizada.</p>
+        <a routerLink="/login" class="cfg-btn cfg-btn-primary">
+          <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar sesión
+        </a>
+      </div>
+    </div>
+  } @else {
+    <div class="cfg-page">
+      <aside class="cfg-sidebar">
+        <div class="cfg-sidebar-brand">
+          <div class="cfg-sidebar-brand-icon"><i class="bi bi-sliders2"></i></div>
+          <div>
+            <div class="cfg-sidebar-brand-title">Admin Panel</div>
+            <div class="cfg-sidebar-brand-sub">Crianza Sana by D'Kids</div>
+          </div>
+        </div>
+
+        <div class="cfg-sidebar-section-label">Colecciones</div>
+        @for (col of collections; track col.key) {
+          <button class="cfg-nav-item" [class.active]="currentCollection() === col.key" (click)="switchCollection(col.key)">
+            <span class="cfg-nav-icon">{{ col.icon }}</span>
+            <span class="cfg-nav-label">{{ col.label }}</span>
+            @if (currentCollection() === col.key) {
+              <span class="cfg-nav-dot"></span>
+            }
+          </button>
+        }
+
+        <div class="cfg-sidebar-footer">
+          <i class="bi bi-shield-check-fill me-2"></i>
+          <span>{{ currentUser()?.email ?? 'Administrador' }}</span>
+        </div>
+      </aside>
+
+      <main class="cfg-main">
+        <div class="cfg-page-header">
+          <span class="cfg-page-header-icon">{{ currentCollectionIcon() }}</span>
+          <div>
+            <h1 class="cfg-page-title">{{ currentCollectionLabel() }}</h1>
+            <p class="cfg-page-sub">Gestiona el contenido de esta sección</p>
+          </div>
+        </div>
+
+        <div class="cfg-card">
+          <!-- BLOGS -->
+          @if (currentCollection() === 'blogs') {
+            <div>
+              <div class="row mb-4 align-items-center">
+                <div class="col-md-6 mb-2 mb-md-0">
+                  <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" class="form-control border-start-0 ps-0" placeholder="Buscar por título..." [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event); currentPage.set(1)" />
+                  </div>
+                </div>
+                <div class="col-md-6 text-md-end">
+                  <button class="btn btn-primary" (click)="openCreateModal('blog')">
+                    <i class="bi bi-plus-lg me-1"></i> Nuevo Blog
+                  </button>
+                </div>
+              </div>
+              @if (loading()) {
+                <div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
+              } @else if (error()) {
+                <div class="alert alert-danger">{{ error() }}</div>
+              } @else {
+                <div class="accordion">
+                  @for (blog of paginatedBlogs(); track blog.id; let index = $index) {
+                    <div class="accordion-item mb-2 border rounded overflow-hidden">
+                      <h2 class="accordion-header">
+                        <button class="accordion-button" [class.collapsed]="expandedIndex() !== index" type="button" (click)="toggleExpand(index)">
+                          <div class="d-flex justify-content-between w-100 me-3 align-items-center">
+                            <span class="fw-bold text-truncate me-2">{{ blog.title }}</span>
+                            <span class="d-flex align-items-center gap-2 text-nowrap">
+                              @if (isScheduled(blog)) {
+                                <span class="badge bg-warning text-dark">🕒 Programado</span>
+                              }
+                              <small class="text-muted">{{ formatDate(blog.date) }}</small>
+                            </span>
+                          </div>
+                        </button>
+                      </h2>
+                      <div class="accordion-collapse collapse" [class.show]="expandedIndex() === index">
+                        <div class="accordion-body bg-light">
+                          <div class="d-flex justify-content-end mb-3 gap-2">
+                            @if (editingId() !== blog.id) {
+                              <button class="btn btn-outline-primary btn-sm" (click)="editingId.set(blog.id)">
+                                <i class="fas fa-edit me-1"></i> Editar
+                              </button>
+                            } @else {
+                              <button class="btn btn-success btn-sm" (click)="saveBlog(blog)" [disabled]="isSaving()">
+                                @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                                {{ isSaving() ? 'Guardando...' : 'Guardar' }}
+                              </button>
+                            }
+                          </div>
+                          <div class="mb-3">
+                            <label class="form-label fw-semibold">Título</label>
+                            <input type="text" class="form-control" [(ngModel)]="blog.title" [disabled]="editingId() !== blog.id" />
+                          </div>
+                          <div class="mb-3">
+                            <label class="form-label fw-semibold">Descripción</label>
+                            <textarea class="form-control" [(ngModel)]="blog.description" rows="3" [disabled]="editingId() !== blog.id"></textarea>
+                          </div>
+                          <div class="row">
+                            <div class="col-md-6 mb-3">
+                              <label class="form-label fw-semibold">Autor</label>
+                              <input type="text" class="form-control" [(ngModel)]="blog.authorName" [disabled]="editingId() !== blog.id" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                              <label class="form-label fw-semibold">Fecha</label>
+                              <input type="date" class="form-control" [value]="formatDateForInput(blog.date)" (input)="updateDate(blog, $any($event.target).value)" [disabled]="editingId() !== blog.id" />
+                            </div>
+                          </div>
+                          <div class="row">
+                            <div class="col-md-6 mb-3">
+                              <label class="form-label fw-semibold">Programar publicación (opcional)</label>
+                              <input type="datetime-local" class="form-control" [value]="formatDateTimeForInput(blog.publishAt)" (input)="updatePublishAt(blog, $any($event.target).value)" [disabled]="editingId() !== blog.id" />
+                              <small class="text-muted">Vacío = se publica de inmediato.</small>
+                            </div>
+                          </div>
+                          <div class="row">
+                            <div class="col-md-6 mb-3">
+                              <label class="form-label fw-semibold">Categoría</label>
+                              <input type="text" class="form-control" [(ngModel)]="blog.category" [disabled]="editingId() !== blog.id" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                              <label class="form-label fw-semibold">Color Categoría</label>
+                              <input type="color" class="form-control form-control-color w-100" [(ngModel)]="blog.categoryColor" [disabled]="editingId() !== blog.id" />
+                            </div>
+                          </div>
+                          <div class="mb-3">
+                            <label class="form-label fw-semibold">Imagen URL</label>
+                            <input type="text" class="form-control mb-2" [(ngModel)]="blog.imageUrl" [disabled]="editingId() !== blog.id" />
+                            @if (blog.imageUrl) {
+                              <div class="text-center rounded border p-2 bg-white">
+                                <img [src]="blog.imageUrl" alt="Preview" class="img-fluid rounded" style="max-height: 200px" />
+                              </div>
+                            }
+                          </div>
+                          <div class="mb-3">
+                            <label class="form-label fw-semibold">Contenido (HTML)</label>
+                            <textarea class="form-control font-monospace bg-white" [(ngModel)]="blog.text" rows="6" style="font-size: 0.85rem" [disabled]="editingId() !== blog.id"></textarea>
+                          </div>
+                          <div class="mb-3">
+                            <label class="form-label fw-semibold">Orden</label>
+                            <input type="number" class="form-control" [(ngModel)]="blog.orden" [disabled]="editingId() !== blog.id" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+                @if (totalPages() > 1) {
+                  <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                      <li class="page-item" [class.disabled]="currentPage() === 1">
+                        <button class="page-link" (click)="prevPage()">Anterior</button>
+                      </li>
+                      <li class="page-item disabled"><span class="page-link">Página {{ currentPage() }} de {{ totalPages() }}</span></li>
+                      <li class="page-item" [class.disabled]="currentPage() === totalPages()">
+                        <button class="page-link" (click)="nextPage()">Siguiente</button>
+                      </li>
+                    </ul>
+                  </nav>
+                }
+              }
+            </div>
+          }
+
+          <!-- ADS -->
+          @else if (currentCollection() === 'ad') {
+            <div>
+              <div class="text-end mb-3">
+                <button class="btn btn-primary" (click)="openCreateModal('ad')"><i class="bi bi-plus-lg me-1"></i> Nuevo Anuncio</button>
+              </div>
+              @if (loading()) {
+                <div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
+              } @else {
+                <div class="row g-3">
+                  @if (ads().length === 0) {
+                    <div class="col-12 text-center text-muted py-5"><i class="bi bi-image display-4 d-block mb-2"></i><p>No hay anuncios creados.</p></div>
+                  }
+                  @for (ad of ads(); track ad.id) {
+                    <div class="col-md-6 col-lg-4">
+                      <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
+                        @if (ad.imageSrc) {
+                          <img [src]="ad.imageSrc" class="card-img-top" style="height: 160px; object-fit: cover" [alt]="ad.altText" />
+                        } @else {
+                          <div class="bg-light d-flex align-items-center justify-content-center" style="height: 160px"><i class="bi bi-image text-muted fs-1"></i></div>
+                        }
+                        <div class="card-body p-3">
+                          <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="d-flex align-items-center gap-1">
+                              <span class="badge" [class]="ad.active === 'true' ? 'bg-success' : 'bg-secondary'">{{ ad.active === 'true' ? 'Activo' : 'Inactivo' }}</span>
+                              @if (isScheduled(ad)) { <span class="badge bg-warning text-dark">🕒 Programado</span> }
+                            </span>
+                            <div class="d-flex gap-1">
+                              <button class="btn btn-outline-primary btn-sm" (click)="openEditModal('ad', ad)"><i class="bi bi-pencil"></i></button>
+                              <button class="btn btn-outline-danger btn-sm" (click)="deleteItem('ad', ad.id)"><i class="bi bi-trash"></i></button>
+                            </div>
+                          </div>
+                          <p class="small text-muted mb-1">{{ ad.altText || 'Sin descripción' }}</p>
+                          <p class="small text-truncate text-muted mb-0" style="font-size: 0.75rem">{{ ad.imageSrc }}</p>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+          <!-- BANNERS -->
+          @else if (currentCollection() === 'banner') {
+            <div>
+              <div class="text-end mb-3">
+                <button class="btn btn-primary" (click)="openCreateModal('banner')"><i class="bi bi-plus-lg me-1"></i> Nuevo Banner</button>
+              </div>
+              @if (loading()) {
+                <div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
+              } @else {
+                <div class="row g-3">
+                  @if (banners().length === 0) {
+                    <div class="col-12 text-center text-muted py-5"><i class="bi bi-image display-4 d-block mb-2"></i><p>No hay banners creados.</p></div>
+                  }
+                  @for (banner of banners(); track banner.id) {
+                    <div class="col-md-6">
+                      <div class="card h-100 border-0 shadow-sm rounded-3 overflow-hidden">
+                        @if (banner.imageSrc) {
+                          <img [src]="banner.imageSrc" class="card-img-top" style="height: 180px; object-fit: cover" [alt]="banner.altText" />
+                        } @else {
+                          <div class="bg-light d-flex align-items-center justify-content-center" style="height: 180px"><i class="bi bi-image text-muted fs-1"></i></div>
+                        }
+                        <div class="card-body p-3">
+                          <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="d-flex align-items-center gap-1">
+                              <span class="badge" [class]="banner.active === 'true' ? 'bg-success' : 'bg-secondary'">{{ banner.active === 'true' ? 'Activo' : 'Inactivo' }}</span>
+                              @if (isScheduled(banner)) { <span class="badge bg-warning text-dark">🕒 Programado</span> }
+                            </span>
+                            <div class="d-flex gap-1">
+                              <button class="btn btn-outline-primary btn-sm" (click)="openEditModal('banner', banner)"><i class="bi bi-pencil"></i></button>
+                              <button class="btn btn-outline-danger btn-sm" (click)="deleteItem('banner', banner.id)"><i class="bi bi-trash"></i></button>
+                            </div>
+                          </div>
+                          <p class="small text-muted mb-0">{{ banner.altText || 'Sin descripción' }}</p>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+          <!-- CAMPAÑAS -->
+          @else if (currentCollection() === 'campana') {
+            <div>
+              @if (loading()) {
+                <div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
+              } @else {
+                @if (campanas().length === 0) {
+                  <div class="text-center text-muted py-5"><p>No hay campañas en Firestore.</p></div>
+                }
+                @for (camp of campanas(); track camp.id) {
+                  <div class="card border-0 shadow-sm rounded-3 mb-4">
+                    <div class="card-body p-4">
+                      <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h6 class="fw-bold text-muted mb-0">ID: {{ camp.id }}</h6>
+                        <button class="btn btn-success btn-sm" (click)="saveCampana(camp)" [disabled]="isSaving()">
+                          @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                          {{ isSaving() ? 'Guardando...' : 'Guardar' }}
+                        </button>
+                      </div>
+                      <div class="row">
+                        <div class="col-md-6 mb-3">
+                          <label class="form-label fw-semibold">Imagen URL</label>
+                          <input type="text" class="form-control" [(ngModel)]="camp.img" placeholder="https://..." />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                          <label class="form-label fw-semibold">Fecha Final (DD-MM-YYYY)</label>
+                          <input type="text" class="form-control" [(ngModel)]="camp.finalDate" placeholder="31-12-2025" />
+                        </div>
+                      </div>
+                      @if (camp.img) {
+                        <div class="text-center rounded border p-2 bg-light"><img [src]="camp.img" alt="Preview campaña" class="img-fluid rounded" style="max-height: 200px" /></div>
+                      }
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+          }
+
+          <!-- EVENTOS -->
+          @else if (currentCollection() === 'eventos') {
+            <div>
+              <div class="text-end mb-3">
+                <button class="btn btn-primary" (click)="openCreateModal('evento')"><i class="bi bi-plus-lg me-1"></i> Nuevo Evento</button>
+              </div>
+              @if (loading()) {
+                <div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
+              } @else {
+                @if (eventos().length === 0) {
+                  <div class="text-center text-muted py-5"><i class="bi bi-calendar-event display-4 d-block mb-2"></i><p>No hay eventos creados.</p></div>
+                }
+                @for (ev of eventos(); track ev.id) {
+                  <div class="card border-0 shadow-sm rounded-3 mb-3">
+                    <div class="card-body p-4">
+                      <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                          <span class="badge bg-primary me-2">{{ ev.type || 'sin tipo' }}</span>
+                          <span class="badge" [class]="ev.showButton === 'true' ? 'bg-success' : 'bg-secondary'">Botón {{ ev.showButton === 'true' ? 'visible' : 'oculto' }}</span>
+                          @if (isScheduled(ev)) { <span class="badge bg-warning text-dark ms-2">🕒 Programado</span> }
+                        </div>
+                        <div class="d-flex gap-2">
+                          <button class="btn btn-outline-primary btn-sm" (click)="openEditModal('evento', ev)"><i class="bi bi-pencil me-1"></i>Editar</button>
+                          <button class="btn btn-outline-danger btn-sm" (click)="deleteItem('evento', ev.id)"><i class="bi bi-trash"></i></button>
+                        </div>
+                      </div>
+                      <div class="row g-2 small text-muted">
+                        <div class="col-md-6"><strong>Mensaje:</strong> {{ ev.message }}</div>
+                        <div class="col-md-6"><strong>Botón:</strong> {{ ev.buttonText }}</div>
+                        <div class="col-md-6"><strong>Teléfono:</strong> {{ ev.phone }}</div>
+                        <div class="col-md-6"><strong>Alt:</strong> {{ ev.altText }}</div>
+                      </div>
+                      @if (ev.imageSrc) {
+                        <div class="mt-3"><img [src]="ev.imageSrc" class="img-fluid rounded" style="max-height: 120px" [alt]="ev.altText" /></div>
+                      }
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+          }
+
+          <!-- PROGRAMAS (VIDEOS) -->
+          @else if (currentCollection() === 'programas') {
+            <div>
+              <div class="row mb-4 align-items-center">
+                <div class="col-md-6 mb-2 mb-md-0">
+                  <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" class="form-control border-start-0 ps-0" placeholder="Buscar por título..." [ngModel]="videoSearch()" (ngModelChange)="videoSearch.set($event)" />
+                  </div>
+                </div>
+                <div class="col-md-6 text-md-end">
+                  <button class="btn btn-primary" (click)="openCreateModal('video')"><i class="bi bi-plus-lg me-1"></i> Nuevo Programa</button>
+                </div>
+              </div>
+              @if (loading()) {
+                <div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
+              } @else {
+                <div class="accordion">
+                  @for (video of filteredVideos(); track video.id; let index = $index) {
+                    <div class="accordion-item mb-2 border rounded overflow-hidden">
+                      <h2 class="accordion-header">
+                        <button class="accordion-button" [class.collapsed]="videoExpandedIndex() !== index" type="button" (click)="toggleVideoExpand(index)">
+                          <div class="d-flex justify-content-between w-100 me-3 align-items-center">
+                            <span class="fw-bold text-truncate me-2">{{ video['title'] || 'Sin título' }}</span>
+                            <span class="d-flex align-items-center gap-2 text-nowrap">
+                              @if (isScheduled(video)) { <span class="badge bg-warning text-dark">🕒 Programado</span> }
+                              <small class="text-muted">{{ video['date'] }}</small>
+                            </span>
+                          </div>
+                        </button>
+                      </h2>
+                      <div class="accordion-collapse collapse" [class.show]="videoExpandedIndex() === index">
+                        <div class="accordion-body bg-light">
+                          <div class="d-flex justify-content-end mb-3 gap-2">
+                            @if (editingId() !== video.id) {
+                              <button class="btn btn-outline-primary btn-sm" (click)="editingId.set(video.id)"><i class="fas fa-edit me-1"></i> Editar</button>
+                              <button class="btn btn-outline-danger btn-sm" (click)="deleteItem('video', video.id)"><i class="bi bi-trash me-1"></i> Eliminar</button>
+                            } @else {
+                              <button class="btn btn-success btn-sm" (click)="saveVideo(video)" [disabled]="isSaving()">
+                                @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                                {{ isSaving() ? 'Guardando...' : 'Guardar' }}
+                              </button>
+                              <button class="btn btn-secondary btn-sm" (click)="editingId.set(null)">Cancelar</button>
+                            }
+                          </div>
+                          <div class="mb-3">
+                            <label class="form-label fw-semibold">Título</label>
+                            <input type="text" class="form-control" [(ngModel)]="video['title']" [disabled]="editingId() !== video.id" />
+                          </div>
+                          <div class="row">
+                            <div class="col-md-6 mb-3">
+                              <label class="form-label fw-semibold">Fecha (DD-MM-YYYY)</label>
+                              <input type="text" class="form-control" [(ngModel)]="video['date']" placeholder="01-01-2025" [disabled]="editingId() !== video.id" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                              <label class="form-label fw-semibold">Participante</label>
+                              <input type="text" class="form-control" [(ngModel)]="video['participant']" [disabled]="editingId() !== video.id" />
+                            </div>
+                          </div>
+                          <div class="mb-3">
+                            <label class="form-label fw-semibold">URL del Video (embed)</label>
+                            <input type="text" class="form-control" [(ngModel)]="video['url']" placeholder="https://www.youtube.com/embed/..." [disabled]="editingId() !== video.id" />
+                          </div>
+                          <div class="mb-3">
+                            <label class="form-label fw-semibold">Thumbnail URL</label>
+                            <input type="text" class="form-control mb-2" [(ngModel)]="video['thumbnail']" [disabled]="editingId() !== video.id" />
+                            @if (video['thumbnail']) {
+                              <div class="text-center rounded border p-2 bg-white"><img [src]="video['thumbnail']" alt="Thumbnail" class="img-fluid rounded" style="max-height: 160px" /></div>
+                            }
+                          </div>
+                          <div class="mb-3">
+                            <label class="form-label fw-semibold">Descripción</label>
+                            <textarea class="form-control" [(ngModel)]="video['description']" rows="3" [disabled]="editingId() !== video.id"></textarea>
+                          </div>
+                          <div class="row">
+                            <div class="col-md-6 mb-3">
+                              <label class="form-label fw-semibold">Programar publicación (opcional)</label>
+                              <input type="datetime-local" class="form-control" [value]="formatDateTimeForInput(video['publishAt'])" (input)="updatePublishAt(video, $any($event.target).value)" [disabled]="editingId() !== video.id" />
+                              <small class="text-muted">Vacío = se publica de inmediato.</small>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+                @if (filteredVideos().length === 0) {
+                  <div class="text-center text-muted py-5"><i class="bi bi-camera-video display-4 d-block mb-2"></i><p>No se encontraron programas.</p></div>
+                }
+              }
+            </div>
+          }
+
+          <!-- TEMAS -->
+          @else if (currentCollection() === 'temas') {
+            <div>
+              @if (loading()) {
+                <div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
+              } @else if (error()) {
+                <div class="alert alert-danger">{{ error() }}</div>
+              } @else {
+                <form (submit)="$event.preventDefault(); saveTemas()">
+                  <div class="mb-4">
+                    <h5 class="fw-bold mb-3">Lista de Temas</h5>
+                    @for (tema of temasData().temas; track $index; let i = $index) {
+                      <div class="input-group mb-2">
+                        <input type="text" class="form-control" [ngModel]="tema" (ngModelChange)="updateTema(i, $event)" name="tema-{{i}}" placeholder="Ingrese un tema" />
+                        <button type="button" class="btn btn-outline-danger" (click)="removeTema(i)"><i class="bi bi-trash"></i></button>
+                      </div>
+                    }
+                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" (click)="addTema()"><i class="bi bi-plus-lg me-1"></i> Agregar Tema</button>
+                  </div>
+                  <hr />
+                  <div class="mb-4">
+                    <h5 class="fw-bold mb-3">Próximo Evento</h5>
+                    <div class="row">
+                      <div class="col-md-4 mb-3">
+                        <label class="form-label">Fecha (YYYY-MM-DD)</label>
+                        <input type="date" class="form-control" [ngModel]="temasData().evento.fecha" (ngModelChange)="updateTemasEvento('fecha', $event)" name="evFecha" />
+                      </div>
+                      <div class="col-md-4 mb-3">
+                        <label class="form-label">Hora</label>
+                        <input type="text" class="form-control" [ngModel]="temasData().evento.hora" (ngModelChange)="updateTemasEvento('hora', $event)" name="evHora" placeholder="Ej: 7:00 PM" />
+                      </div>
+                      <div class="col-md-4 mb-3">
+                        <label class="form-label">Mensaje</label>
+                        <input type="text" class="form-control" [ngModel]="temasData().evento.mensaje" (ngModelChange)="updateTemasEvento('mensaje', $event)" name="evMensaje" placeholder="Ej: Sintonízanos en..." />
+                      </div>
+                    </div>
+                  </div>
+                  <hr />
+                  <div class="mb-4">
+                    <h5 class="fw-bold mb-3">Colores del Tema</h5>
+                    <div class="row">
+                      <div class="col-md-4 mb-3">
+                        <label class="form-label">Primario (Fondo)</label>
+                        <input type="color" class="form-control form-control-color w-100" [ngModel]="temasData().colores.primario" (ngModelChange)="updateTemasColor('primario', $event)" name="colorPrimario" />
+                      </div>
+                      <div class="col-md-4 mb-3">
+                        <label class="form-label">Secundario (Acentos)</label>
+                        <input type="color" class="form-control form-control-color w-100" [ngModel]="temasData().colores.secundario" (ngModelChange)="updateTemasColor('secundario', $event)" name="colorSecundario" />
+                      </div>
+                      <div class="col-md-4 mb-3">
+                        <label class="form-label">Título (Texto)</label>
+                        <input type="color" class="form-control form-control-color w-100" [ngModel]="temasData().colores.titulo" (ngModelChange)="updateTemasColor('titulo', $event)" name="colorTitulo" />
+                      </div>
+                    </div>
+                  </div>
+                  <hr />
+                  <div class="mb-4">
+                    <h5 class="fw-bold mb-3">Participantes</h5>
+                    <div class="row">
+                      @for (person of allPeople; track person.id) {
+                        <div class="col-md-6 col-lg-4 mb-2">
+                          <div class="form-check border rounded p-2 d-flex align-items-center bg-white">
+                            <input class="form-check-input me-2 mt-0" type="checkbox" [checked]="temasData().participantes.includes(person.id)" (change)="toggleParticipant(person.id)" id="check-{{person.id}}" />
+                            <label class="form-check-label d-flex align-items-center w-100" for="check-{{person.id}}">
+                              <img [src]="person.image" class="rounded-circle me-2" width="30" height="30" style="object-fit: cover" />
+                              <span class="small">{{ person.name }}</span>
+                            </label>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                  <div class="d-flex justify-content-end mb-5">
+                    <button type="submit" class="btn btn-success btn-lg px-5" [disabled]="isSaving()">
+                      @if (isSaving()) { <span class="spinner-border spinner-border-sm me-2"></span> }
+                      {{ isSaving() ? 'Guardando...' : 'Guardar Cambios' }}
+                    </button>
+                  </div>
+                </form>
+              }
+            </div>
+          }
+
+          <!-- SUSCRIPTORES -->
+          @else if (currentCollection() === 'suscriptores') {
+            <div>
+              @if (subscribersLoading()) {
+                <div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
+              } @else if (subscribersError()) {
+                <div class="alert alert-danger">{{ subscribersError() }}</div>
+              } @else {
+                <div class="d-flex align-items-center gap-3 mb-4">
+                  <span class="badge bg-primary fs-6 px-3 py-2"><i class="bi bi-people-fill me-1"></i>{{ subscribers().length }} suscriptor{{ subscribers().length !== 1 ? 'es' : '' }}</span>
+                  <button class="btn btn-outline-secondary btn-sm" (click)="refreshSubscribers()"><i class="bi bi-arrow-clockwise me-1"></i>Actualizar</button>
+                </div>
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                  <div class="card-header bg-white border-0 pt-3 pb-2 px-4"><h5 class="fw-bold mb-0"><i class="bi bi-envelope-fill me-2 text-primary"></i>Lista de Suscriptores</h5></div>
+                  <div class="card-body p-0">
+                    @if (subscribers().length === 0) {
+                      <div class="text-center py-5 text-muted"><i class="bi bi-inbox display-5 d-block mb-2"></i><p>Aún no hay suscriptores registrados.</p></div>
+                    } @else {
+                      <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                          <thead class="table-light"><tr><th class="ps-4">#</th><th>Correo</th><th>Fecha de suscripción</th><th class="text-end pe-4">Acción</th></tr></thead>
+                          <tbody>
+                            @for (sub of subscribers(); track sub.id; let i = $index) {
+                              <tr>
+                                <td class="ps-4 text-muted small">{{ i + 1 }}</td>
+                                <td><i class="bi bi-envelope me-2 text-primary"></i><strong>{{ sub.email }}</strong></td>
+                                <td class="text-muted small">{{ sub.subscribedAt ? (sub.subscribedAt | date: 'mediumDate') : 'Sin fecha' }}</td>
+                                <td class="text-end pe-4"><button class="btn btn-outline-danger btn-sm" (click)="removeSubscriber(sub.id)"><i class="bi bi-trash"></i></button></td>
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      </div>
+                    }
+                  </div>
+                </div>
+                <div class="card border-0 shadow-sm rounded-4">
+                  <div class="card-header bg-white border-0 pt-3 pb-2 px-4">
+                    <h5 class="fw-bold mb-0"><i class="bi bi-send-fill me-2 text-success"></i>Enviar Newsletter</h5>
+                    <small class="text-muted">Se enviará a todos los suscriptores ({{ subscribers().length }})</small>
+                  </div>
+                  <div class="card-body px-4 pb-4">
+                    @if (newsletterResult(); as result) {
+                      <div class="alert mb-3" [class]="result.success ? 'alert-success' : 'alert-danger'">
+                        @if (result.success) {
+                          <i class="bi bi-check-circle-fill me-2"></i><strong>¡Enviado!</strong> {{ result.sent }} correo(s) enviados.
+                          @if ((result.errors ?? 0) > 0) { <span class="ms-1 text-warning">({{ result.errors }} con errores)</span> }
+                        } @else {
+                          <i class="bi bi-exclamation-circle-fill me-2"></i>{{ result.error || 'Error al enviar' }}
+                        }
+                      </div>
+                    }
+                    <div class="row mb-3">
+                      <div class="col-md-4 mb-3">
+                        <label class="form-label fw-semibold">Tipo</label>
+                        <select class="form-select" [ngModel]="newsletter().type" (ngModelChange)="updateNewsletterField('type', $event)">
+                          <option value="blog">📝 Nuevo Blog</option>
+                          <option value="program">🎬 Nuevo Programa</option>
+                        </select>
+                      </div>
+                      <div class="col-md-8 mb-3">
+                        <label class="form-label fw-semibold">Título *</label>
+                        <input type="text" class="form-control" [ngModel]="newsletter().title" (ngModelChange)="updateNewsletterField('title', $event)" placeholder="Ej: 5 tips para el sueño de tu bebé" />
+                      </div>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label fw-semibold">Descripción corta</label>
+                      <textarea class="form-control" [ngModel]="newsletter().description" (ngModelChange)="updateNewsletterField('description', $event)" rows="3" placeholder="Resumen breve..."></textarea>
+                    </div>
+                    <div class="mb-4">
+                      <label class="form-label fw-semibold">Enlace (URL)</label>
+                      <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+                        <input type="url" class="form-control" [ngModel]="newsletter().link" (ngModelChange)="updateNewsletterField('link', $event)" placeholder="https://crianzasanabydkids.mx/..." />
+                      </div>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                      <button class="btn btn-success btn-lg px-5" (click)="triggerNewsletter()" [disabled]="isSendingNewsletter() || !newsletter().title">
+                        @if (isSendingNewsletter()) { <span class="spinner-border spinner-border-sm me-2"></span> } @else { <i class="bi bi-send-fill me-2"></i> }
+                        {{ isSendingNewsletter() ? 'Enviando...' : 'Enviar a todos' }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          @else {
+            <div class="cfg-placeholder">
+              <div class="cfg-placeholder-icon">📁</div>
+              <p>Gestor para <strong>{{ currentCollectionLabel() }}</strong> próximamente.</p>
+            </div>
+          }
+        </div>
+      </main>
+    </div>
+
+    <!-- MODAL CREAR / EDITAR -->
+    @if (showModal()) {
+      <div class="modal-backdrop fade show"></div>
+      <div class="modal fade show d-block" tabindex="-1">
+        <div [class]="['modal-dialog', modalType() === 'blog' ? 'modal-xl' : 'modal-lg']">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">{{ modalMode() === 'create' ? 'Nuevo' : 'Editar' }} {{ modalTypeLabel() }}</h5>
+              <button type="button" class="btn-close" (click)="closeModal()"></button>
+            </div>
+            <div class="modal-body">
+              @if (modalType() === 'blog') {
+                <div class="mb-3">
+                  <label class="blog-field-label">Título del artículo *</label>
+                  <input type="text" class="form-control blog-field-input" [ngModel]="modalData()['title']" (ngModelChange)="updateModalField('title', $event)" placeholder="Escribe un título atractivo..." />
+                </div>
+                <div class="mb-3">
+                  <label class="blog-field-label">Descripción breve *</label>
+                  <textarea class="form-control blog-field-input" [ngModel]="modalData()['description']" (ngModelChange)="updateModalField('description', $event)" rows="2" placeholder="Resumen del artículo para vista previa..."></textarea>
+                </div>
+                <div class="row g-3 mb-3">
+                  <div class="col-md-6">
+                    <label class="blog-field-label">Autor</label>
+                    <input type="text" class="form-control blog-field-input" [ngModel]="modalData()['authorName']" (ngModelChange)="updateModalField('authorName', $event)" placeholder="Nombre del autor..." />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="blog-field-label">Fecha de publicación</label>
+                    <input type="date" class="form-control blog-field-input" [ngModel]="modalData()['dateInput']" (ngModelChange)="updateModalField('dateInput', $event)" />
+                  </div>
+                </div>
+                <div class="row g-3 mb-3">
+                  <div class="col-md-6">
+                    <label class="blog-field-label">Programar publicación (opcional)</label>
+                    <input type="datetime-local" class="form-control blog-field-input" [ngModel]="modalData()['publishAt']" (ngModelChange)="updateModalField('publishAt', $event)" />
+                    <small class="text-muted">Si se deja vacío, se publica de inmediato.</small>
+                  </div>
+                </div>
+                <div class="row g-3 mb-3">
+                  <div class="col-md-5">
+                    <label class="blog-field-label">Categoría</label>
+                    <input type="text" class="form-control blog-field-input" [ngModel]="modalData()['category']" (ngModelChange)="updateModalField('category', $event)" placeholder="Ej: Crianza, Salud..." />
+                  </div>
+                  <div class="col-md-2">
+                    <label class="blog-field-label">Color</label>
+                    <input type="color" class="form-control form-control-color w-100 blog-color-input" [ngModel]="modalData()['categoryColor']" (ngModelChange)="updateModalField('categoryColor', $event)" />
+                  </div>
+                  <div class="col-md-5">
+                    <label class="blog-field-label">URL de imagen destacada</label>
+                    <input type="text" class="form-control blog-field-input" [ngModel]="modalData()['imageUrl']" (ngModelChange)="updateModalField('imageUrl', $event)" placeholder="https://..." />
+                  </div>
+                </div>
+                @if (modalData()['imageUrl']) {
+                  <div class="blog-img-preview mb-3"><img [src]="modalData()['imageUrl']" alt="Vista previa imagen" /></div>
+                }
+                <div class="mb-1">
+                  <div class="blog-editor-header">
+                    <label class="blog-field-label mb-0">Contenido del artículo</label>
+                    <div class="blog-editor-tabs">
+                      <button type="button" class="blog-tab-btn" [class.active]="editorTab() === 'editor'" (click)="editorTab.set('editor')"><i class="bi bi-pencil me-1"></i>Editor</button>
+                      <button type="button" class="blog-tab-btn" [class.active]="editorTab() === 'preview'" (click)="editorTab.set('preview')"><i class="bi bi-eye me-1"></i>Vista previa</button>
+                    </div>
+                  </div>
+
+                  <div [style.display]="editorTab() === 'editor' ? 'flex' : 'none'" class="blog-toolbar">
+                    <button type="button" class="toolbar-btn" (click)="execFormat('bold')" title="Negrita (Ctrl+B)"><b>B</b></button>
+                    <button type="button" class="toolbar-btn" (click)="execFormat('italic')" title="Cursiva (Ctrl+I)"><i>I</i></button>
+                    <button type="button" class="toolbar-btn" (click)="execFormat('underline')" title="Subrayado"><u>U</u></button>
+                    <span class="toolbar-sep"></span>
+                    <button type="button" class="toolbar-btn toolbar-btn-text" (click)="formatBlock('h2')" title="Título grande">H2</button>
+                    <button type="button" class="toolbar-btn toolbar-btn-text" (click)="formatBlock('h3')" title="Subtítulo">H3</button>
+                    <button type="button" class="toolbar-btn toolbar-btn-text" (click)="formatBlock('p')" title="Párrafo normal">P</button>
+                    <span class="toolbar-sep"></span>
+                    <button type="button" class="toolbar-btn toolbar-quote" (click)="insertBlockquote()" title="Cita destacada"><i class="bi bi-quote"></i></button>
+                    <button type="button" class="toolbar-btn" (click)="execFormat('insertUnorderedList')" title="Lista con viñetas"><i class="bi bi-list-ul"></i></button>
+                    <button type="button" class="toolbar-btn" (click)="execFormat('insertOrderedList')" title="Lista numerada"><i class="bi bi-list-ol"></i></button>
+                    <span class="toolbar-sep"></span>
+                    <button type="button" class="toolbar-btn" (click)="insertLink()" title="Insertar enlace"><i class="bi bi-link-45deg"></i></button>
+                    <button type="button" class="toolbar-btn toolbar-btn-danger" (click)="clearEditorFormat()" title="Quitar formato"><i class="bi bi-eraser"></i></button>
+                  </div>
+
+                  <div [style.display]="editorTab() === 'editor' ? 'block' : 'none'" #richEditor class="blog-rich-editor" contenteditable="true" (input)="syncEditorContent()" (paste)="handlePaste($event)"></div>
+
+                  <div [style.display]="editorTab() === 'preview' ? 'block' : 'none'" class="blog-preview-pane blog-content-typography" [innerHTML]="modalData()['text'] || '<p style=\'color:#aaa\'>Sin contenido aún...</p>'"></div>
+                </div>
+              } @else if (modalType() === 'ad' || modalType() === 'banner') {
+                <div class="mb-3">
+                  <label class="form-label">Imagen URL *</label>
+                  <input type="text" class="form-control" [ngModel]="modalData()['imageSrc']" (ngModelChange)="updateModalField('imageSrc', $event)" placeholder="https://..." />
+                  @if (modalData()['imageSrc']) {
+                    <div class="mt-2 text-center"><img [src]="modalData()['imageSrc']" class="img-fluid rounded border" style="max-height: 180px" alt="preview" /></div>
+                  }
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Texto alternativo (alt)</label>
+                  <input type="text" class="form-control" [ngModel]="modalData()['altText']" (ngModelChange)="updateModalField('altText', $event)" placeholder="Descripción de la imagen" />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Estado</label>
+                  <select class="form-select" [ngModel]="modalData()['active']" (ngModelChange)="updateModalField('active', $event)">
+                    <option value="true">Activo</option>
+                    <option value="false">Inactivo</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Programar publicación (opcional)</label>
+                  <input type="datetime-local" class="form-control" [ngModel]="modalData()['publishAt']" (ngModelChange)="updateModalField('publishAt', $event)" />
+                  <small class="text-muted">Si se deja vacío, se publica de inmediato.</small>
+                </div>
+              } @else if (modalType() === 'evento') {
+                <div class="mb-3">
+                  <label class="form-label">Imagen URL</label>
+                  <input type="text" class="form-control" [ngModel]="modalData()['imageSrc']" (ngModelChange)="updateModalField('imageSrc', $event)" placeholder="https://..." />
+                  @if (modalData()['imageSrc']) {
+                    <div class="mt-2 text-center"><img [src]="modalData()['imageSrc']" class="img-fluid rounded border" style="max-height: 140px" alt="preview" /></div>
+                  }
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Texto alternativo (alt)</label>
+                  <input type="text" class="form-control" [ngModel]="modalData()['altText']" (ngModelChange)="updateModalField('altText', $event)" />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Mensaje</label>
+                  <input type="text" class="form-control" [ngModel]="modalData()['message']" (ngModelChange)="updateModalField('message', $event)" placeholder="Texto del evento..." />
+                </div>
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Texto del Botón</label>
+                    <input type="text" class="form-control" [ngModel]="modalData()['buttonText']" (ngModelChange)="updateModalField('buttonText', $event)" placeholder="Ej: Contáctanos" />
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Teléfono</label>
+                    <input type="text" class="form-control" [ngModel]="modalData()['phone']" (ngModelChange)="updateModalField('phone', $event)" placeholder="Ej: 6181072514" />
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Tipo</label>
+                    <select class="form-select" [ngModel]="modalData()['type']" (ngModelChange)="updateModalField('type', $event)">
+                      <option value="call">Llamada (call)</option>
+                      <option value="whatsapp">WhatsApp</option>
+                      <option value="link">Enlace</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Mostrar Botón</label>
+                    <select class="form-select" [ngModel]="modalData()['showButton']" (ngModelChange)="updateModalField('showButton', $event)">
+                      <option value="true">Sí</option>
+                      <option value="false">No</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Programar publicación (opcional)</label>
+                  <input type="datetime-local" class="form-control" [ngModel]="modalData()['publishAt']" (ngModelChange)="updateModalField('publishAt', $event)" />
+                  <small class="text-muted">Si se deja vacío, se publica de inmediato.</small>
+                </div>
+              } @else if (modalType() === 'video') {
+                <div class="mb-3">
+                  <label class="form-label">Título *</label>
+                  <input type="text" class="form-control" [ngModel]="modalData()['title']" (ngModelChange)="updateModalField('title', $event)" />
+                </div>
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Fecha (DD-MM-YYYY) *</label>
+                    <input type="text" class="form-control" [ngModel]="modalData()['date']" (ngModelChange)="updateModalField('date', $event)" placeholder="01-01-2025" />
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label">Participante</label>
+                    <input type="text" class="form-control" [ngModel]="modalData()['participant']" (ngModelChange)="updateModalField('participant', $event)" placeholder="Nombre del especialista" />
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">URL del Video (embed) *</label>
+                  <input type="text" class="form-control" [ngModel]="modalData()['url']" (ngModelChange)="updateModalField('url', $event)" placeholder="https://www.youtube.com/embed/..." />
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Thumbnail URL</label>
+                  <input type="text" class="form-control" [ngModel]="modalData()['thumbnail']" (ngModelChange)="updateModalField('thumbnail', $event)" placeholder="https://..." />
+                  @if (modalData()['thumbnail']) {
+                    <div class="mt-2 text-center"><img [src]="modalData()['thumbnail']" class="img-fluid rounded border" style="max-height: 140px" alt="thumbnail" /></div>
+                  }
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Descripción</label>
+                  <textarea class="form-control" [ngModel]="modalData()['description']" (ngModelChange)="updateModalField('description', $event)" rows="3"></textarea>
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Programar publicación (opcional)</label>
+                  <input type="datetime-local" class="form-control" [ngModel]="modalData()['publishAt']" (ngModelChange)="updateModalField('publishAt', $event)" />
+                  <small class="text-muted">Si se deja vacío, se publica de inmediato.</small>
+                </div>
+              }
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" (click)="closeModal()">Cancelar</button>
+              <button type="button" class="btn btn-primary" (click)="submitModal()" [disabled]="isSubmitting()">
+                @if (isSubmitting()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                {{ modalMode() === 'create' ? 'Crear' : 'Guardar cambios' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>

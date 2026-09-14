@@ -1,0 +1,94 @@
+.mission-vision-section {
+  width: 100%;
+  padding: 20px 0 60px 0;
+}
+
+.mission-vision-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+  width: 100%;
+}
+
+.mv-card {
+  background-color: var(--dm-surface);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.03);
+  transition: all 0.3s ease;
+  height: 100%;
+  overflow: hidden;
+}
+
+.mv-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+  border-color: transparent;
+}
+
+.mission-card {
+  border-bottom: 3px solid rgba(0, 123, 255, 0.2);
+}
+.vision-card {
+  border-bottom: 3px solid rgba(23, 162, 184, 0.2);
+}
+
+.icon-box {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--dm-surface-2);
+}
+.text-primary-muted {
+  color: #007bff99;
+}
+.text-info-muted {
+  color: #17a2b899;
+}
+
+.card-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--dm-text);
+  letter-spacing: -0.5px;
+}
+
+.card-description {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: var(--dm-text-secondary);
+  font-weight: 300;
+  text-align: left;
+}
+
+.fade-in {
+  opacity: 0;
+  animation: fadeInAnimation 0.6s ease-out forwards;
+}
+.delay-1 {
+  animation-delay: 0.2s;
+}
+
+@keyframes fadeInAnimation {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .mission-vision-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .card-content {
+    padding: 1.5rem !important;
+  }
+}

@@ -1,0 +1,35 @@
+<div class="gallery-container">
+  <div class="gallery-wrapper">
+    <div class="team-grid">
+      @for (member of team; track member.id; let index = $index) {
+        @if (index === 4) {
+          <h1 class="inserted-title">#ReeducarParaFormar</h1>
+        }
+
+        <a
+          [routerLink]="['/person', member.id]"
+          class="polaroid-card"
+          [style]="getCardStyle(index)"
+          (mouseenter)="onHover(index)"
+          (mouseleave)="onHover(null)"
+        >
+          <div class="polaroid-frame">
+            <div class="image-container">
+              <img [src]="member.src" [alt]="member.name" class="team-member-photo" />
+              <div class="image-overlay" [class.overlay-visible]="hoveredIndex() === index"></div>
+            </div>
+            <div class="name-container">
+              <h3 class="member-name">
+                {{ member.name }}
+              </h3>
+              <p class="member-specialty" [style.color]="member.color">
+                {{ member.specialty }}
+              </p>
+            </div>
+          </div>
+          <div class="active-pin" [class.pin-visible]="isHighlighted(index)"></div>
+        </a>
+      }
+    </div>
+  </div>
+</div>

@@ -1,0 +1,199 @@
+.inserted-title {
+  grid-column: 1 / -1;
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--dm-text);
+  margin: 0;
+}
+
+.gallery-container {
+  min-height: 100vh;
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    sans-serif;
+}
+
+.gallery-wrapper {
+  max-width: 80rem;
+  width: 100%;
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+  place-items: center;
+}
+
+@media (max-width: 1024px) {
+  .team-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 640px) {
+  .team-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.polaroid-card {
+  position: relative;
+  cursor: pointer;
+  transition: all 500ms ease-out;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.polaroid-frame {
+  background-color: var(--dm-surface);
+  padding: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border-radius: 0.125rem;
+}
+
+.image-container {
+  width: 16rem;
+  height: 20rem;
+  background: linear-gradient(to bottom right, #e2e8f0, #cbd5e1);
+  margin-bottom: 1rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.team-member-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 700ms ease;
+}
+
+.polaroid-card:hover .team-member-photo {
+  transform: scale(1.1);
+}
+
+.image-overlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+
+.image-overlay.overlay-visible {
+  opacity: 0;
+}
+
+.name-container {
+  text-align: center;
+}
+
+.member-name {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+  font-size: 1.25rem;
+  color: var(--dm-text);
+  letter-spacing: 0.025em;
+  margin-bottom: 0.25rem;
+}
+
+.member-specialty {
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.active-pin {
+  position: absolute;
+  bottom: -0.5rem;
+  left: 50%;
+  width: 1.5rem;
+  height: 1.5rem;
+  background: repeating-conic-gradient(from 0deg, #ef4444 0deg 20deg, #c4f1d2 20deg 40deg);
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border: 2px solid #ffffff;
+  transition: all 300ms ease;
+  opacity: 0;
+  transform: translateX(-50%) scale(0);
+}
+
+@media (max-width: 768px) {
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .inserted-title {
+    grid-column: 1 / -1;
+    font-size: 1.25rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .polaroid-card {
+    width: 100%;
+    transform: none !important;
+  }
+
+  .polaroid-frame {
+    padding: 0.5rem;
+  }
+
+  .image-container {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    height: auto;
+  }
+
+  .team-member-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .member-name {
+    font-size: 0.7rem;
+    margin-bottom: 0.1rem;
+  }
+
+  .member-specialty {
+    font-size: 0.6rem;
+  }
+
+  .active-pin {
+    width: 1rem;
+    height: 1rem;
+    bottom: -0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .team-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

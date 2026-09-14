@@ -1,0 +1,248 @@
+@if (showToast()) {
+  <div class="toast-notification">
+    <i class="fas fa-check-circle toast-icon"></i>
+    <span>¡Enlace copiado al portapapeles!</span>
+  </div>
+}
+
+<div class="programs-page-container">
+  <div class="container mb-4 fade-in">
+    <button (click)="goBack()" class="btn-back">
+      <i class="fas fa-arrow-left"></i>
+      <span class="ms-2 d-none d-sm-inline">Regresar</span>
+    </button>
+  </div>
+
+  <div class="content-wrapper">
+    <header class="programs-header text-center fade-in delay-1">
+      <h3 class="text-uppercase letter-spacing-2 text-dark mb-4 mt-0" style="font-size: 1.5rem; opacity: 0.8">
+        Programas y Multimedia
+      </h3>
+      <button class="btn-toggle-filters" (click)="showFilters.set(!showFilters())">
+        <i class="fas fa-sliders me-2"></i>
+        {{ showFilters() ? 'Ocultar Filtros' : 'Filtrar y Ordenar' }}
+      </button>
+    </header>
+
+    @if (showFilters()) {
+      <section class="controls-section mb-5">
+        <div class="controls-container">
+          <div class="filter-group">
+            <label class="control-label">
+              <i class="fas fa-filter me-2"></i>Categorías:
+            </label>
+            <div class="category-pills">
+              @for (cat of uniqueCategories; track cat) {
+                <button class="category-pill" [class]="cat" [class.active]="selectedCategories().includes(cat)" (click)="toggleCategory(cat)">
+                  {{ formatCategory(cat) }}
+                </button>
+              }
+            </div>
+          </div>
+
+          @if (uniqueSpecialists().length > 0) {
+            <div class="filter-group">
+              <label class="control-label">
+                <i class="fas fa-user-tie me-2"></i>Especialista:
+              </label>
+              <div class="select-wrapper">
+                <select class="form-select modern-select" [ngModel]="selectedSpecialist()" (ngModelChange)="selectedSpecialist.set($event)">
+                  <option [ngValue]="null">Todos los especialistas</option>
+                  @for (specialist of uniqueSpecialists(); track specialist) {
+                    <option [ngValue]="specialist">{{ specialist }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+          }
+
+          <div class="filter-group sort-group">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <label class="control-label mb-0">
+                <i class="fas fa-sort me-2"></i>Ordenar:
+              </label>
+              @if (selectedCategories().length || selectedSpecialist()) {
+                <button class="clear-filters-btn" (click)="clearFilters()">Limpiar filtros ✖</button>
+              }
+            </div>
+
+            <div class="sort-segmented-control">
+              <button (click)="sortOrder.set('recent')" [class.active]="sortOrder() === 'recent'">Más Recientes</button>
+              <button (click)="sortOrder.set('oldest')" [class.active]="sortOrder() === 'oldest'">Más Antiguos</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    }
+
+    <div class="video-grid fade-in delay-2">
+      @for (video of filteredAndSortedVideos(); track video.id) {
+        <div class="video-card-clean" (click)="selectVideo(video)">
+          <div class="thumbnail-wrapper">
+            <img [src]="video.thumbnail" [alt]="video.title" class="video-thumbnail-img" />
+            <div class="play-overlay">
+              <div class="play-circle">
+                <i class="fas fa-play play-icon-svg"></i>
+              </div>
+            </div>
+            @if (video.category) {
+              <span class="category-badge-in-img" [class]="video.category">
+                {{ formatCategory(video.category) }}
+              </span>
+            }
+          </div>
+
+          <div class="card-info">
+            <h3 class="card-title" [title]="video.title">{{ video.title }}</h3>
+
+            @if (video.participant) {
+              <p class="card-specialist">
+                <i class="fas fa-user-tie me-1"></i> {{ video.participant }}
+              </p>
+            }
+
+            <div class="card-meta">
+              @if (video.formattedDate) {
+                <span class="meta-date">
+                  <i class="far fa-calendar me-1"></i>
+                  {{ video.formattedDate }}
+                </span>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (filteredAndSortedVideos().length === 0) {
+      <div class="no-results-container fade-in delay-2">
+        <div class="empty-state-box">
+          <i class="fas fa-search mb-3 fa-3x" style="opacity: 0.5"></i>
+          <h3>No se encontraron programas.</h3>
+          <p>Intenta ajustar tus filtros de búsqueda.</p>
+          <button class="btn btn-link" (click)="clearFilters()">Limpiar todos los filtros</button>
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (selectedVideo(); as selectedVideo) {
+    <div class="video-modal-overlay" (click)="$event.target === $event.currentTarget && closeVideo()">
+      <div class="video-modal-container">
+        <button class="close-modal-btn-on-dark" (click)="closeVideo()" title="Cerrar">✖</button>
+
+        <div class="modal-layout">
+          <div class="video-player-section">
+            <div class="iframe-wrapper-absolute">
+              @if (isDirectVideo(selectedVideo.url)) {
+                <video [src]="selectedVideo.url" controls autoplay playsinline class="video-iframe-fit"></video>
+              } @else if (selectedVideoUrl(); as videoUrl) {
+                <iframe
+                  [src]="videoUrl"
+                  frameborder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowfullscreen
+                  class="video-iframe-fit"
+                ></iframe>
+              }
+            </div>
+          </div>
+
+          <div class="video-details-section light-theme">
+            <div class="details-header">
+              <h2 class="modal-video-title">{{ selectedVideo.title }}</h2>
+            </div>
+
+            <div class="modal-video-meta">
+              @if (selectedVideo.participant) {
+                <p class="meta-specialist mb-2">
+                  <i class="fas fa-user-tie me-2"></i>
+                  <strong>{{ selectedVideo.participant }}</strong>
+                </p>
+              }
+
+              <div class="d-flex align-items-center text-muted">
+                @if (selectedVideo.formattedDate) {
+                  <span>
+                    <i class="far fa-calendar-alt me-1"></i>
+                    {{ selectedVideo.formattedDate }}
+                  </span>
+                }
+                @if (selectedVideo.category) {
+                  <span class="ms-3 text-uppercase category-tag-modal" [class]="selectedVideo.category">
+                    | {{ selectedVideo.category }}
+                  </span>
+                }
+                <button class="btn-share-sm" (click)="$event.stopPropagation(); shareVideo(selectedVideo)" title="Copiar enlace">
+                  <i class="fas fa-link"></i>
+                </button>
+              </div>
+
+              @if (selectedVideo.description) {
+                <p class="meta-desc mt-3">
+                  {{ selectedVideo.description }}
+                </p>
+              }
+            </div>
+
+            <div class="comments-container">
+              <h4 class="comments-title">
+                Comentarios <span class="comment-count">({{ comments().length }})</span>
+              </h4>
+
+              <div class="comments-list light-scroll">
+                @if (comments().length) {
+                  @for (comment of comments(); track comment.id; let idx = $index) {
+                    <div class="comment-item">
+                      <img [src]="comment['image'] || defaultAvatar" alt="Avatar" class="comment-avatar" />
+
+                      <div class="comment-body light-comment-bg">
+                        <div class="comment-header">
+                          <span class="comment-author">{{ comment['userName'] }}</span>
+                          @if (comment['userId'] === currentUser()?.uid) {
+                            <div class="comment-menu">
+                              <button class="menu-trigger text-muted" (click)="toggleMenu(idx)">⋮</button>
+                              @if (activeMenu() === idx) {
+                                <div class="menu-dropdown light-dropdown-bg">
+                                  <button class="btn-delete" (click)="deleteComment(comment, idx)">
+                                    <i class="fas fa-trash-can"></i> Eliminar
+                                  </button>
+                                </div>
+                              }
+                            </div>
+                          }
+                        </div>
+                        <p class="comment-text">{{ comment['commentText'] }}</p>
+                      </div>
+                    </div>
+                  }
+                } @else {
+                  <div class="no-comments-placeholder text-muted">
+                    <i class="far fa-comments placeholder-icon-small"></i>
+                    <p>Aún no hay comentarios. ¡Sé el primero!</p>
+                  </div>
+                }
+              </div>
+
+              <div class="comment-input-wrapper light-border-top">
+                <img [src]="currentUser()?.photoURL || defaultAvatar" class="input-avatar" alt="Tu avatar" />
+                <div class="input-box">
+                  <input
+                    [ngModel]="newComment()"
+                    (ngModelChange)="newComment.set($event)"
+                    placeholder="Añadir un comentario..."
+                    class="comment-input-field light-input-bg"
+                    (keyup.enter)="addNewComment()"
+                  />
+                  <button class="send-comment-btn" (click)="addNewComment()" [disabled]="!newComment().trim()">
+                    <i class="fas fa-paper-plane"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

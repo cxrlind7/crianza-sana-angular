@@ -1,0 +1,49 @@
+@if (filteredBlogs().length > 0) {
+  <div class="person-blogs-section">
+    <div class="container-fluid main-container">
+      <div class="text-center mb-5 fade-in">
+        <h6 class="text-uppercase letter-spacing-2 text-muted mb-2">Publicaciones</h6>
+        <h2 class="display-6 fw-bold text-dark">Artículos Recientes</h2>
+      </div>
+
+      <div class="carousel-container position-relative fade-in delay-1" [style.--arrow-color]="personColor">
+        <swiper-container #swiperContainer init="false" class="blogs-swiper" [style.--swiper-pagination-color]="personColor">
+          @for (blog of filteredBlogs(); track blog.id) {
+            <swiper-slide class="h-auto">
+              <article class="blog-card h-100" (click)="goToBlog(blog.id)">
+                <div class="blog-image-wrapper">
+                  <img [src]="blog.imageUrl" [alt]="blog.title" class="blog-image" />
+                  <span class="category-badge" [style.backgroundColor]="blog.categoryColor || personColor || '#2563eb'">
+                    {{ blog.category }}
+                  </span>
+                </div>
+
+                <div class="blog-content">
+                  <div class="blog-meta">
+                    <span class="blog-date"><i class="far fa-calendar-alt me-2"></i>{{ formatDate(blog.date) }}</span>
+                  </div>
+
+                  <h3 class="blog-title">{{ blog.title }}</h3>
+                  <p class="blog-excerpt">{{ truncateText(blog.description, 100) }}</p>
+
+                  <div class="blog-footer">
+                    <span class="read-more" [style.color]="personColor">
+                      Leer más <i class="fas fa-arrow-right ms-1"></i>
+                    </span>
+                  </div>
+                </div>
+              </article>
+            </swiper-slide>
+          }
+        </swiper-container>
+
+        <div class="custom-arrow custom-prev">
+          <i class="fas fa-chevron-left"></i>
+        </div>
+        <div class="custom-arrow custom-next">
+          <i class="fas fa-chevron-right"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+}

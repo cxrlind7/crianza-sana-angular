@@ -1,0 +1,58 @@
+@if (visible()) {
+  <div class="subscribe-overlay" (click)="$event.target === $event.currentTarget && dismiss()">
+    <div class="subscribe-modal" role="dialog" aria-modal="true" aria-labelledby="subscribe-title">
+      <button class="subscribe-close" (click)="dismiss()" aria-label="Cerrar">
+        <i class="bi bi-x-lg"></i>
+      </button>
+
+      <div class="subscribe-icon-wrap">
+        <div class="subscribe-icon">🌱</div>
+      </div>
+
+      <h2 id="subscribe-title" class="subscribe-title">¡Mantente al día!</h2>
+      <p class="subscribe-desc">
+        Recibe en tu correo los nuevos <strong>blogs</strong> y <strong>programas</strong> de
+        Crianza Sana by D&apos;Kids.
+      </p>
+
+      @if (!submitted()) {
+        <div>
+          <div class="subscribe-input-wrap">
+            <i class="bi bi-envelope subscribe-input-icon"></i>
+            <input
+              id="subscribe-email-input"
+              [(ngModel)]="email"
+              type="email"
+              class="subscribe-input"
+              placeholder="tu@correo.com"
+              (keyup.enter)="subscribe()"
+              [disabled]="loading()"
+            />
+          </div>
+
+          @if (errorMsg()) {
+            <p class="subscribe-error">
+              <i class="bi bi-exclamation-circle me-1"></i>{{ errorMsg() }}
+            </p>
+          }
+
+          <button class="subscribe-btn" (click)="subscribe()" [disabled]="loading() || !email">
+            @if (loading()) {
+              <span class="spinner-border spinner-border-sm me-2"></span>
+            }
+            {{ loading() ? 'Suscribiendo...' : 'Suscribirme gratis' }}
+          </button>
+
+          <button class="subscribe-skip" (click)="dismiss()">No, gracias</button>
+        </div>
+      } @else {
+        <div class="subscribe-success">
+          <div class="success-check">✅</div>
+          <h3>¡Listo!</h3>
+          <p>Te hemos enviado un correo de bienvenida. Revisa tu bandeja de entrada.</p>
+          <button class="subscribe-btn" (click)="dismiss()">Cerrar</button>
+        </div>
+      }
+    </div>
+  </div>
+}

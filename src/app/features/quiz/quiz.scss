@@ -1,0 +1,24 @@
+.btn-back {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--dm-text-secondary);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  padding: 8px 20px;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  display: inline-flex;
+  align-items: center;
+  margin-left: 5rem;
+}
+
+.btn-back:hover {
+  background-color: var(--dm-surface);
+  transform: translateX(-5px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+  color: var(--dm-text);
+}

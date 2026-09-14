@@ -1,0 +1,54 @@
+<section class="container" [class.show-signup]="isSignup()">
+  <div class="form login">
+    <div class="form-content">
+      <header>Iniciar Sesión</header>
+      <form (submit)="$event.preventDefault(); handleLogin()">
+        <div class="field input-field">
+          <input [(ngModel)]="email" name="loginEmail" type="email" placeholder="Email" class="input" />
+        </div>
+        <div class="field input-field">
+          <input [(ngModel)]="password" name="loginPassword" [type]="showPassword() ? 'text' : 'password'" placeholder="Contraseña" class="password" />
+          <i [class]="showPassword() ? 'fas fa-eye eye-icon' : 'fas fa-eye-slash eye-icon'" (click)="togglePassword()"></i>
+        </div>
+        @if (errorMessage()) {
+          <p class="error-message">{{ errorMessage() }}</p>
+        }
+
+        <div class="field button-field">
+          <button type="submit">Entrar</button>
+        </div>
+      </form>
+      <div class="form-link">
+        <span>¿No tienes una cuenta? <a href="#" class="link signup-link" (click)="$event.preventDefault(); toggleForm()">Crear una Cuenta</a></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="form signup" [class.show-signup]="isSignup()">
+    <div class="form-content">
+      <header>Regístrate</header>
+      <form (submit)="$event.preventDefault(); handleRegister()">
+        <div class="field input-field">
+          <input [(ngModel)]="name" name="signupName" type="text" placeholder="Nombre" class="input" />
+        </div>
+        <div class="field input-field">
+          <input [(ngModel)]="email" name="signupEmail" type="email" placeholder="Email" class="input" />
+        </div>
+
+        <div class="field input-field">
+          <input [(ngModel)]="password" name="signupPassword" [type]="showPassword() ? 'text' : 'password'" placeholder="Crear Contraseña" class="password" />
+          <i [class]="showPassword() ? 'fas fa-eye eye-icon' : 'fas fa-eye-slash eye-icon'" (click)="togglePassword()"></i>
+        </div>
+        @if (errorMessage()) {
+          <p class="error-message">{{ errorMessage() }}</p>
+        }
+        <div class="field button-field">
+          <button type="submit">Enviar</button>
+        </div>
+      </form>
+      <div class="form-link">
+        <span>¿Ya tienes una cuenta? <a href="#" class="link login-link" (click)="$event.preventDefault(); toggleForm()">Ingresa</a></span>
+      </div>
+    </div>
+  </div>
+</section>

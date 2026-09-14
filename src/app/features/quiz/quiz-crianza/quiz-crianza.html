@@ -1,0 +1,175 @@
+<div class="quiz-container">
+  <div class="mesh-gradient-bg"></div>
+
+  <div class="container d-flex flex-column align-items-center mt-5 position-relative">
+    <div class="card quiz-card shadow-lg border-0 rounded-4">
+      <div class="card-body p-4 p-md-5 text-center position-relative overflow-hidden">
+        @if (step() < 2) {
+          <div class="floating-icons">
+            <div class="float-icon icon-1">❓</div>
+            <div class="float-icon icon-2">💭</div>
+            <div class="float-icon icon-3">❔</div>
+          </div>
+        }
+
+        @if (step() === 0) {
+          <div class="step-dashboard fade-in">
+            <p class="text-muted mb-5">Descubre una nueva área de apoyo cada 2 días.</p>
+
+            <div class="row row-cols-2 row-cols-md-3 g-4 justify-content-center">
+              @for (cat of categories; track cat.id; let index = $index) {
+                <div class="col">
+                  <div
+                    class="card h-100 border-0 shadow-sm category-card"
+                    [class.locked]="!isUnlocked(index)"
+                    [class.unlocked]="isUnlocked(index)"
+                    (click)="startQuiz(cat, index)"
+                  >
+                    <div class="card-body d-flex flex-column align-items-center justify-content-center p-3">
+                      <div class="card-icon mb-3">
+                        @if (isUnlocked(index)) {
+                          <span style="font-size: 2.5rem">{{ cat.emoji }}</span>
+                        } @else {
+                          <span style="font-size: 2.5rem">🔒</span>
+                        }
+                      </div>
+                      <h6 class="card-title fw-bold text-dark mb-0" style="font-size: 0.9rem">
+                        {{ cat.name }}
+                      </h6>
+                      @if (!isUnlocked(index)) {
+                        <small class="text-muted mt-2" style="font-size: 0.7rem">
+                          Disponible el {{ getUnlockDate(index) }}
+                        </small>
+                      }
+
+                      <div class="share-actions mt-3 d-flex gap-2" (click)="$event.stopPropagation()">
+                        <button class="btn btn-sm btn-light rounded-circle shadow-sm share-btn" (click)="shareLink(cat.id)" title="Copiar enlace">
+                          🔗
+                        </button>
+                        <button
+                          class="btn btn-sm btn-primary rounded-circle shadow-sm share-btn facebook-btn"
+                          (click)="shareFacebook(cat.id)"
+                          title="Compartir en Facebook"
+                          style="background-color: #1877f2; border: none"
+                        >
+                          f
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        } @else if (step() === 1) {
+          <div class="step-questions fade-in">
+            <div class="progress mb-4" style="height: 10px; border-radius: 5px; background-color: var(--dm-surface-2)">
+              <div class="progress-bar bg-gradient-primary" role="progressbar" [style.width.%]="progressPercentage()" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+
+            <div class="question-block mb-2">
+              <h3 class="fw-bold mb-4" style="color: var(--dm-text)">
+                {{ currentQuestion() }}
+              </h3>
+
+              <div class="d-grid gap-3 d-md-flex justify-content-center">
+                <button (click)="handleAnswer('si')" class="btn btn-light btn-lg rounded-pill px-4 border shadow-sm answer-btn">
+                  <span class="btn-letter">A.</span> Sí
+                </button>
+                <button (click)="handleAnswer('a_veces')" class="btn btn-light btn-lg rounded-pill px-4 border shadow-sm answer-btn">
+                  <span class="btn-letter">B.</span> A veces
+                </button>
+                <button (click)="handleAnswer('no')" class="btn btn-light btn-lg rounded-pill px-4 border shadow-sm answer-btn">
+                  <span class="btn-letter">C.</span> No
+                </button>
+              </div>
+
+              <div class="mt-5 d-flex justify-content-between align-items-center gap-2">
+                <button (click)="prevQuestion()" [disabled]="currentQuestionIdx() === 0" class="btn-nav-prev rounded-pill px-4 py-2">
+                  <i class="bi bi-arrow-left me-2"></i> Anterior
+                </button>
+                <button (click)="resetQuiz()" class="btn-nav-reset rounded-pill px-4 py-2">
+                  <i class="bi bi-arrow-counterclockwise me-2"></i> Reiniciar
+                </button>
+              </div>
+            </div>
+          </div>
+        } @else if (step() === 2 && finalResult(); as finalResult) {
+          <div class="step-result fade-in">
+            <h2 class="fw-bold mb-3" style="color: var(--dm-text)">{{ finalResult.name }}</h2>
+
+            <div class="result-image-container mb-4">
+              <div class="rounded-circle d-flex align-items-center justify-content-center bg-light mx-auto shadow" style="width: 150px; height: 150px; font-size: 5rem">
+                {{ finalResult.emoji || '🧩' }}
+              </div>
+            </div>
+
+            <p class="lead mb-4 px-md-4" style="font-size: 1.1rem; line-height: 1.6">
+              {{ finalResult.resultMessage }}
+            </p>
+
+            <div class="cta-section mb-5">
+              <span class="d-block fw-bold mb-2 text-uppercase letter-spacing-1">Siguientes pasos</span>
+
+              @if (finalResult.ctaLink) {
+                <a [routerLink]="finalResult.ctaLink" class="btn btn-primary btn-lg rounded-pill px-4 shadow hover-scale d-inline-flex align-items-center gap-2" style="border: none">
+                  <i class="bi bi-book fs-4"></i>
+                  <span>{{ finalResult.ctaText }}</span>
+                </a>
+              } @else {
+                <a [href]="whatsappLink()" target="_blank" class="btn btn-success btn-lg rounded-pill px-4 shadow hover-scale d-inline-flex align-items-center gap-2" style="background-color: #25d366; border: none">
+                  <i class="bi bi-whatsapp fs-4"></i>
+                  <span>{{ finalResult.ctaText || 'Contactar Especialista' }}</span>
+                </a>
+              }
+            </div>
+
+            <hr class="mx-auto w-50" style="opacity: 0.2" />
+
+            <div class="logos-footer mt-4 d-flex justify-content-center align-items-center gap-4">
+              <div class="text-center">
+                <img src="/csbdk.png" alt="Crianza Sana" class="footer-logo" style="height: 40px; object-fit: contain" />
+              </div>
+              @if (finalResult.logo) {
+                <div class="text-center">
+                  <img [src]="finalResult.logo" [alt]="finalResult.contactName" class="footer-logo" style="height: 40px; object-fit: contain" />
+                  <small class="d-block text-muted mt-1" style="font-size: 0.7rem">{{ finalResult.contactName }}</small>
+                </div>
+              }
+            </div>
+
+            <div class="share-result-section mt-4 text-center">
+              <p class="text-muted mb-2 small">Compartir este test:</p>
+              <div class="d-flex justify-content-center gap-3">
+                <button class="btn btn-light rounded-circle shadow-sm share-btn p-2" (click)="shareLink(selectedCategory()?.id)" title="Copiar enlace" style="width: 45px; height: 45px; font-size: 1.2rem">
+                  🔗
+                </button>
+                <button
+                  class="btn btn-primary rounded-circle shadow-sm share-btn facebook-btn p-2"
+                  (click)="shareFacebook(selectedCategory()?.id)"
+                  title="Compartir en Facebook"
+                  style="background-color: #1877f2; border: none; width: 45px; height: 45px; font-size: 1.2rem; color: white;"
+                >
+                  f
+                </button>
+              </div>
+            </div>
+
+            <button (click)="resetQuiz()" class="btn btn-link text-muted mt-4 text-decoration-none sm-text">
+              <i class="bi bi-arrow-counterclockwise"></i> Volver a empezar
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (showToast()) {
+    <div class="toast-notification">
+      <div class="toast-content">
+        <span class="toast-icon">✅</span>
+        <span>Enlace copiado al portapapeles</span>
+      </div>
+    </div>
+  }
+</div>

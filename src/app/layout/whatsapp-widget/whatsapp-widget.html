@@ -1,0 +1,60 @@
+@if (!isChatOpen()) {
+  <button class="whatsapp-float-btn" (click)="toggleChat()" aria-label="Abrir chat de WhatsApp">
+    <i class="bi bi-whatsapp"></i>
+    <span class="notification-badge">1</span>
+  </button>
+}
+
+@if (isChatOpen()) {
+  <div class="chat-widget" role="dialog" aria-modal="true">
+    <div class="chat-header">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-whatsapp fs-4 me-2 text-white"></i>
+        <div>
+          <h3 class="m-0 text-white fw-bold fs-6">Equipo Crianza Sana</h3>
+          <small class="text-white-50" style="font-size: 0.75rem">Solemos responder en minutos</small>
+        </div>
+      </div>
+      <button class="close-chat-btn" (click)="toggleChat()" aria-label="Cerrar chat">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+
+    <div class="chat-body">
+      <div class="welcome-message mb-3 p-3 rounded-3 bg-light shadow-sm">
+        <p class="m-0 text-dark" style="font-size: 0.9rem">
+          ¡Hola! 👋 ¿Con quién te gustaría hablar hoy? Selecciona un especialista para iniciar un
+          chat directo por WhatsApp.
+        </p>
+      </div>
+
+      <ul class="specialist-list">
+        @for (person of people; track person.id) {
+          <li class="specialist-item">
+            <div class="avatar-container">
+              <img [src]="person.image" [alt]="person.name" class="avatar" [style.borderColor]="person.color" />
+              <span class="status-indicator online"></span>
+            </div>
+
+            <div class="specialist-info">
+              <h4 class="name">{{ person.name }}</h4>
+              <p class="role">{{ person.title }}</p>
+            </div>
+
+            <button
+              class="start-chat-btn"
+              (click)="openWhatsApp(person)"
+              [attr.aria-label]="'Iniciar chat con ' + person.name"
+            >
+              <i class="bi bi-send-fill"></i>
+            </button>
+          </li>
+        }
+      </ul>
+    </div>
+
+    <div class="chat-footer text-center py-2 bg-light" style="font-size: 0.7rem; color: #888">
+      <i class="bi bi-shield-lock-fill me-1"></i> Chat seguro vía WhatsApp
+    </div>
+  </div>
+}
