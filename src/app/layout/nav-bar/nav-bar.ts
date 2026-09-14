@@ -1,7 +1,8 @@
-import { Component, HostListener, OnInit, inject, signal } from '@angular/core';
+import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { DarkModeToggle } from '../../shared/dark-mode-toggle/dark-mode-toggle';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-nav-bar',
@@ -14,6 +15,10 @@ export class NavBar implements OnInit {
   private readonly authService = inject(AuthService);
 
   readonly currentUser = this.authService.currentUser;
+  readonly isAdmin = computed(() => {
+    const email = this.currentUser()?.email;
+    return !!email && environment.adminEmails.includes(email);
+  });
 
   readonly isMenuOpen = signal(false);
   readonly isScrolled = signal(false);

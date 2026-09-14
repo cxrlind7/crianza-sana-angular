@@ -14,6 +14,7 @@ import {
   Video,
 } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
+import { AwsService } from '../../core/services/aws.service';
 import { people } from '../../core/data/people-data';
 import { environment } from '../../../environments/environment';
 
@@ -65,6 +66,10 @@ type ModalData = Record<string, any>;
 export class Configuration {
   private readonly api = inject(ApiService);
   private readonly authService = inject(AuthService);
+  private readonly aws = inject(AwsService);
+
+  readonly isUploadingImage = signal(false);
+  readonly uploadError = signal<string | null>(null);
 
   @ViewChild('richEditor') richEditorRef?: ElementRef<HTMLDivElement>;
 
@@ -511,6 +516,26 @@ export class Configuration {
 
   updateModalField(field: string, value: unknown): void {
     this.modalData.update((d) => ({ ...d, [field]: value }));
+  }
+
+  async onImageFileSelected(event: Event, field: string): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    this.isUploadingImage.set(true);
+    this.uploadError.set(null);
+    try {
+      const publicUrl = await this.aws.uploadFile(file, this.modalType() || 'uploads');
+      if (publicUrl) {
+        this.updateModalField(field, publicUrl);
+      } else {
+        this.uploadError.set('No se pudo subir la imagen. Intenta de nuevo.');
+      }
+    } finally {
+      this.isUploadingImage.set(false);
+      input.value = '';
+    }
   }
 
   syncEditorContent(): void {

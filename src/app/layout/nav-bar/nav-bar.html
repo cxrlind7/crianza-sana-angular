@@ -40,6 +40,9 @@
             />
             @if (showUserMenu()) {
               <div class="user-dropdown">
+                @if (isAdmin()) {
+                  <a routerLink="/configuration" (click)="closeMenu()">Configuración</a>
+                }
                 <button (click)="handleSignOut()">Cerrar sesión</button>
               </div>
             }
