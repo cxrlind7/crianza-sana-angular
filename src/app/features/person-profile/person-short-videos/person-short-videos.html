@@ -7,12 +7,21 @@
 
     <div class="carousel-container position-relative fade-in delay-1" [style.--arrow-color]="personColor">
       <swiper-container #swiperContainer init="false" class="short-videos-swiper" [style.--swiper-pagination-color]="personColor">
-        @for (video of videos; track video.url) {
+        @for (video of videos; track video.url; let i = $index) {
           <swiper-slide class="h-auto">
             <div class="short-video-card h-100">
               <video class="short-video-player" [poster]="video.poster || ''" controls preload="metadata" playsinline>
                 <source [src]="video.url" type="video/mp4" />
               </video>
+              <button
+                type="button"
+                class="share-btn"
+                [class.copied]="copiedIndex() === i"
+                (click)="shareVideo(video, i)"
+                title="Copiar enlace del video"
+              >
+                <i class="fas" [class.fa-check]="copiedIndex() === i" [class.fa-share-nodes]="copiedIndex() !== i"></i>
+              </button>
             </div>
           </swiper-slide>
         }

@@ -1,4 +1,4 @@
-import { AfterViewInit, CUSTOM_ELEMENTS_SCHEMA, Component, ElementRef, Input, ViewChild } from '@angular/core';
+import { AfterViewInit, CUSTOM_ELEMENTS_SCHEMA, Component, ElementRef, Input, ViewChild, signal } from '@angular/core';
 import type { SwiperOptions } from 'swiper/types';
 
 interface ShortVideo {
@@ -17,7 +17,19 @@ export class PersonShortVideos implements AfterViewInit {
   @Input() videos: ShortVideo[] = [];
   @Input() personColor = '#2563eb';
 
+  readonly copiedIndex = signal<number | null>(null);
+
   @ViewChild('swiperContainer') swiperContainer?: ElementRef<HTMLElement>;
+
+  async shareVideo(video: ShortVideo, index: number): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(video.url);
+      this.copiedIndex.set(index);
+      setTimeout(() => this.copiedIndex.set(null), 2000);
+    } catch (error) {
+      console.error('❌ Error al copiar el enlace del video:', error);
+    }
+  }
 
   ngAfterViewInit(): void {
     const swiperEl = this.swiperContainer?.nativeElement as (HTMLElement & { initialize: () => void }) | undefined;
