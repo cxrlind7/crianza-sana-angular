@@ -98,6 +98,15 @@ export interface Comment {
   [key: string]: unknown;
 }
 
+export interface ShortVideo {
+  id: string;
+  personId: string;
+  title: string;
+  url: string;
+  poster?: string;
+  orden?: number;
+}
+
 export interface GalleryImage {
   id: string;
   url: string;
@@ -343,6 +352,19 @@ export class ApiService {
     } catch (error) {
       console.error(`❌ Error obteniendo reels del backend para persona ${personId}:`, error);
       throw error;
+    }
+  }
+
+  async getShortVideos(personId: string | number): Promise<ShortVideo[]> {
+    try {
+      return await firstValueFrom(
+        this.http.get<ShortVideo[]>(`${this.baseUrl}/api/firestore/short-videos`, {
+          params: { personId },
+        }),
+      );
+    } catch (error) {
+      console.error(`❌ Error obteniendo videos cortos para persona ${personId}:`, error);
+      return [];
     }
   }
 

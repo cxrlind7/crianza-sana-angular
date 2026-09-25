@@ -411,6 +411,49 @@ app.get('/api/firestore/reels', async (req, res) => {
   }
 })
 
+// --- VIDEOS CORTOS (por persona) ---
+app.get('/api/firestore/short-videos', async (req, res) => {
+  if (!checkDb(res)) return
+  const { personId } = req.query
+  if (!personId) return res.status(400).json({ error: 'personId required' })
+  try {
+    const snapshot = await db
+      .collection('videosCortos')
+      .where('personId', '==', String(personId))
+      .get()
+    const videos = snapshot.docs
+      .map((doc) => ({ id: doc.id, ...doc.data() }))
+      .sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0))
+    res.json(videos)
+  } catch (error) {
+    console.error('Error Firestore Short Videos:', error)
+    res.status(500).json({ error: 'Error fetching short videos' })
+  }
+})
+
+app.post('/api/firestore/short-videos', async (req, res) => {
+  if (!db) return res.json({ success: true, id: 'mock-id' })
+  try {
+    const docRef = await db.collection('videosCortos').add(req.body)
+    res.json({ success: true, id: docRef.id })
+  } catch (error) {
+    console.error('Error creating short video:', error)
+    res.status(500).json({ error: 'Error creating short video' })
+  }
+})
+
+app.delete('/api/firestore/short-videos/:id', async (req, res) => {
+  const { id } = req.params
+  if (!db) return res.json({ success: true })
+  try {
+    await db.collection('videosCortos').doc(id).delete()
+    res.json({ success: true })
+  } catch (error) {
+    console.error('Error deleting short video:', error)
+    res.status(500).json({ error: 'Error deleting short video' })
+  }
+})
+
 app.get('/api/firestore/campaign', async (req, res) => {
   if (!checkDb(res)) return
   try {
