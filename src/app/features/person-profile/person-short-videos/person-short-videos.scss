@@ -112,18 +112,6 @@ swiper-slide {
   display: block;
 }
 
-.short-video-content {
-  padding: 16px 20px 20px;
-}
-
-.short-video-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--dm-text);
-  margin: 0;
-  line-height: 1.4;
-}
-
 .fade-in {
   opacity: 0;
   animation: fadeIn 0.8s ease-out forwards;
