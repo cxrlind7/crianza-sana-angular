@@ -36,6 +36,7 @@ export class PersonShortVideos implements AfterViewInit {
 
   @ViewChild('swiperContainer') swiperContainer?: ElementRef<HTMLElement>;
   @ViewChild('sectionRoot') sectionRoot?: ElementRef<HTMLElement>;
+  @ViewChild('modalRoot') modalRoot?: ElementRef<HTMLElement>;
 
   ngAfterViewInit(): void {
     const swiperEl = this.swiperContainer?.nativeElement as (HTMLElement & { initialize: () => void }) | undefined;
@@ -68,6 +69,12 @@ export class PersonShortVideos implements AfterViewInit {
     this.selectedVideo.set(match);
     setTimeout(() => {
       this.sectionRoot?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Un ancestro (`.fade-in`) anima `transform`, lo que crea un containing block
+      // para `position: fixed` y rompe el centrado del modal. Lo movemos a <body>.
+      const modalEl = this.modalRoot?.nativeElement;
+      if (modalEl && modalEl.parentElement !== document.body) {
+        document.body.appendChild(modalEl);
+      }
     });
   }
 
