@@ -3,10 +3,36 @@ import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
+// Nombres de carpeta legibles dentro del bucket, para que cualquiera que
+// explore R2 identifique de qué es cada archivo sin tener que abrirlo.
+const FOLDER_LABELS: Record<string, string> = {
+  video: 'programas',
+  'video-corto': 'videos-cortos',
+  blog: 'blogs',
+  ad: 'anuncios',
+  banner: 'banners',
+  evento: 'eventos',
+  gallery: 'galeria',
+  avatar: 'avatares',
+  uploads: 'archivos',
+};
+
 @Injectable({ providedIn: 'root' })
 export class AwsService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = environment.backendUrl;
+
+  private slugify(name: string): string {
+    return (
+      name
+        .normalize('NFD')
+        .replace(/\p{Diacritic}/gu, '') // quitar acentos
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 60) || 'archivo'
+    );
+  }
 
   async getSignedUrl(key: string): Promise<string | null> {
     if (!key) {
@@ -43,8 +69,11 @@ export class AwsService {
   }
 
   async uploadFile(file: File, folder: string): Promise<string | null> {
-    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-    const key = `${folder}/${Date.now()}-${safeName}`;
+    const label = FOLDER_LABELS[folder] || this.slugify(folder);
+    const extMatch = file.name.match(/\.([a-zA-Z0-9]+)$/);
+    const ext = extMatch ? extMatch[1].toLowerCase() : 'bin';
+    const baseName = file.name.replace(/\.[^.]+$/, '');
+    const key = `${label}/${this.slugify(baseName)}-${Date.now()}.${ext}`;
     const result = await this.getUploadUrl(key, file.type || 'application/octet-stream');
     if (!result) return null;
     try {

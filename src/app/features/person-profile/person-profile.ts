@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { people } from '../../core/data/people-data';
+import { ApiService, ShortVideo } from '../../core/services/api.service';
 import { MisionProfile } from './mision-profile/mision-profile';
 import { ServicesProfile } from './services-profile/services-profile';
 import { PersonFAQs } from './person-faqs/person-faqs';
@@ -9,6 +10,7 @@ import { PersonDownloads } from './person-downloads/person-downloads';
 import { PersonReels } from './person-reels/person-reels';
 import { PersonBlogs } from './person-blogs/person-blogs';
 import { PersonYoutube } from './person-youtube/person-youtube';
+import { PersonShortVideos } from './person-short-videos/person-short-videos';
 
 interface PersonRecord {
   id: number;
@@ -39,15 +41,26 @@ interface PersonRecord {
 
 @Component({
   selector: 'app-person-profile',
-  imports: [MisionProfile, ServicesProfile, PersonFAQs, PersonDownloads, PersonReels, PersonBlogs, PersonYoutube],
+  imports: [
+    MisionProfile,
+    ServicesProfile,
+    PersonFAQs,
+    PersonDownloads,
+    PersonReels,
+    PersonBlogs,
+    PersonYoutube,
+    PersonShortVideos,
+  ],
   templateUrl: './person-profile.html',
   styleUrl: './person-profile.scss',
 })
 export class PersonProfile implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly location = inject(Location);
+  private readonly api = inject(ApiService);
 
   readonly id = signal<string>('');
+  readonly shortVideos = signal<ShortVideo[]>([]);
 
   readonly person = computed<PersonRecord | undefined>(() =>
     (people as PersonRecord[]).find((p) => p.id === Number(this.id())),
@@ -55,6 +68,8 @@ export class PersonProfile implements OnInit {
 
   ngOnInit(): void {
     this.id.set(this.route.snapshot.paramMap.get('id') ?? '');
+
+    this.api.getShortVideos(this.id()).then((videos) => this.shortVideos.set(videos));
 
     if (typeof window.gtag === 'function') {
       const path = `/person/${this.id()}`;

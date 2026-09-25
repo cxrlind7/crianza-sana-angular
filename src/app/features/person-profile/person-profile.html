@@ -60,6 +60,9 @@
         <app-person-downloads [files]="person.files" [personColor]="person.color" />
       </div>
       <div class="content-section mb-2 fade-in delay-3">
+        <app-person-short-videos [videos]="shortVideos()" [personColor]="person.color" />
+      </div>
+      <div class="content-section mb-2 fade-in delay-3">
         <app-person-reels [instagramProfileData]="person.instagramProfileData || null" />
       </div>
       <div class="content-section mb-2 fade-in delay-3">
