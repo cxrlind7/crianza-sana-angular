@@ -35,6 +35,7 @@ export class PersonShortVideos implements AfterViewInit {
   readonly selectedVideo = signal<ShortVideo | null>(null);
 
   @ViewChild('swiperContainer') swiperContainer?: ElementRef<HTMLElement>;
+  @ViewChild('sectionRoot') sectionRoot?: ElementRef<HTMLElement>;
 
   ngAfterViewInit(): void {
     const swiperEl = this.swiperContainer?.nativeElement as (HTMLElement & { initialize: () => void }) | undefined;
@@ -63,7 +64,11 @@ export class PersonShortVideos implements AfterViewInit {
     const id = this.route.snapshot.queryParamMap.get('video');
     if (!id) return;
     const match = this.videos.find((v) => v.id === id);
-    if (match) this.selectedVideo.set(match);
+    if (!match) return;
+    this.selectedVideo.set(match);
+    setTimeout(() => {
+      this.sectionRoot?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   }
 
   async shareVideo(video: ShortVideo): Promise<void> {
