@@ -1,3 +1,10 @@
+@if (showToast()) {
+  <div class="toast-notification">
+    <i class="fas fa-check-circle toast-icon"></i>
+    <span>¡Enlace copiado al portapapeles!</span>
+  </div>
+}
+
 <div class="person-short-videos-section" [class.d-none]="!videos || videos.length === 0">
   <div class="container-fluid main-container">
     <div class="text-center mb-5 fade-in">
@@ -7,20 +14,14 @@
 
     <div class="carousel-container position-relative fade-in delay-1" [style.--arrow-color]="personColor">
       <swiper-container #swiperContainer init="false" class="short-videos-swiper" [style.--swiper-pagination-color]="personColor">
-        @for (video of videos; track video.url; let i = $index) {
+        @for (video of videos; track video.url) {
           <swiper-slide class="h-auto">
             <div class="short-video-card h-100">
               <video class="short-video-player" [poster]="video.poster || ''" controls preload="metadata" playsinline>
                 <source [src]="video.url" type="video/mp4" />
               </video>
-              <button
-                type="button"
-                class="share-btn"
-                [class.copied]="copiedIndex() === i"
-                (click)="shareVideo(video, i)"
-                title="Copiar enlace del video"
-              >
-                <i class="fas" [class.fa-check]="copiedIndex() === i" [class.fa-share-nodes]="copiedIndex() !== i"></i>
+              <button type="button" class="share-btn" (click)="shareVideo(video)" title="Compartir video">
+                <i class="fas fa-share-nodes"></i>
               </button>
             </div>
           </swiper-slide>
@@ -36,3 +37,20 @@
     </div>
   </div>
 </div>
+
+@if (selectedVideo(); as selectedVideo) {
+  <div class="short-video-modal-overlay" (click)="$event.target === $event.currentTarget && closeVideo()">
+    <div class="short-video-modal-container">
+      <button class="close-modal-btn-on-dark" (click)="closeVideo()" title="Cerrar">✖</button>
+      <video
+        class="short-video-modal-player"
+        [poster]="selectedVideo.poster || ''"
+        controls
+        autoplay
+        playsinline
+      >
+        <source [src]="selectedVideo.url" type="video/mp4" />
+      </video>
+    </div>
+  </div>
+}
