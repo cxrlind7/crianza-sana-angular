@@ -39,7 +39,7 @@
 </div>
 
 @if (selectedVideo(); as selectedVideo) {
-  <div class="short-video-modal-overlay" (click)="$event.target === $event.currentTarget && closeVideo()">
+  <div #modalRoot class="short-video-modal-overlay" (click)="$event.target === $event.currentTarget && closeVideo()">
     <div class="short-video-modal-container">
       <button class="close-modal-btn-on-dark" (click)="closeVideo()" title="Cerrar">✖</button>
       <video
