@@ -96,17 +96,26 @@ async function initializeServices() {
       console.warn('⚠️ FIREBASE_SERVICE_ACCOUNT no definida. Firebase no funcionará.')
     }
 
-    // --- AWS ---
-    if (process.env.AWS_ACCESS_KEY_ID) {
+    // --- ALMACENAMIENTO (Cloudflare R2, con AWS S3 como fallback legacy) ---
+    if (process.env.R2_ACCESS_KEY_ID) {
+      s3 = new AWS.S3({
+        endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+        accessKeyId: process.env.R2_ACCESS_KEY_ID,
+        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+        region: 'auto',
+        signatureVersion: 'v4',
+      })
+      console.log('✅ Cloudflare R2 inicializado.')
+    } else if (process.env.AWS_ACCESS_KEY_ID) {
       AWS.config.update({
         accessKeyId: process.env.AWS_ACCESS_KEY_ID,
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
         region: process.env.AWS_REGION,
       })
       s3 = new AWS.S3()
-      console.log('✅ AWS S3 inicializado.')
+      console.log('✅ AWS S3 inicializado (legacy).')
     } else {
-      console.warn('⚠️ Credenciales AWS no definidas. S3 no funcionará.')
+      console.warn('⚠️ Credenciales de almacenamiento no definidas. Subida/lectura de archivos no funcionará.')
     }
 
     // --- LEER PLANTILLAS HTML ---
@@ -296,23 +305,25 @@ app.get('/api/location-views', async (req, res) => {
   }
 })
 
-// --- AWS S3 ---
+// --- ALMACENAMIENTO (Cloudflare R2 / AWS S3 legacy) ---
+const STORAGE_BUCKET = process.env.R2_BUCKET_NAME || process.env.AWS_BUCKET_NAME
+
 app.get('/api/aws/read-url', async (req, res) => {
-  if (!s3) return res.status(503).json({ error: 'Servicio AWS no disponible' })
+  if (!s3) return res.status(503).json({ error: 'Servicio de almacenamiento no disponible' })
   const { key } = req.query
   if (!key) return res.status(400).json({ error: 'Key is required' })
-  const params = { Bucket: process.env.AWS_BUCKET_NAME, Key: key, Expires: 3600 }
+  const params = { Bucket: STORAGE_BUCKET, Key: key, Expires: 3600 }
   try {
     const url = await s3.getSignedUrlPromise('getObject', params)
     res.json({ url })
   } catch (error) {
-    console.error('Error AWS Read URL:', error)
+    console.error('Error Read URL:', error)
     res.status(500).json({ error: 'Error generating read URL' })
   }
 })
 
 app.post('/api/aws/upload-url', async (req, res) => {
-  if (!s3) return res.status(503).json({ error: 'Servicio AWS no disponible' })
+  if (!s3) return res.status(503).json({ error: 'Servicio de almacenamiento no disponible' })
   const { key, contentType } = req.body
   // Soporte para fileName/fileType (legacy) o key/contentType
   const finalKey = key || req.body.fileName
@@ -321,18 +332,23 @@ app.post('/api/aws/upload-url', async (req, res) => {
   if (!finalKey) return res.status(400).json({ error: 'Key/FileName is required' })
 
   const params = {
-    Bucket: process.env.AWS_BUCKET_NAME,
+    Bucket: STORAGE_BUCKET,
     Key: finalKey,
     Expires: 300,
     ContentType: finalType || 'application/octet-stream',
-    ACL: 'public-read',
+  }
+  // ACL solo aplica al proveedor legacy (S3); R2 controla el acceso público a nivel de bucket/dominio.
+  if (!process.env.R2_ACCESS_KEY_ID) {
+    params.ACL = 'public-read'
   }
   try {
     const url = await s3.getSignedUrlPromise('putObject', params)
-    const publicUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.amazonaws.com/${finalKey}`
+    const publicUrl = process.env.R2_PUBLIC_URL
+      ? `${process.env.R2_PUBLIC_URL.replace(/\/$/, '')}/${finalKey}`
+      : `https://${STORAGE_BUCKET}.s3.amazonaws.com/${finalKey}`
     res.json({ url, publicUrl }) // Devolvemos { url } o { uploadUrl: url } según necesite el front
   } catch (error) {
-    console.error('Error AWS Upload URL:', error)
+    console.error('Error Upload URL:', error)
     res.status(500).json({ error: 'Error generating upload URL' })
   }
 })
