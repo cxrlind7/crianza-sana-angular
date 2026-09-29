@@ -236,13 +236,10 @@ export class QuizCrianza implements OnInit {
   }
 
   handleAnswer(value: 'si' | 'a_veces' | 'no'): void {
-    const currentQ = this.flattenedQuestions[this.currentQuestionIdx()];
-
-    if (value === 'si') {
-      this.answers.update((a) => ({ ...a, [currentQ.categoryId]: (a[currentQ.categoryId] || 0) + 1 }));
-    } else if (value === 'a_veces') {
-      this.answers.update((a) => ({ ...a, [currentQ.categoryId]: (a[currentQ.categoryId] || 0) + 0.5 }));
-    }
+    // Una respuesta por pregunta: al regresar con "Anterior" se sobrescribe en lugar de sumarse.
+    const points = value === 'si' ? 1 : value === 'a_veces' ? 0.5 : 0;
+    const idx = this.currentQuestionIdx();
+    this.answers.update((a) => ({ ...a, [idx]: points }));
 
     this.nextQuestion();
   }
@@ -264,7 +261,7 @@ export class QuizCrianza implements OnInit {
   private calculateResult(): void {
     const cat = this.selectedCategory();
     if (!cat) return;
-    const score = this.answers()[cat.id] || 0;
+    const score = Object.values(this.answers()).reduce((sum, points) => sum + points, 0);
 
     if (score < 2) {
       this.finalResult.set({
@@ -308,8 +305,7 @@ export class QuizCrianza implements OnInit {
   }
 
   shareFacebook(catId: string | undefined): void {
-    const backendUrl = 'https://backend-crianza-sana-production.up.railway.app';
-    const shareUrl = encodeURIComponent(`${backendUrl}/quiz?cat=${catId}`);
+    const shareUrl = encodeURIComponent(`${window.location.origin}/quiz?cat=${catId}`);
     const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`;
     window.open(facebookShareUrl, 'facebook-share-dialog', 'width=626,height=436');
   }

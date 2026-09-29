@@ -8,8 +8,8 @@
 
 .blog-recommended-section {
   --accent-color: #d63384;
-  --text-dark: #2c3e50;
-  --text-light: #64748b;
+  --text-dark: var(--dm-text);
+  --text-light: var(--dm-text-secondary);
   --card-radius: 20px;
   --card-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.08), 0 5px 15px -5px rgba(0, 0, 0, 0.04);
 

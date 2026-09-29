@@ -157,6 +157,12 @@ html[data-theme='dark'] {
   border-color: var(--dm-border);
 }
 
+/* Botón "Regresar" de las páginas internas: su fondo es blanco fijo en cada componente. */
+[data-theme='dark'] .btn-back {
+  background-color: var(--dm-surface-2) !important;
+  color: var(--dm-text) !important;
+}
+
 [data-theme='dark'] input,
 [data-theme='dark'] textarea,
 [data-theme='dark'] select {

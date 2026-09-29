@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService, Comment, Gallery as GalleryAlbum, GalleryImage } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
+import { parseFlexibleDate, toSortableTime } from '../../core/utils/date-utils';
 
 type SortOrder = 'recent' | 'oldest';
 
@@ -14,6 +15,7 @@ const NAME_MAPPING: Record<string, string> = {
 };
 
 const DEFAULT_AVATAR = 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+const FALLBACK_IMAGE = '/logo_original.png';
 
 @Component({
   selector: 'app-gallery',
@@ -31,6 +33,7 @@ export class Gallery implements OnInit {
   readonly defaultAvatar = DEFAULT_AVATAR;
 
   readonly allAlbums = signal<GalleryAlbum[]>([]);
+  readonly isLoading = signal(true);
   readonly showFilters = signal(false);
   readonly sortOrder = signal<SortOrder>('recent');
   readonly selectedPerson = signal<string | null>(null);
@@ -103,14 +106,13 @@ export class Gallery implements OnInit {
       }
     } catch (error) {
       console.error('❌ Error al cargar los álbumes:', error);
+    } finally {
+      this.isLoading.set(false);
     }
   }
 
   private toDate(rawDate: unknown): Date {
-    if (!rawDate) return new Date(0);
-    const d = rawDate as { seconds?: number };
-    if (d.seconds) return new Date(d.seconds * 1000);
-    return new Date(rawDate as string);
+    return new Date(toSortableTime(rawDate));
   }
 
   clearFilters(): void {
@@ -119,19 +121,14 @@ export class Gallery implements OnInit {
 
   formatDate(rawDate: unknown): string {
     if (!rawDate) return '';
-    const d = rawDate as { toDate?: () => Date; seconds?: number; _seconds?: number };
-    let dateObj: Date;
-    if (typeof d.toDate === 'function') {
-      dateObj = d.toDate();
-    } else if (d.seconds || d._seconds) {
-      dateObj = new Date((d.seconds || d._seconds || 0) * 1000);
-    } else {
-      dateObj = new Date(rawDate as string);
-    }
-
-    if (isNaN(dateObj.getTime())) return 'Fecha no disponible';
-
+    const dateObj = parseFlexibleDate(rawDate);
+    if (!dateObj) return 'Fecha no disponible';
     return dateObj.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (!img.src.endsWith(FALLBACK_IMAGE)) img.src = FALLBACK_IMAGE;
   }
 
   goBack(): void {

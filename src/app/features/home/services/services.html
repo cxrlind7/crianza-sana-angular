@@ -19,7 +19,7 @@
             </div>
 
             <div class="card-cta">
-              <a [href]="getWhatsAppLink(servicio.title)" target="_blank" class="whatsapp-btn" (click)="$event.stopPropagation()">
+              <a [href]="getWhatsAppLink(servicio)" target="_blank" rel="noopener" class="whatsapp-btn" (click)="$event.stopPropagation()">
                 <i class="fab fa-whatsapp"></i>
                 <span>Contactar</span>
               </a>

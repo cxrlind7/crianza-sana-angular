@@ -17,41 +17,45 @@ export class WorkshopCard implements OnInit, OnDestroy {
 
   readonly currentEvent = computed(() => this.events()[this.currentEventIndex()] ?? null);
 
-  readonly actionIcon = computed(() =>
-    this.currentEvent()?.type === 'whatsapp' ? 'fab fa-whatsapp' : 'fas fa-phone',
-  );
+  readonly actionIcon = computed(() => {
+    const type = this.currentEvent()?.type;
+    if (type === 'whatsapp') return 'fab fa-whatsapp';
+    if (type === 'link') return 'fas fa-arrow-up-right-from-square';
+    return 'fas fa-phone';
+  });
 
-  readonly helpText = computed(() =>
-    this.currentEvent()?.type === 'call'
-      ? 'Da clic para llamar o copiar número.'
-      : 'Haz clic para abrir el chat directo.',
-  );
+  readonly helpText = computed(() => {
+    const type = this.currentEvent()?.type;
+    if (type === 'call') return 'Da clic para llamar o copiar número.';
+    if (type === 'link') return 'Haz clic para ver más información.';
+    return 'Haz clic para abrir el chat directo.';
+  });
+
+  readonly showButton = computed(() => {
+    const event = this.currentEvent();
+    return !!event && event.showButton !== 'false' && !!event.buttonText;
+  });
 
   readonly actionLink = computed(() => {
     const event = this.currentEvent();
     if (!event) return '#';
+    const phone = (event.phone ?? '').replace(/\D/g, '');
     if (event.type === 'whatsapp') {
-      const encodedMessage = encodeURIComponent(event.message ?? '');
-      return `https://wa.me/${event.phone}?text=${encodedMessage}`;
+      return `https://wa.me/${phone}?text=${encodeURIComponent(event.message ?? '')}`;
     }
-    return `tel:${event.phone}`;
+    if (event.type === 'link') {
+      return event.link || '#';
+    }
+    return `tel:${phone}`;
   });
 
   async ngOnInit(): Promise<void> {
     try {
       const data = await this.api.getEvents();
-      console.log('✅ Eventos cargados desde Firestore:', data);
-      if (Array.isArray(data) && data.length > 0) {
-        const activeEvents = data.filter((event) => (event as EventItem & { active?: string }).active === 'true');
-        if (activeEvents.length > 0) {
-          console.log('✅ Eventos activos filtrados:', activeEvents);
-          this.events.set(activeEvents);
-        } else {
-          console.warn('⚠️ No hay eventos marcados como activos.');
-        }
-      }
+      // Los eventos sin campo "active" (creados antes de existir el campo) se consideran activos.
+      this.events.set(data.filter((event) => event.active !== 'false'));
     } catch (error) {
-      console.error('❌ Error al cargar eventos desde Firestore:', error);
+      console.error('❌ Error al cargar eventos:', error);
     }
     this.startRotation();
   }
@@ -80,25 +84,17 @@ export class WorkshopCard implements OnInit, OnDestroy {
 
   handleBtnClick(event: MouseEvent): void {
     const current = this.currentEvent();
-    if (!current || current.type === 'whatsapp') return;
+    if (!current || current.type !== 'call') return;
 
-    if (current.type === 'call') {
-      if (window.innerWidth > 768) {
-        event.preventDefault();
-        const numberToCopy = current.phone ?? '';
-
-        navigator.clipboard
-          .writeText(numberToCopy)
-          .then(() => {
-            this.showToast.set(true);
-            setTimeout(() => {
-              this.showToast.set(false);
-            }, 3000);
-          })
-          .catch((err) => {
-            console.error('Error al copiar: ', err);
-          });
-      }
+    if (window.innerWidth > 768) {
+      event.preventDefault();
+      navigator.clipboard
+        .writeText(current.phone ?? '')
+        .then(() => {
+          this.showToast.set(true);
+          setTimeout(() => this.showToast.set(false), 3000);
+        })
+        .catch((err) => console.error('Error al copiar: ', err));
     }
   }
 }

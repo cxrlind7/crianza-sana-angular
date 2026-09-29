@@ -4,10 +4,10 @@
       <header>Iniciar Sesión</header>
       <form (submit)="$event.preventDefault(); handleLogin()">
         <div class="field input-field">
-          <input [(ngModel)]="email" name="loginEmail" type="email" placeholder="Email" class="input" />
+          <input [(ngModel)]="email" name="loginEmail" type="email" placeholder="Email" class="input" autocomplete="email" />
         </div>
         <div class="field input-field">
-          <input [(ngModel)]="password" name="loginPassword" [type]="showPassword() ? 'text' : 'password'" placeholder="Contraseña" class="password" />
+          <input [(ngModel)]="password" name="loginPassword" autocomplete="current-password" [type]="showPassword() ? 'text' : 'password'" placeholder="Contraseña" class="password" />
           <i [class]="showPassword() ? 'fas fa-eye eye-icon' : 'fas fa-eye-slash eye-icon'" (click)="togglePassword()"></i>
         </div>
         @if (errorMessage()) {
@@ -15,7 +15,7 @@
         }
 
         <div class="field button-field">
-          <button type="submit">Entrar</button>
+          <button type="submit" [disabled]="isSubmitting()">{{ isSubmitting() ? 'Entrando...' : 'Entrar' }}</button>
         </div>
       </form>
       <div class="form-link">
@@ -36,14 +36,14 @@
         </div>
 
         <div class="field input-field">
-          <input [(ngModel)]="password" name="signupPassword" [type]="showPassword() ? 'text' : 'password'" placeholder="Crear Contraseña" class="password" />
+          <input [(ngModel)]="password" name="signupPassword" autocomplete="new-password" [type]="showPassword() ? 'text' : 'password'" placeholder="Crear Contraseña" class="password" />
           <i [class]="showPassword() ? 'fas fa-eye eye-icon' : 'fas fa-eye-slash eye-icon'" (click)="togglePassword()"></i>
         </div>
         @if (errorMessage()) {
           <p class="error-message">{{ errorMessage() }}</p>
         }
         <div class="field button-field">
-          <button type="submit">Enviar</button>
+          <button type="submit" [disabled]="isSubmitting()">{{ isSubmitting() ? 'Creando cuenta...' : 'Enviar' }}</button>
         </div>
       </form>
       <div class="form-link">

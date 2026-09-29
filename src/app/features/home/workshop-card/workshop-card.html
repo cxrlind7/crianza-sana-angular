@@ -11,6 +11,7 @@
           <img [src]="currentEvent.imageSrc" [alt]="currentEvent.altText" class="flyer-image" />
         </div>
 
+        @if (showButton()) {
         <div class="cta-container text-center delay-2">
           <a
             [href]="actionLink()"
@@ -30,6 +31,7 @@
             {{ helpText() }}
           </p>
         </div>
+        }
       </div>
 
       <div class="text-center mt-3">

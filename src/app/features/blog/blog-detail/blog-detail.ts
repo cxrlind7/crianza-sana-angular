@@ -1,16 +1,17 @@
 import { Component, ElementRef, OnDestroy, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import { Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import html2canvas from 'html2canvas';
 import { ApiService, Blog, Comment } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { getImagePerCategory, DEFAULT_AUTHOR_IMAGE } from '../../../core/utils/blog-author-images';
 import { people } from '../../../core/data/people-data';
+import { parseFlexibleDate } from '../../../core/utils/date-utils';
 
 @Component({
   selector: 'app-blog-detail',
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink],
   templateUrl: './blog-detail.html',
   styleUrl: './blog-detail.scss',
 })
@@ -31,6 +32,7 @@ export class BlogDetail implements OnInit, OnDestroy {
   readonly activeMenu = signal<number | null>(null);
   readonly showToast = signal(false);
   readonly isGeneratingImage = signal(false);
+  readonly isLoading = signal(true);
 
   readonly authUser = this.authService.currentUser;
 
@@ -58,10 +60,7 @@ export class BlogDetail implements OnInit, OnDestroy {
   private scrollListener: (() => void) | null = null;
 
   private parseDate(dateField: unknown): Date {
-    const d = dateField as { toDate?: () => Date; seconds?: number; _seconds?: number };
-    if (typeof d.toDate === 'function') return d.toDate();
-    if (d.seconds || d._seconds) return new Date((d.seconds || d._seconds || 0) * 1000);
-    return new Date(dateField as string);
+    return parseFlexibleDate(dateField) ?? new Date(NaN);
   }
 
   async ngOnInit(): Promise<void> {
@@ -69,6 +68,8 @@ export class BlogDetail implements OnInit, OnDestroy {
       this.blogs.set(await this.api.getCollection<Blog>('blogs'));
     } catch (error) {
       console.error('❌ Error cargando blogs:', error);
+    } finally {
+      this.isLoading.set(false);
     }
     await this.loadComments();
 
@@ -164,8 +165,8 @@ export class BlogDetail implements OnInit, OnDestroy {
 
   shareToFacebook(id: string): void {
     if (!this.blog()) return;
-    const backendUrl = 'https://backend-crianza-sana-production.up.railway.app';
-    const shareUrl = encodeURIComponent(`${backendUrl}/blog/${id}`);
+    // server.js inyecta las etiquetas Open Graph del blog en /blog/:id del mismo dominio.
+    const shareUrl = encodeURIComponent(`${window.location.origin}/blog/${id}`);
     const facebookShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`;
     window.open(facebookShareUrl, 'facebook-share-dialog', 'width=626,height=436');
   }

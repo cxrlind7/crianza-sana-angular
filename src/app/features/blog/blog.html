@@ -60,7 +60,11 @@
   }
 
   <section class="blog-grid-section fade-in delay-2">
-    @if (paginatedBlogs().length > 0) {
+    @if (isLoading()) {
+      <div class="text-center py-5">
+        <div class="spinner-border text-secondary" role="status"><span class="visually-hidden">Cargando...</span></div>
+      </div>
+    } @else if (paginatedBlogs().length > 0) {
       <div class="blog-grid">
         @for (blog of paginatedBlogs(); track blog.id) {
           <article class="blog-card-modern">

@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, ViewChild, computed, effect, inject, signal, untracked } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -17,7 +17,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { AwsService } from '../../core/services/aws.service';
 import { people } from '../../core/data/people-data';
 import { environment } from '../../../environments/environment';
-
+import { parseFlexibleDate, toDateInputValue, toSortableTime } from '../../core/utils/date-utils';
 type CollectionKey = 'ad' | 'banner' | 'blogs' | 'campana' | 'eventos' | 'programas' | 'temas' | 'suscriptores';
 type ModalType = 'blog' | 'ad' | 'banner' | 'evento' | 'video' | '';
 
@@ -156,9 +156,14 @@ export class Configuration {
   readonly modalTypeLabel = computed(() => MODAL_TYPE_LABELS[this.modalType()] || this.modalType());
 
   constructor() {
-    if (this.isAdmin()) {
-      this.fetchBlogs();
-    }
+    // Al recargar la página, Firebase puede restaurar la sesión después de construir el componente.
+    let loaded = false;
+    effect(() => {
+      if (this.isAdmin() && !loaded) {
+        loaded = true;
+        untracked(() => this.loadCollection(this.currentCollection()));
+      }
+    });
   }
 
   switchCollection(key: CollectionKey): void {
@@ -214,6 +219,10 @@ export class Configuration {
   }
 
   async saveBlog(blog: Blog): Promise<void> {
+    if (this.isBlank(blog.title)) {
+      alert('El título del blog es obligatorio.');
+      return;
+    }
     this.isSaving.set(true);
     try {
       const ok = await this.api.updateBlog(blog.id, blog);
@@ -290,7 +299,8 @@ export class Configuration {
   private async fetchVideos(): Promise<void> {
     this.loading.set(true);
     try {
-      this.videos.set(await this.api.getVideos());
+      const videos = await this.api.getVideos();
+      this.videos.set([...videos].sort((a, b) => toSortableTime(b.date) - toSortableTime(a.date)));
     } catch {
       this.error.set('Error al cargar programas.');
     } finally {
@@ -299,9 +309,14 @@ export class Configuration {
   }
 
   async saveVideo(video: Video): Promise<void> {
+    const validationError = this.validateVideo(video);
+    if (validationError) {
+      alert(validationError);
+      return;
+    }
     this.isSaving.set(true);
     try {
-      const ok = await this.api.updateVideo(video.id, video);
+      const ok = await this.api.updateVideo(video.id, this.toVideoPayload(video));
       if (ok) {
         this.editingId.set(null);
         alert('Programa guardado correctamente');
@@ -477,7 +492,9 @@ export class Configuration {
         buttonText: '',
         phone: '',
         type: 'call',
+        link: '',
         showButton: 'true',
+        active: 'true',
         publishAt: '',
       },
       video: { title: '', date: '', url: '', thumbnail: '', participant: '', description: '', publishAt: '' },
@@ -496,6 +513,8 @@ export class Configuration {
     this.modalMode.set('edit');
     this.modalType.set(type);
     const data: ModalData = { ...item };
+    if (type === 'video') data['date'] = toDateInputValue(data['date']);
+    if (type === 'evento' && !data['active']) data['active'] = 'true';
     if (data['publishAt']) {
       data['publishAt'] = this.formatDateTimeForInput(data['publishAt']);
     }
@@ -510,6 +529,7 @@ export class Configuration {
   }
 
   closeModal(): void {
+    this.uploadError.set(null);
     this.showModal.set(false);
     this.modalData.set({});
   }
@@ -530,7 +550,7 @@ export class Configuration {
       if (publicUrl) {
         this.updateModalField(field, publicUrl);
       } else {
-        this.uploadError.set('No se pudo subir la imagen. Intenta de nuevo.');
+        this.uploadError.set('No se pudo subir el archivo. Intenta de nuevo o pega la URL.');
       }
     } finally {
       this.isUploadingImage.set(false);
@@ -598,7 +618,84 @@ export class Configuration {
     this.syncEditorContent();
   }
 
+  private isBlank(value: unknown): boolean {
+    return typeof value !== 'string' || value.trim() === '';
+  }
+
+  private isValidUrl(value: unknown): boolean {
+    if (typeof value !== 'string') return false;
+    try {
+      const url = new URL(value.trim());
+      return url.protocol === 'https:' || url.protocol === 'http:';
+    } catch {
+      return false;
+    }
+  }
+
+  private validateVideo(data: ModalData): string | null {
+    if (this.isBlank(data['title'])) return 'El título del programa es obligatorio.';
+    if (!parseFlexibleDate(data['date'])) return 'Selecciona una fecha válida para el programa.';
+    if (!this.isValidUrl(data['url'])) return 'La URL del video no es válida (debe empezar con https://).';
+    if (!this.isBlank(data['thumbnail']) && !this.isValidUrl(data['thumbnail']))
+      return 'La URL de la miniatura no es válida.';
+    return null;
+  }
+
+  /** Quita campos calculados por el backend y normaliza la fecha a YYYY-MM-DD. */
+  private toVideoPayload(data: ModalData): ModalData {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, parsedDate, formattedDate, ...rest } = data;
+    return {
+      ...rest,
+      title: String(rest['title'] ?? '').trim(),
+      url: String(rest['url'] ?? '').trim(),
+      thumbnail: String(rest['thumbnail'] ?? '').trim(),
+      participant: String(rest['participant'] ?? '').trim(),
+      date: toDateInputValue(rest['date']),
+    };
+  }
+
+  private validateModal(): string | null {
+    const data = this.modalData();
+    switch (this.modalType()) {
+      case 'blog':
+        if (this.isBlank(data['title'])) return 'El título del artículo es obligatorio.';
+        if (this.isBlank(data['description'])) return 'La descripción breve es obligatoria.';
+        if (this.isBlank(data['text'])) return 'El contenido del artículo está vacío.';
+        if (!this.isBlank(data['imageUrl']) && !this.isValidUrl(data['imageUrl']))
+          return 'La URL de la imagen no es válida.';
+        return null;
+      case 'ad':
+      case 'banner':
+        if (!this.isValidUrl(data['imageSrc'])) return 'Agrega una imagen (URL válida o sube un archivo).';
+        return null;
+      case 'evento':
+        if (!this.isBlank(data['imageSrc']) && !this.isValidUrl(data['imageSrc']))
+          return 'La URL de la imagen no es válida.';
+        if (data['showButton'] === 'true') {
+          if (this.isBlank(data['buttonText'])) return 'Escribe el texto del botón o elige "No" en "Mostrar botón".';
+          if (data['type'] === 'link' && !this.isValidUrl(data['link'])) return 'El enlace del botón no es válido.';
+          if (data['type'] !== 'link' && String(data['phone'] ?? '').replace(/\D/g, '').length < 10)
+            return 'El teléfono debe tener al menos 10 dígitos.';
+        }
+        return null;
+      case 'video':
+        return this.validateVideo(data);
+      default:
+        return null;
+    }
+  }
+
   async submitModal(): Promise<void> {
+    if (this.isUploadingImage()) {
+      alert('Espera a que termine de subirse el archivo.');
+      return;
+    }
+    const validationError = this.validateModal();
+    if (validationError) {
+      alert(validationError);
+      return;
+    }
     this.isSubmitting.set(true);
     try {
       if (this.modalMode() === 'create') {
@@ -626,7 +723,8 @@ export class Configuration {
 
     if (type === 'blog') {
       const data = { ...this.modalData() };
-      data['date'] = data['dateInput'] ? new Date(data['dateInput']).toISOString() : new Date().toISOString();
+      // parseFlexibleDate interpreta 'YYYY-MM-DD' como fecha local (new Date() la toma como UTC → un día antes).
+      data['date'] = (parseFlexibleDate(data['dateInput']) ?? new Date()).toISOString();
       delete data['dateInput'];
       newId = await this.api.createBlog(data);
       if (newId) await this.fetchBlogs();
@@ -640,7 +738,7 @@ export class Configuration {
       newId = await this.api.createEvento(this.modalData());
       if (newId) await this.fetchEventos();
     } else if (type === 'video') {
-      newId = await this.api.createVideo(this.modalData());
+      newId = await this.api.createVideo(this.toVideoPayload(this.modalData()));
       if (newId) await this.fetchVideos();
     }
 
@@ -669,7 +767,7 @@ export class Configuration {
       ok = await this.api.updateEvento(id, data);
       if (ok) this.eventos.update((list) => list.map((e) => (e.id === id ? { ...(data as EventItem) } : e)));
     } else if (type === 'video') {
-      ok = await this.api.updateVideo(id, data);
+      ok = await this.api.updateVideo(id, this.toVideoPayload(data));
       if (ok) await this.fetchVideos();
     }
 
@@ -698,31 +796,25 @@ export class Configuration {
   }
 
   private parseDate(dateField: unknown): Date | null {
-    if (!dateField) return null;
-    const d = dateField as { seconds?: number; _seconds?: number };
-    if (d.seconds || d._seconds) return new Date((d.seconds || d._seconds || 0) * 1000);
-    const parsed = new Date(dateField as string);
-    return isNaN(parsed.getTime()) ? null : parsed;
+    return parseFlexibleDate(dateField);
   }
 
   formatDate(dateString: unknown): string {
     const d = this.parseDate(dateString);
-    return d ? d.toLocaleDateString() : 'Sin fecha';
+    return d ? d.toLocaleDateString('es-MX') : 'Sin fecha';
   }
 
   formatDateForInput(dateString: unknown): string {
-    const d = this.parseDate(dateString);
-    return d ? d.toISOString().split('T')[0] : '';
+    return toDateInputValue(dateString);
   }
 
   updateDate(blog: Blog, value: string): void {
-    if (!value) return;
-    const d = new Date(value);
-    if (!isNaN(d.getTime())) blog.date = d.toISOString();
+    const d = parseFlexibleDate(value);
+    if (d) blog.date = d.toISOString();
   }
 
   updateVideoDate(video: Video, value: string): void {
-    video['date'] = value;
+    if (value) video['date'] = value;
   }
 
   formatDateTimeForInput(dateString: unknown): string {
