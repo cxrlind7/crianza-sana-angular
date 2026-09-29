@@ -79,7 +79,7 @@
       @for (video of filteredAndSortedVideos(); track video.id) {
         <div class="video-card-clean" (click)="selectVideo(video)">
           <div class="thumbnail-wrapper">
-            <img [src]="video.thumbnail" [alt]="video.title" class="video-thumbnail-img" />
+            <img [src]="video.thumbnail || fallbackThumbnail" [alt]="video.title" class="video-thumbnail-img" loading="lazy" (error)="onThumbnailError($event)" />
             <div class="play-overlay">
               <div class="play-circle">
                 <i class="fas fa-play play-icon-svg"></i>
@@ -114,7 +114,11 @@
       }
     </div>
 
-    @if (filteredAndSortedVideos().length === 0) {
+    @if (isLoading()) {
+      <div class="text-center py-5">
+        <div class="spinner-border text-danger" role="status"><span class="visually-hidden">Cargando...</span></div>
+      </div>
+    } @else if (filteredAndSortedVideos().length === 0) {
       <div class="no-results-container fade-in delay-2">
         <div class="empty-state-box">
           <i class="fas fa-search mb-3 fa-3x" style="opacity: 0.5"></i>
@@ -134,8 +138,14 @@
         <div class="modal-layout">
           <div class="video-player-section">
             <div class="iframe-wrapper-absolute">
-              @if (isDirectVideo(selectedVideo.url)) {
-                <video [src]="selectedVideo.url" controls autoplay playsinline class="video-iframe-fit"></video>
+              @if (videoError()) {
+                <div class="video-unavailable">
+                  <i class="fas fa-video-slash fa-2x mb-3"></i>
+                  <p class="mb-0">Este programa no está disponible por el momento.</p>
+                  <small>Estamos trabajando para restablecerlo. ¡Gracias por tu paciencia!</small>
+                </div>
+              } @else if (isDirectVideo(selectedVideo.url)) {
+                <video [src]="selectedVideo.url" controls autoplay playsinline class="video-iframe-fit" (error)="videoError.set(true)"></video>
               } @else if (selectedVideoUrl(); as videoUrl) {
                 <iframe
                   [src]="videoUrl"

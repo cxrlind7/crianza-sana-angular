@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { ApiService, Blog as BlogModel } from '../../core/services/api.service';
 import { filterPublished } from '../../core/utils/schedule';
 import { getImagePerCategory } from '../../core/utils/blog-author-images';
+import { toSortableTime } from '../../core/utils/date-utils';
 
 interface BlogWithPublish extends BlogModel {
   publishAt?: string;
@@ -20,6 +21,7 @@ export class Blog implements OnInit {
   private readonly router = inject(Router);
 
   readonly showToast = signal(false);
+  readonly isLoading = signal(true);
   readonly originalBlogs = signal<BlogWithPublish[]>([]);
   readonly selectedCategories = signal<string[]>([]);
   readonly sortOrder = signal<SortOrder>('recent');
@@ -59,11 +61,7 @@ export class Blog implements OnInit {
   });
 
   private parseBlogDate(dateField: unknown): Date {
-    if (!dateField) return new Date(0);
-    const d = dateField as { toDate?: () => Date; seconds?: number; _seconds?: number };
-    if (typeof d.toDate === 'function') return d.toDate();
-    if (d.seconds || d._seconds) return new Date((d.seconds || d._seconds || 0) * 1000);
-    return new Date(dateField as string);
+    return new Date(toSortableTime(dateField));
   }
 
   toggleCategory(category: string): void {
@@ -116,6 +114,8 @@ export class Blog implements OnInit {
       this.originalBlogs.set(filterPublished(data));
     } catch (error) {
       console.error('Error cargando blogs:', error);
+    } finally {
+      this.isLoading.set(false);
     }
   }
 

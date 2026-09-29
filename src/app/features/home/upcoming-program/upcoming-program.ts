@@ -107,8 +107,6 @@ export class UpcomingProgram implements OnInit, OnDestroy {
       const programas = await this.api.getPrograms();
       if (programas && programas.length > 0) {
         this.programa.set(programas[0]);
-        console.log('✅ Programa cargado:', programas[0]);
-        console.log('📅 Fecha del evento:', programas[0].evento?.fecha);
 
         if (this.items().length > 2) {
           this.startRotation();

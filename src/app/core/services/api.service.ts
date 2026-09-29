@@ -39,6 +39,8 @@ export interface EventItem {
   phone?: string;
   showButton?: string;
   type?: string;
+  link?: string;
+  active?: string;
   publishAt?: string;
 }
 

@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
+import { isValidEmail } from '../../core/utils/auth-errors';
 
 const STORAGE_KEY = 'csdkids_subscribe_dismissed';
 
@@ -35,13 +36,13 @@ export class SubscribeModal implements OnInit {
 
   async subscribe(): Promise<void> {
     this.errorMsg.set('');
-    if (!this.email || !this.email.includes('@')) {
+    if (!isValidEmail(this.email)) {
       this.errorMsg.set('Por favor ingresa un correo válido.');
       return;
     }
     this.loading.set(true);
     try {
-      const result = await this.api.subscribeEmail(this.email);
+      const result = await this.api.subscribeEmail(this.email.trim());
       if (result.success) {
         this.submitted.set(true);
         localStorage.setItem(STORAGE_KEY, '1');

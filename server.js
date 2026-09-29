@@ -179,13 +179,68 @@ async function initializeServices() {
   }
 }
 
-// Middleware para asegurar servicios listos (opcional, para rutas críticas)
-const ensureServicesReady = (req, res, next) => {
-  if (!db && req.path.includes('firestore')) {
-    // Solo bloqueamos si realmente necesitamos DB y no está
-    // Podríamos ser más permisivos o estrictos según necesidad
+// ==========================================
+// AUTENTICACIÓN DE ADMINISTRADOR
+// ==========================================
+// Las rutas que modifican contenido, leen suscriptores o envían correos exigen un
+// ID token de Firebase (Authorization: Bearer <token>) de un correo administrador.
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || process.env.VITE_ADMIN_EMAILS || 'crianzasanaconfig@gmail.com')
+  .split(',')
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean)
+
+const requireAdmin = async (req, res, next) => {
+  if (!admin.apps.length) {
+    return res.status(503).json({ error: 'Autenticación no disponible en el servidor' })
   }
+  const header = req.headers.authorization || ''
+  const token = header.startsWith('Bearer ') ? header.slice(7) : null
+  if (!token) return res.status(401).json({ error: 'No autenticado' })
+  try {
+    const decoded = await admin.auth().verifyIdToken(token)
+    if (!decoded.email || !ADMIN_EMAILS.includes(decoded.email.toLowerCase())) {
+      return res.status(403).json({ error: 'No autorizado' })
+    }
+    req.user = decoded
+    next()
+  } catch (error) {
+    console.warn('⚠️ Token inválido:', error.code || error.message)
+    res.status(401).json({ error: 'Sesión inválida o expirada' })
+  }
+}
+
+// Todas las escrituras de la API son de administración, excepto suscribirse.
+app.use('/api', (req, res, next) => {
+  const isWrite = req.method !== 'GET' && req.method !== 'HEAD' && req.method !== 'OPTIONS'
+  const isPublicWrite = req.method === 'POST' && req.path === '/subscribers'
+  const isAdminRead = req.method === 'GET' && req.path === '/subscribers'
+  if ((isWrite && !isPublicWrite) || isAdminRead) return requireAdmin(req, res, next)
   next()
+})
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
+
+const escapeHtml = (value) =>
+  String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+
+// Las fechas de "programas" existen como YYYY-MM-DD, MM-DD-YYYY y DD-MM-YYYY.
+const parseProgramDate = (value) => {
+  if (!value || typeof value !== 'string') return null
+  const str = value.trim()
+  let m = /^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/.exec(str)
+  if (m) return new Date(Date.UTC(+m[1], +m[2] - 1, +m[3]))
+  m = /^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/.exec(str)
+  if (m) {
+    const [a, b] = [+m[1], +m[2]]
+    return a > 12 ? new Date(Date.UTC(+m[3], b - 1, a)) : new Date(Date.UTC(+m[3], a - 1, b))
+  }
+  const d = new Date(str)
+  return isNaN(d.getTime()) ? null : d
 }
 
 // ==========================================
@@ -483,9 +538,9 @@ app.get('/api/firestore/videos', async (req, res) => {
     const snapshot = await db.collection('programas').get()
     const videos = snapshot.docs.map((doc) => {
       const data = doc.data()
-      return { id: doc.id, ...data, parsedDate: new Date(data.date.split('-').reverse().join('-')) }
+      return { id: doc.id, ...data, parsedDate: parseProgramDate(data.date) }
     })
-    videos.sort((a, b) => b.parsedDate - a.parsedDate)
+    videos.sort((a, b) => (b.parsedDate?.getTime() ?? 0) - (a.parsedDate?.getTime() ?? 0))
     res.json(videos)
   } catch (error) {
     console.error('Error Firestore Videos:', error)
@@ -493,10 +548,15 @@ app.get('/api/firestore/videos', async (req, res) => {
   }
 })
 
+// Solo colecciones públicas: evita leer "subscribers" u otras colecciones privadas por esta ruta.
+const PUBLIC_COLLECTIONS = new Set(['blogs', 'programas', 'temas', 'banner', 'ad', 'eventos', 'galerias'])
+
 app.get('/api/firestore/collection/:name', async (req, res) => {
   if (!checkDb(res)) return
   const { name } = req.params
-  const { orderField = 'orden', orderDirection = 'asc' } = req.query
+  if (!PUBLIC_COLLECTIONS.has(name)) return res.status(404).json({ error: 'Colección no disponible' })
+  const { orderField = 'orden' } = req.query
+  const orderDirection = req.query.orderDirection === 'desc' ? 'desc' : 'asc'
   try {
     const snapshot = await db.collection(name).orderBy(orderField, orderDirection).get()
     const items = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
@@ -924,8 +984,8 @@ const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KE
 
 // POST /api/subscribers — Suscribir un correo
 app.post('/api/subscribers', async (req, res) => {
-  const { email } = req.body
-  if (!email || !email.includes('@')) {
+  const email = typeof req.body.email === 'string' ? req.body.email.trim() : ''
+  if (!EMAIL_PATTERN.test(email) || email.length > 254) {
     return res.status(400).json({ error: 'Correo inválido' })
   }
 
@@ -1017,8 +1077,14 @@ app.delete('/api/subscribers/:id', async (req, res) => {
 
 // POST /api/send-newsletter — Enviar correo a todos los suscriptores
 app.post('/api/send-newsletter', async (req, res) => {
-  const { type, title, description, link } = req.body
-  if (!title) return res.status(400).json({ error: 'Título requerido' })
+  const { type } = req.body
+  if (!req.body.title || !String(req.body.title).trim()) {
+    return res.status(400).json({ error: 'Título requerido' })
+  }
+  // Se escapan porque se insertan en el HTML del correo.
+  const title = escapeHtml(String(req.body.title).trim())
+  const description = req.body.description ? escapeHtml(req.body.description) : ''
+  const link = /^https?:\/\//i.test(req.body.link || '') ? escapeHtml(req.body.link) : ''
 
   if (!process.env.RESEND_API_KEY && !resend) {
     return res.status(503).json({ error: 'Servicio de correo de Resend no configurado.' })
@@ -1066,7 +1132,7 @@ app.post('/api/send-newsletter', async (req, res) => {
       await resend.emails.send({
         from: 'hola@crianzasanabydkids.mx',
         to: email,
-        subject: `${typeLabel}: ${title}`,
+        subject: `${typeLabel}: ${String(req.body.title).trim()}`,
         html: htmlBody,
       })
       sent++
@@ -1110,6 +1176,28 @@ app.get('/api/firestore/eventos', async (req, res) => {
     res.status(500).json({ error: 'Error fetching eventos' })
   }
 })
+// Reemplaza <title> y las etiquetas og:/twitter: del index.html compilado.
+// El build de Angular escribe las meta sin "/>" final, por eso "\s*\/?>".
+function applyMetaTags(html, meta) {
+  const title = escapeHtml(meta.title)
+  const description = escapeHtml(meta.description)
+  const image = escapeHtml(meta.image)
+  const setMeta = (source, attr, name, value) =>
+    source.replace(
+      new RegExp(`<meta ${attr}="${name}" content="[^"]*"\\s*\\/?>`),
+      `<meta ${attr}="${name}" content="${value}">`,
+    )
+
+  let result = html.replace(/<title>[\s\S]*?<\/title>/, `<title>${title}</title>`)
+  result = setMeta(result, 'property', 'og:title', title)
+  result = setMeta(result, 'property', 'og:description', description)
+  result = setMeta(result, 'property', 'og:image', image)
+  result = setMeta(result, 'name', 'twitter:title', title)
+  result = setMeta(result, 'name', 'twitter:description', description)
+  result = setMeta(result, 'name', 'twitter:image', image)
+  return result
+}
+
 app.get('/blog/:id', async (req, res) => {
   const blogId = req.params.id
   console.log(`🤖 Solicitud de blog para metadatos: ${blogId}`)
@@ -1162,37 +1250,7 @@ app.get('/blog/:id', async (req, res) => {
       }
     }
 
-    // Reemplazo usando Regex sobre los tags existentes en dist/index.html
-    // Buscamos <meta property="og:title" content="..."> y lo reemplazamos
-    const finalHtml = htmlToSend
-      .replace(/<title>.*?<\/title>/, `<title>${metaData.title}</title>`)
-      .replace(
-        /<meta property="og:title" content=".*?" \/>/,
-        `<meta property="og:title" content="${metaData.title}" />`,
-      )
-      .replace(
-        /<meta property="og:description" content=".*?" \/>/,
-        `<meta property="og:description" content="${metaData.description}" />`,
-      )
-      .replace(
-        /<meta property="og:image" content=".*?" \/>/,
-        `<meta property="og:image" content="${metaData.image}" />`,
-      )
-      // Ajuste opcional para Twitter cards si existen
-      .replace(
-        /<meta name="twitter:title" content=".*?" \/>/,
-        `<meta name="twitter:title" content="${metaData.title}" />`,
-      )
-      .replace(
-        /<meta name="twitter:description" content=".*?" \/>/,
-        `<meta name="twitter:description" content="${metaData.description}" />`,
-      )
-      .replace(
-        /<meta name="twitter:image" content=".*?" \/>/,
-        `<meta name="twitter:image" content="${metaData.image}" />`,
-      )
-
-    res.send(finalHtml)
+    res.send(applyMetaTags(htmlToSend, metaData))
   } catch (error) {
     console.error('❌ Error generando metadatos del blog:', error)
     // En caso de error, mandamos el HTML base sin modificar
@@ -1246,22 +1304,7 @@ app.get('/quiz', async (req, res) => {
     }
   }
 
-  const finalHtml = htmlToSend
-    .replace(/<title>.*?<\/title>/, `<title>${metaData.title}</title>`)
-    .replace(
-      /<meta property="og:title" content=".*?" \/>/,
-      `<meta property="og:title" content="${metaData.title}" />`,
-    )
-    .replace(
-      /<meta property="og:description" content=".*?" \/>/,
-      `<meta property="og:description" content="${metaData.description}" />`,
-    )
-    .replace(
-      /<meta property="og:image" content=".*?" \/>/,
-      `<meta property="og:image" content="${metaData.image}" />`,
-    )
-
-  res.send(finalHtml)
+  res.send(applyMetaTags(htmlToSend, metaData))
 })
 app.use(compression())
 // ==========================================

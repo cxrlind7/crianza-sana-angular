@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 interface SpotifyEpisode {
   id: string;
@@ -20,13 +21,17 @@ interface SpotifyEpisode {
 export class SpotifySection implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly sanitizer = inject(DomSanitizer);
-  private readonly backendUrl = 'https://backend-crianza-sana-production.up.railway.app/api/episodios';
+  private readonly backendUrl = `${environment.backendUrl}/api/episodios`;
 
   readonly loading = signal(true);
   readonly error = signal(false);
   readonly episodes = signal<SpotifyEpisode[]>([]);
   readonly currentEpisodeId = signal<string | null>(null);
   readonly showList = signal(false);
+
+  readonly showEmbedUrl: SafeResourceUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+    'https://open.spotify.com/embed/show/4A7KWpa53WZnevgOBDYEHj?utm_source=generator&theme=0',
+  );
 
   readonly currentEpisodeEmbedUrl = computed<SafeResourceUrl | null>(() => {
     const id = this.currentEpisodeId();
@@ -68,6 +73,11 @@ export class SpotifySection implements OnInit {
   formatDate(dateString: string): string {
     const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('es-MX', options);
+  }
+
+  getEpisodeImage(episode: SpotifyEpisode): string {
+    const images = episode.images ?? [];
+    return images[images.length - 1]?.url ?? '/logo_original.png';
   }
 
   formatDuration(ms: number): number {

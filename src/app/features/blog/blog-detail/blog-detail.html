@@ -119,7 +119,13 @@
     </div>
   } @else {
     <div class="loading-container">
-      <p>Cargando artículo o no encontrado...</p>
+      @if (isLoading()) {
+        <div class="spinner-border text-secondary mb-2" role="status"></div>
+        <p>Cargando artículo...</p>
+      } @else {
+        <p>No encontramos este artículo.</p>
+        <a routerLink="/blog">Ver todos los artículos</a>
+      }
     </div>
   }
 

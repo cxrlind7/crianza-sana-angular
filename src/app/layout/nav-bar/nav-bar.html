@@ -17,13 +17,19 @@
       <ul class="nav-list">
         @for (link of links; track link.name) {
           <li class="nav-item">
-            <a [routerLink]="link.path" class="nav-link" routerLinkActive="active-link" (click)="closeMenu()">
+            <a
+              [routerLink]="link.path"
+              class="nav-link"
+              routerLinkActive="active-link"
+              [routerLinkActiveOptions]="{ exact: link.path === '/' }"
+              (click)="closeMenu()"
+            >
               {{ link.name }}
             </a>
           </li>
         }
         <li class="nav-item">
-          <a routerLink="/programs" class="nav-link construction-link" (click)="closeMenu()">
+          <a routerLink="/programs" class="nav-link construction-link" routerLinkActive="active-link" (click)="closeMenu()">
             Programas
           </a>
         </li>
@@ -37,6 +43,7 @@
               [src]="currentUser()?.photoURL || '/defaultAvatar5.jpg'"
               alt="Perfil"
               class="user-avatar"
+              (error)="$any($event.target).src = '/defaultAvatar5.jpg'"
             />
             @if (showUserMenu()) {
               <div class="user-dropdown">

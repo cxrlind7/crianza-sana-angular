@@ -315,6 +315,7 @@
                       <div class="d-flex justify-content-between align-items-start mb-3">
                         <div>
                           <span class="badge bg-primary me-2">{{ ev.type || 'sin tipo' }}</span>
+                          <span class="badge me-2" [class]="ev.active === 'false' ? 'bg-secondary' : 'bg-success'">{{ ev.active === 'false' ? 'Inactivo' : 'Activo' }}</span>
                           <span class="badge" [class]="ev.showButton === 'true' ? 'bg-success' : 'bg-secondary'">Botón {{ ev.showButton === 'true' ? 'visible' : 'oculto' }}</span>
                           @if (isScheduled(ev)) { <span class="badge bg-warning text-dark ms-2">🕒 Programado</span> }
                         </div>
@@ -365,7 +366,7 @@
                             <span class="fw-bold text-truncate me-2">{{ video['title'] || 'Sin título' }}</span>
                             <span class="d-flex align-items-center gap-2 text-nowrap">
                               @if (isScheduled(video)) { <span class="badge bg-warning text-dark">🕒 Programado</span> }
-                              <small class="text-muted">{{ video['date'] }}</small>
+                              <small class="text-muted">{{ formatDate(video['date']) }}</small>
                             </span>
                           </div>
                         </button>
@@ -390,8 +391,8 @@
                           </div>
                           <div class="row">
                             <div class="col-md-6 mb-3">
-                              <label class="form-label fw-semibold">Fecha (DD-MM-YYYY)</label>
-                              <input type="text" class="form-control" [(ngModel)]="video['date']" placeholder="01-01-2025" [disabled]="editingId() !== video.id" />
+                              <label class="form-label fw-semibold">Fecha de transmisión</label>
+                              <input type="date" class="form-control" [value]="formatDateForInput(video['date'])" (change)="updateVideoDate(video, $any($event.target).value)" [disabled]="editingId() !== video.id" />
                             </div>
                             <div class="col-md-6 mb-3">
                               <label class="form-label fw-semibold">Participante</label>
@@ -399,7 +400,7 @@
                             </div>
                           </div>
                           <div class="mb-3">
-                            <label class="form-label fw-semibold">URL del Video (embed)</label>
+                            <label class="form-label fw-semibold">URL del video (.mp4 o embed de YouTube)</label>
                             <input type="text" class="form-control" [(ngModel)]="video['url']" placeholder="https://www.youtube.com/embed/..." [disabled]="editingId() !== video.id" />
                           </div>
                           <div class="mb-3">
@@ -773,6 +774,19 @@
                     </select>
                   </div>
                 </div>
+                @if (modalData()['type'] === 'link') {
+                  <div class="mb-3">
+                    <label class="form-label">Enlace del botón *</label>
+                    <input type="url" class="form-control" [ngModel]="modalData()['link']" (ngModelChange)="updateModalField('link', $event)" placeholder="https://..." />
+                  </div>
+                }
+                <div class="mb-3">
+                  <label class="form-label">Estado</label>
+                  <select class="form-select" [ngModel]="modalData()['active']" (ngModelChange)="updateModalField('active', $event)">
+                    <option value="true">Activo (se muestra en el inicio)</option>
+                    <option value="false">Inactivo</option>
+                  </select>
+                </div>
                 <div class="mb-3">
                   <label class="form-label">Programar publicación (opcional)</label>
                   <input type="datetime-local" class="form-control" [ngModel]="modalData()['publishAt']" (ngModelChange)="updateModalField('publishAt', $event)" />
@@ -785,8 +799,8 @@
                 </div>
                 <div class="row">
                   <div class="col-md-6 mb-3">
-                    <label class="form-label">Fecha (DD-MM-YYYY) *</label>
-                    <input type="text" class="form-control" [ngModel]="modalData()['date']" (ngModelChange)="updateModalField('date', $event)" placeholder="01-01-2025" />
+                    <label class="form-label">Fecha de transmisión *</label>
+                    <input type="date" class="form-control" [ngModel]="modalData()['date']" (ngModelChange)="updateModalField('date', $event)" />
                   </div>
                   <div class="col-md-6 mb-3">
                     <label class="form-label">Participante</label>
@@ -794,8 +808,12 @@
                   </div>
                 </div>
                 <div class="mb-3">
-                  <label class="form-label">URL del Video (embed) *</label>
-                  <input type="text" class="form-control" [ngModel]="modalData()['url']" (ngModelChange)="updateModalField('url', $event)" placeholder="https://www.youtube.com/embed/..." />
+                  <label class="form-label">Video *</label>
+                  <input type="text" class="form-control mb-2" [ngModel]="modalData()['url']" (ngModelChange)="updateModalField('url', $event)" placeholder="https://... (.mp4) o https://www.youtube.com/embed/..." />
+                  <input type="file" accept="video/mp4,video/webm,video/quicktime" class="form-control form-control-sm" (change)="onImageFileSelected($event, 'url')" [disabled]="isUploadingImage()" />
+                  <small class="text-muted d-block">Pega la URL o sube el archivo .mp4 (se guarda en el almacenamiento del sitio).</small>
+                  @if (isUploadingImage()) { <small class="text-muted">Subiendo archivo... no cierres esta ventana.</small> }
+                  @if (uploadError()) { <small class="text-danger d-block">{{ uploadError() }}</small> }
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Thumbnail URL</label>

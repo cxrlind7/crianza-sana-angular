@@ -66,7 +66,7 @@
       @for (album of filteredAndSortedAlbums(); track album.id) {
         <div class="album-card-clean" (click)="openAlbum(album)">
           <div class="thumbnail-wrapper">
-            <img [src]="album.images[0]?.url" [alt]="album.name" class="album-thumbnail-img" loading="lazy" />
+            <img [src]="album.images[0]?.url" [alt]="album.name" class="album-thumbnail-img" loading="lazy" (error)="onImageError($event)" />
             <div class="view-overlay">
               <div class="view-circle">
                 <i class="far fa-images view-icon-svg"></i>
@@ -98,7 +98,11 @@
       }
     </div>
 
-    @if (filteredAndSortedAlbums().length === 0) {
+    @if (isLoading()) {
+      <div class="text-center py-5">
+        <div class="spinner-border text-secondary" role="status"><span class="visually-hidden">Cargando...</span></div>
+      </div>
+    } @else if (filteredAndSortedAlbums().length === 0) {
       <div class="no-results-container fade-in delay-2">
         <div class="empty-state-box">
           <i class="far fa-images mb-3 fa-3x" style="opacity: 0.5"></i>
@@ -120,7 +124,7 @@
           <div class="image-viewer-section">
             @if (currentImage(); as currentImage) {
               <div class="viewer-wrapper">
-                <img [src]="currentImage.url" class="main-viewer-image" [alt]="currentImage.title" />
+                <img [src]="currentImage.url" class="main-viewer-image" [alt]="currentImage.title" (error)="onImageError($event)" />
 
                 @if (hasMultipleImages()) {
                   <button class="nav-button left" (click)="$event.stopPropagation(); prevImage()">
@@ -167,7 +171,7 @@
               <div class="thumbnails-grid-container mt-3">
                 <div class="thumbnails-scroll">
                   @for (img of selectedAlbum.images; track img.id; let idx = $index) {
-                    <img [src]="img.url" class="mini-thumbnail" [class.active]="idx === selectedImageIndex()" (click)="selectImageByIndex(idx)" loading="lazy" />
+                    <img [src]="img.url" class="mini-thumbnail" [class.active]="idx === selectedImageIndex()" (click)="selectImageByIndex(idx)" loading="lazy" [alt]="img.title || 'Miniatura'" (error)="onImageError($event)" />
                   }
                 </div>
               </div>

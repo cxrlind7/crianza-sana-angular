@@ -31,9 +31,18 @@
             <p class="mb-0">Cargando episodios...</p>
           </div>
         } @else if (error()) {
-          <div class="text-center py-4 text-danger small">
-            <i class="bi bi-exclamation-triangle-fill fs-5 mb-2"></i>
-            <p class="mb-0">No se pudieron cargar los episodios.</p>
+          <!-- Si la API de episodios falla, el embed del show sigue funcionando sin credenciales. -->
+          <div class="active-player-wrapper mb-3 shadow-sm rounded-4 overflow-hidden">
+            <iframe
+              style="border-radius: 12px"
+              [src]="showEmbedUrl"
+              width="100%"
+              height="352"
+              frameBorder="0"
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              loading="lazy"
+              title="Crianza Sana en Spotify"
+            ></iframe>
           </div>
         } @else {
           <div>
@@ -56,7 +65,7 @@
                     (click)="playEpisode(episode.id)"
                   >
                     <img
-                      [src]="episode.images[2].url"
+                      [src]="getEpisodeImage(episode)"
                       alt="Portada"
                       class="episode-img rounded-3 me-3"
                       width="48"

@@ -1,11 +1,7 @@
 import { Component, EventEmitter, Output, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
-
-interface FirebaseAuthError {
-  code?: string;
-  message: string;
-}
+import { getAuthErrorMessage, isValidEmail } from '../../core/utils/auth-errors';
 
 @Component({
   selector: 'app-login-modal',
@@ -37,27 +33,26 @@ export class LoginModal {
   async handleRegister(): Promise<void> {
     this.errorMessage.set('');
 
-    if (!this.name || !this.email || !this.password) {
+    if (!this.name.trim() || !this.email || !this.password) {
       this.errorMessage.set('Por favor, completa todos los campos.');
+      return;
+    }
+    if (!isValidEmail(this.email)) {
+      this.errorMessage.set('Correo no válido.');
+      return;
+    }
+    if (this.password.length < 6) {
+      this.errorMessage.set('La contraseña debe tener al menos 6 caracteres.');
       return;
     }
 
     try {
-      await this.authService.register(this.email, this.password, this.name);
+      await this.authService.register(this.email.trim(), this.password, this.name.trim());
       alert('✅ Registro exitoso. Revisa tu correo para verificar tu cuenta.');
       this.close.emit();
     } catch (error) {
-      const err = error as FirebaseAuthError;
-      console.error(err.message);
-      if (err.code === 'auth/email-already-in-use') {
-        this.errorMessage.set('Este correo ya está en uso.');
-      } else if (err.code === 'auth/invalid-email') {
-        this.errorMessage.set('Correo no válido.');
-      } else if (err.code === 'auth/weak-password') {
-        this.errorMessage.set('La contraseña es muy débil. Usa al menos 6 caracteres.');
-      } else {
-        this.errorMessage.set('❌ Error registrando usuario.');
-      }
+      console.error(error);
+      this.errorMessage.set(getAuthErrorMessage(error, 'register'));
     }
   }
 
@@ -67,25 +62,17 @@ export class LoginModal {
       this.errorMessage.set('Debes ingresar tu correo y contraseña.');
       return;
     }
+    if (!isValidEmail(this.email)) {
+      this.errorMessage.set('Correo no válido.');
+      return;
+    }
 
     try {
-      await this.authService.login(this.email, this.password);
-      alert('✅ Inicio de sesión exitoso');
+      await this.authService.login(this.email.trim(), this.password);
       this.close.emit();
     } catch (error) {
-      const err = error as FirebaseAuthError;
-      console.error(err.message);
-      if (err.code === 'auth/user-not-found') {
-        this.errorMessage.set('Usuario no encontrado.');
-      } else if (err.code === 'auth/wrong-password') {
-        this.errorMessage.set('Contraseña incorrecta.');
-      } else if (err.code === 'auth/invalid-email') {
-        this.errorMessage.set('Correo no válido.');
-      } else if (err.code === 'auth/invalid-credential') {
-        this.errorMessage.set('Correo o contraseña inválidos.');
-      } else {
-        this.errorMessage.set('❌ Error iniciando sesión.');
-      }
+      console.error(error);
+      this.errorMessage.set(getAuthErrorMessage(error, 'login'));
     }
   }
 }

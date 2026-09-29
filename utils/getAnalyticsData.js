@@ -2,11 +2,22 @@ import { BetaAnalyticsDataClient } from '@google-analytics/data'
 import 'dotenv/config'
 
 // Lee las credenciales desde la variable de entorno (Railway + .env local)
-const credentials = JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON)
+// Sin credenciales el servidor debe poder arrancar igual; solo fallan los endpoints de analytics.
+const credentials = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON
+  ? JSON.parse(process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON)
+  : null
 
-const analyticsDataClient = new BetaAnalyticsDataClient({
-  credentials,
-})
+if (!credentials) {
+  console.warn('⚠️ GOOGLE_APPLICATION_CREDENTIALS_JSON no definida. Analytics no funcionará.')
+}
+
+const analyticsDataClient = credentials
+  ? new BetaAnalyticsDataClient({ credentials })
+  : {
+      runReport: async () => {
+        throw new Error('GOOGLE_APPLICATION_CREDENTIALS_JSON no configurada')
+      },
+    }
 
 const PROPERTY_ID = '483239794'
 

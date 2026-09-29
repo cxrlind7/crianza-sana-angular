@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService, Comment } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { filterPublished } from '../../core/utils/schedule';
+import { parseFlexibleDate, toSortableTime } from '../../core/utils/date-utils';
 
 interface ProgramVideo {
   id: string;
@@ -30,7 +31,7 @@ const STATIC_VIDEOS: ProgramVideo[] = [
     description:
       'Celebrando el Día del Niño con amor y alegría. En este día especial, recordamos la importancia de proteger, educar y brindar un entorno seguro para que todos los niños puedan crecer felices y saludables. ¡Feliz Día del Niño a todos los pequeños que llenan nuestras vidas de luz y esperanza!',
     category: 'especiales',
-    date: new Date('2024-04-30').toISOString(),
+    date: '2024-04-30',
   },
   {
     id: '2',
@@ -38,7 +39,7 @@ const STATIC_VIDEOS: ProgramVideo[] = [
     thumbnail: 'https://csdkids-images.s3.us-east-2.amazonaws.com/flyer10Abril.jpeg',
     url: 'https://csdkids-images.s3.us-east-2.amazonaws.com/Emma_+La+luz+que+inspira+el+camino+de+otros.mp4',
     category: 'webinar',
-    date: new Date('2024-04-10').toISOString(),
+    date: '2024-04-10',
   },
   {
     id: '3',
@@ -46,7 +47,7 @@ const STATIC_VIDEOS: ProgramVideo[] = [
     thumbnail: 'https://csdkids-images.s3.us-east-2.amazonaws.com/14AgostoWebinar.jpeg',
     url: 'https://csdkids-images.s3.us-east-2.amazonaws.com/Mi+casa+es.mp4',
     category: 'webinar',
-    date: new Date('2024-08-14').toISOString(),
+    date: '2024-08-14',
   },
   {
     id: '4',
@@ -56,7 +57,7 @@ const STATIC_VIDEOS: ProgramVideo[] = [
     description:
       'Gracias a Radio Universidad 100.5 FM. Por la invitación y dar conoceré el propósito de Crianza Sana by D-kids. #reeducarparaformar #crianzasana #niños #niñas #adolescentes',
     category: 'especiales',
-    date: new Date('2024-01-01').toISOString(),
+    date: '2024-01-01',
   },
 ];
 
@@ -85,6 +86,9 @@ export class Programs implements OnInit {
   readonly defaultAvatar = DEFAULT_AVATAR;
 
   readonly allVideos = signal<ProgramVideo[]>([]);
+  readonly isLoading = signal(true);
+  readonly videoError = signal(false);
+  readonly fallbackThumbnail = '/logo_original.png';
   readonly showFilters = signal(false);
   readonly selectedCategories = signal<string[]>([]);
   readonly selectedSpecialist = signal<string | null>(null);
@@ -119,8 +123,8 @@ export class Programs implements OnInit {
 
     const order = this.sortOrder();
     result.sort((a, b) => {
-      const dateA = new Date(a.date || 0).getTime();
-      const dateB = new Date(b.date || 0).getTime();
+      const dateA = toSortableTime(a.date);
+      const dateB = toSortableTime(b.date);
       return order === 'recent' ? dateB - dateA : dateA - dateB;
     });
 
@@ -150,19 +154,8 @@ export class Programs implements OnInit {
   }
 
   private formatDate(rawDate: unknown): string {
-    if (!rawDate) return '';
-    const d = rawDate as { toDate?: () => Date; seconds?: number; _seconds?: number };
-    let dateObj: Date;
-    if (typeof d.toDate === 'function') {
-      dateObj = d.toDate();
-    } else if (d.seconds || d._seconds) {
-      dateObj = new Date((d.seconds || d._seconds || 0) * 1000);
-    } else {
-      dateObj = new Date(rawDate as string);
-    }
-
-    if (isNaN(dateObj.getTime())) return '';
-
+    const dateObj = parseFlexibleDate(rawDate);
+    if (!dateObj) return '';
     return dateObj.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
   }
 
@@ -188,7 +181,13 @@ export class Programs implements OnInit {
       .catch((err) => console.error('❌ Error al copiar enlace:', err));
   }
 
+  onThumbnailError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (!img.src.endsWith(this.fallbackThumbnail)) img.src = this.fallbackThumbnail;
+  }
+
   async selectVideo(video: ProgramVideo): Promise<void> {
+    this.videoError.set(false);
     this.selectedVideo.set(video);
     await this.loadComments(video.id);
     this.router.navigate([], { queryParams: { id: video.id } });
@@ -255,7 +254,7 @@ export class Programs implements OnInit {
 
   isDirectVideo(url: string | undefined): boolean {
     if (!url) return false;
-    return /\.(mp4|webm|mov|ogg)(\?|$)/i.test(url);
+    return /\.(mp4|webm|mov|ogg)(\?|#|$)/i.test(url);
   }
 
   async ngOnInit(): Promise<void> {
@@ -284,6 +283,8 @@ export class Programs implements OnInit {
       }
     } catch (error) {
       console.error('❌ Error al cargar los videos:', error);
+    } finally {
+      this.isLoading.set(false);
     }
   }
 }

@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import type { SwiperOptions } from 'swiper/types';
 import { ApiService, Blog } from '../../../core/services/api.service';
 import { areNamesEquivalent } from '../../../core/utils/string-utils';
+import { parseFlexibleDate } from '../../../core/utils/date-utils';
 
 interface FirestoreTimestamp {
   toDate?: () => Date;
@@ -92,9 +93,7 @@ export class PersonBlogs implements OnInit, AfterViewInit {
 
   private parseTimestamp(timestamp: FirestoreTimestamp | string | undefined): Date {
     if (!timestamp) return new Date(0);
-    if (typeof timestamp === 'object' && typeof timestamp.toDate === 'function') return timestamp.toDate();
-    if (typeof timestamp === 'object' && typeof timestamp._seconds === 'number') return new Date(timestamp._seconds * 1000);
-    return new Date(timestamp as string);
+    return parseFlexibleDate(timestamp) ?? new Date(NaN);
   }
 
   formatDate(timestamp: FirestoreTimestamp | string | undefined): string {
