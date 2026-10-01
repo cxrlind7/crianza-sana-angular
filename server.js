@@ -1198,7 +1198,14 @@ function applyMetaTags(html, meta) {
   return result
 }
 
-app.get('/blog/:id', async (req, res) => {
+// El HTML apunta a los bundles con hash de cada build; si Cloudflare lo cachea, tras un deploy
+// sirve un index.html que pide JS que ya no existe (página en blanco).
+const noStore = (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+  next()
+}
+
+app.get('/blog/:id', noStore, async (req, res) => {
   const blogId = req.params.id
   console.log(`🤖 Solicitud de blog para metadatos: ${blogId}`)
 
@@ -1259,7 +1266,7 @@ app.get('/blog/:id', async (req, res) => {
 })
 
 // --- SEO QUIZ ---
-app.get('/quiz', async (req, res) => {
+app.get('/quiz', noStore, async (req, res) => {
   const catId = req.query.cat
   console.log(`🤖 Solicitud de quiz para metadatos: ${catId}`)
 
