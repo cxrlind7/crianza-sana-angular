@@ -31,7 +31,15 @@ export class App {
       .events.pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe((e) => {
         const path = e.urlAfterRedirects.split(/[?#]/)[0];
-        if (lastPath && path !== lastPath) window.scrollTo(0, 0);
+        if (lastPath && path !== lastPath) {
+          window.scrollTo(0, 0);
+          // gtag('config') solo registra la carga inicial; las navegaciones internas se envían
+          // aquí. Los perfiles (/person/) envían su propio page_view.
+          const gtag = (window as { gtag?: (...args: unknown[]) => void }).gtag;
+          if (typeof gtag === 'function' && !path.startsWith('/person/')) {
+            gtag('event', 'page_view', { page_location: window.location.href, page_path: path });
+          }
+        }
         lastPath = path;
       });
   }
