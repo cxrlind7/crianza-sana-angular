@@ -183,7 +183,18 @@ export class BlogDetail implements OnInit, OnDestroy {
     this.speechState.set('playing');
     const voice = this.pickSpanishVoice();
 
-    if (synth.speaking || synth.pending) {
+    if (!synth.getVoices().length) {
+      // Chrome aún no carga las voces: sin esperar, ignora utterance.lang y usa "Google español" (España).
+      let done = false;
+      const retry = () => {
+        synth.removeEventListener('voiceschanged', retry);
+        if (done) return;
+        done = true;
+        if (session === this.speechSession)this.speakSegment(index, session, this.pickSpanishVoice());
+      };
+      synth.addEventListener('voiceschanged', retry);
+      setTimeout(retry, 1000);
+    } else if (synth.speaking || synth.pending) {
       synth.cancel();
       // Chrome a veces ignora un speak() inmediatamente después de cancel().
       setTimeout(() => this.speakSegment(index, session, voice), 60);
@@ -246,13 +257,21 @@ export class BlogDetail implements OnInit, OnDestroy {
     /dalia|sabina|helena|laura|elvira|paloma|lupe|pen[eé]lope|m[oó]nica|paulina|marisol|m[ií]a|renata|elena|ximena|valentina|camila|larissa|triana|abril|carlota|irene|nuria|beatriz|candela|carmen|sof[ií]a|isabel|female|mujer|google español/i;
 
   private pickSpanishVoice(): SpeechSynthesisVoice | undefined {
-    const voices = window.speechSynthesis.getVoices().filter((v) => v.lang.toLowerCase().startsWith('es'));
-    const female = voices.filter((v) => BlogDetail.FEMALE_VOICE_NAMES.test(v.name));
-    // Las voces "Natural"/"Online" de Edge suenan mucho mejor que las locales.
-    const rank = (v: SpeechSynthesisVoice) =>
-      (v.lang === 'es-MX' ? 4 : v.lang === 'es-US' ? 2 : 0) + (/natural|online/i.test(v.name) ? 1 : 0);
-    const best = (list: SpeechSynthesisVoice[]) => [...list].sort((a, b) => rank(b) - rank(a))[0];
-    return best(female) ?? best(voices);
+    // Android reporta el idioma como "es_US", así que se normaliza antes de comparar.
+    const lang = (v: SpeechSynthesisVoice) => v.lang.toLowerCase().replace('_', '-');
+    const voices = window.speechSynthesis.getVoices().filter((v) => lang(v).startsWith('es'));
+    // Prioridad: acento latino (México > EE. UU. > resto de Latinoamérica) sobre España, luego voz femenina,
+    // y las voces "Natural"/"Online" de Edge, que suenan mucho mejor que las locales.
+    const rank = (v: SpeechSynthesisVoice) => {
+      const l = lang(v);
+      const region = l === 'es-mx' ? 30 : l === 'es-us' ? 25 : l === 'es-es' || l === 'es' ? 0 : 20;
+      return (
+        region +
+        (BlogDetail.FEMALE_VOICE_NAMES.test(v.name) ? 10 : 0) +
+        (/natural|online/i.test(v.name) ? 1 : 0)
+      );
+    };
+    return [...voices].sort((a, b) => rank(b) - rank(a))[0];
   }
 
   private async loadComments(): Promise<void> {
