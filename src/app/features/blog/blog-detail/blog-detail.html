@@ -7,7 +7,7 @@
   </div>
 
   @if (blog(); as blog) {
-    <div class="blog-detail-card">
+    <div class="blog-detail-card" [class.is-reading]="speechState() !== 'idle'" (click)="onReadingClick($event)">
       <header class="blog-header">
         @if (blog.category) {
           <span class="blog-category-pill" [style.backgroundColor]="blog.categoryColor || '#3b82f6'">
@@ -15,9 +15,9 @@
           </span>
         }
 
-        <h1 class="blog-title">{{ blog.title }}</h1>
+        <h1 #titleRef class="blog-title">{{ blog.title }}</h1>
         @if (blog.title1) {
-          <h2 class="blog-subtitle">{{ blog.title1 }}</h2>
+          <h2 #subtitleRef class="blog-subtitle">{{ blog.title1 }}</h2>
         }
 
         <div class="blog-meta-wrapper">
@@ -51,6 +51,40 @@
             </button>
           </div>
         </div>
+
+        @if (speechSupported) {
+          <div #listenActionsRef class="listen-actions">
+            <button
+              class="listen-btn"
+              (click)="toggleSpeech()"
+              [class.active]="speechState() !== 'idle'"
+              [attr.aria-label]="speechState() === 'playing' ? 'Pausar lectura' : 'Escuchar artículo'"
+            >
+              @switch (speechState()) {
+                @case ('playing') {
+                  <i class="fas fa-pause"></i>
+                  <span>Pausar</span>
+                }
+                @case ('paused') {
+                  <i class="fas fa-play"></i>
+                  <span>Reanudar</span>
+                }
+                @default {
+                  <i class="fas fa-play"></i>
+                  <span>Escuchar</span>
+                }
+              }
+            </button>
+            @if (speechState() !== 'idle') {
+              <button class="listen-stop-btn" (click)="stopSpeech()" title="Detener lectura" aria-label="Detener lectura">
+                <i class="fas fa-stop"></i>
+              </button>
+            }
+          </div>
+          @if (speechState() !== 'idle') {
+            <p class="listen-hint">Toca cualquier frase para seguir leyendo desde ahí.</p>
+          }
+        }
       </header>
 
       <div class="featured-image-container">
@@ -58,7 +92,7 @@
       </div>
 
       <article class="blog-body">
-        <div class="blog-content-typography" [innerHTML]="formattedText()"></div>
+        <div #contentRef class="blog-content-typography" [innerHTML]="formattedText()"></div>
       </article>
 
       <section class="comments-section">
@@ -163,6 +197,39 @@
       </div>
     }
   </div>
+
+  @if (speechSupported && blog()) {
+    <!-- Siempre en el DOM para poder animar la entrada y la salida con CSS. -->
+    <div
+      class="floating-player"
+      [class.visible]="!listenButtonVisible()"
+      [attr.aria-hidden]="listenButtonVisible()"
+      [attr.inert]="listenButtonVisible() ? '' : null"
+      role="region"
+      aria-label="Control de lectura en voz alta"
+    >
+      <button
+        class="floating-player-main"
+        (click)="toggleSpeech()"
+        [attr.aria-label]="speechState() === 'playing' ? 'Pausar lectura' : speechState() === 'paused' ? 'Reanudar lectura' : 'Escuchar artículo'"
+      >
+        <!-- Font Awesome reemplaza <i> por <svg>, así que se crea un ícono por estado en lugar de cambiar clases. -->
+        @if (speechState() === 'playing') {
+          <i class="fas fa-pause"></i>
+        } @else {
+          <i class="fas fa-play"></i>
+        }
+        <span class="floating-player-label">
+          {{ speechState() === 'playing' ? 'Pausar' : speechState() === 'paused' ? 'Reanudar' : 'Escuchar' }}
+        </span>
+      </button>
+      @if (speechState() !== 'idle') {
+        <button class="floating-player-stop" (click)="stopSpeech()" aria-label="Detener lectura" title="Detener lectura">
+          <i class="fas fa-stop"></i>
+        </button>
+      }
+    </div>
+  }
 
   @if (showToast()) {
     <div class="toast-notification">

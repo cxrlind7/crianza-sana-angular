@@ -187,3 +187,14 @@ a,
     background-color: hsla(160, 100%, 37%, 0.2);
   }
 }
+
+/* Frase que se está leyendo en voz alta en blog-detail (CSS Custom Highlight API).
+   Va en estilos globales porque la encapsulación de Angular no aplica a ::highlight(). */
+::highlight(blog-reading) {
+  background-color: #fde68a;
+  color: #1f2937;
+}
+:root[data-theme='dark'] ::highlight(blog-reading) {
+  background-color: rgba(167, 139, 250, 0.45);
+  color: #fff;
+}

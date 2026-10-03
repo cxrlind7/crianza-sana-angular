@@ -170,6 +170,140 @@
   transform: translateY(-2px);
 }
 
+.listen-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.listen-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 22px;
+  border: none;
+  border-radius: 30px;
+  background-color: #7c3aed;
+  color: white;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+  transition: all 0.2s ease;
+}
+.listen-btn:hover {
+  background-color: #6d28d9;
+  transform: translateY(-2px);
+}
+.listen-btn.active {
+  background-color: #4c1d95;
+}
+
+.listen-stop-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--dm-border);
+  color: var(--dm-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.listen-stop-btn:hover {
+  color: var(--dm-text);
+}
+
+.listen-hint {
+  margin: 10px 0 0;
+  font-size: 0.85rem;
+  color: var(--dm-text-secondary);
+}
+
+.is-reading .blog-title,
+.is-reading .blog-subtitle,
+.is-reading .blog-content-typography {
+  cursor: pointer;
+}
+
+/* Centrado y compacto para no chocar con la mascota (abajo a la izquierda) ni con WhatsApp (abajo a la derecha). */
+.floating-player {
+  position: fixed;
+  left: 50%;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 40px;
+  background-color: var(--dm-surface);
+  border: 1px solid var(--dm-border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  /* Oculto: abajo y transparente. visibility se retrasa para que la salida termine de animarse. */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translate(-50%, 24px) scale(0.92);
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s linear 0.35s;
+}
+.floating-player.visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translate(-50%, 0) scale(1);
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floating-player,
+  .floating-player.visible {
+    transition: opacity 0.2s ease, visibility 0s;
+  }
+}
+
+.floating-player-main {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 48px;
+  height: 48px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 30px;
+  background-color: #7c3aed;
+  color: white;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+.floating-player-main:hover {
+  background-color: #6d28d9;
+}
+
+.floating-player-stop {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--dm-border);
+  color: var(--dm-text-secondary);
+  cursor: pointer;
+}
+
 .instagram-story-wrapper {
   position: absolute;
   top: -9999px;
@@ -663,5 +797,12 @@
   }
   .blog-content-typography {
     font-size: 1.05rem;
+  }
+  .floating-player-main {
+    padding: 0;
+    width: 48px;
+  }
+  .floating-player-label {
+    display: none;
   }
 }
