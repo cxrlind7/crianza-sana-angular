@@ -2,7 +2,7 @@ import { AfterViewInit, Component, ElementRef, ViewChild, computed, inject, sign
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import Chart from 'chart.js/auto';
-import { people as peopleData } from '../../core/data/people-data';
+import { activePeople, isPersonActive } from '../../core/utils/people-visibility';
 import { areNamesEquivalent } from '../../core/utils/string-utils';
 
 interface StatEntry {
@@ -79,7 +79,7 @@ export class Analytics implements AfterViewInit {
   readonly personViews = signal<PersonViewRow[]>([]);
   readonly locationsData = signal<LocationRow[]>([]);
 
-  readonly filteredPeopleList = (peopleData as { id: number; name: string; color?: string }[]).filter(
+  readonly filteredPeopleList = (activePeople as { id: number; name: string; color?: string }[]).filter(
     (p) => !p.name.toLowerCase().includes('martha elena'),
   );
 
@@ -261,8 +261,9 @@ export class Analytics implements AfterViewInit {
 
       this.personViews.set(
         Object.entries(personDataRaw)
-          .map(([path, stat]) => {
-            const id = Number(path.split('/person/')[1]);
+          .map(([path, stat]) => [Number(path.split('/person/')[1]), stat] as const)
+          .filter(([id]) => isPersonActive(id))
+          .map(([id, stat]) => {
             const person = this.filteredPeopleList.find((p) => p.id === id);
             return {
               name: person?.name || `Especialista ${id}`,

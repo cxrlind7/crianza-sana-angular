@@ -1,5 +1,6 @@
 import { Component, OnDestroy, computed, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { isPersonActive } from '../../../core/utils/people-visibility';
 
 interface TeamMember {
   id: number;
@@ -9,7 +10,7 @@ interface TeamMember {
   color: string;
 }
 
-const TEAM: TeamMember[] = [
+const TEAM: TeamMember[] = ([
   { id: 2, name: 'Carina', src: '/CarinaNoviembre1.jpeg', specialty: 'Terapéuta cognitivo conductual', color: '#FF4DA3' },
   { id: 4, name: 'Patricia', src: '/PatyNoviembre1.jpeg', specialty: 'Odontopediatra', color: '#E70885' },
   { id: 6, name: 'Luis', src: '/LuisNoviembre1.jpeg', specialty: 'Psicólogo Infanto-Juvenil', color: '#1A9FAD' },
@@ -18,7 +19,7 @@ const TEAM: TeamMember[] = [
   { id: 5, name: 'Miriam', src: '/MiriamNoviembre1.jpeg', specialty: 'Pediatra - Cardióloga pediatra', color: '#1e40af' },
   { id: 8, name: 'Roberto', src: '/RobertoNoviembre1.jpeg', specialty: 'Lic. en Derecho', color: '#112548' },
   { id: 9, name: 'Ana Laura', src: '/AnaLauNoviembre1.jpeg', specialty: 'Terapeuta de la Comunicación Humana', color: '#00a6c7' },
-];
+] satisfies TeamMember[]).filter((m) => isPersonActive(m.id));
 
 const ROTATIONS = [3, -2, 4, -3, 2, -4, 3, -2];
 

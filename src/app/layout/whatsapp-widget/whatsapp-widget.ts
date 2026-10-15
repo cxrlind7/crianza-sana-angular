@@ -1,5 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { people } from '../../core/data/people-data';
+import { isPersonActive } from '../../core/utils/people-visibility';
 
 interface SpecialistPerson {
   id: string | number;
@@ -19,7 +20,7 @@ export class WhatsappWidget {
   readonly isChatOpen = signal(false);
 
   readonly people: SpecialistPerson[] = (people as SpecialistPerson[]).filter(
-    (person) => person.socials && person.socials.length > 0,
+    (person) => person.socials && person.socials.length > 0 && isPersonActive(person.id),
   );
 
   toggleChat(): void {

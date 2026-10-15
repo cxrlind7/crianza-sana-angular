@@ -2,6 +2,7 @@ import { AfterViewInit, CUSTOM_ELEMENTS_SCHEMA, Component, ElementRef, ViewChild
 import { RouterLink } from '@angular/router';
 import type { SwiperOptions } from 'swiper/types';
 import { people } from '../../../core/data/people-data';
+import { isPersonActive } from '../../../core/utils/people-visibility';
 
 interface Servicio {
   personId: number;
@@ -23,7 +24,7 @@ export class Services implements AfterViewInit {
   // WhatsApp general (Carina / D-Kids) si un especialista no tiene número registrado.
   private readonly fallbackPhoneNumber = '526181448790';
 
-  readonly servicios: Servicio[] = [
+  readonly servicios: Servicio[] = ([
     {
       personId: 9,
       title: 'Terapia de lenguaje',
@@ -78,7 +79,7 @@ export class Services implements AfterViewInit {
         'Servicios jurídicos y asesoría especializada con compromiso ético, responsable y justo, garantizando confianza.',
       image: '/Derecho1.jpeg',
     },
-  ];
+  ] satisfies Servicio[]).filter((s) => isPersonActive(s.personId));
 
   ngAfterViewInit(): void {
     const swiperEl = this.swiperContainer?.nativeElement as (HTMLElement & { initialize: () => void }) | undefined;

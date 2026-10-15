@@ -1,5 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { isAuthorInactive } from '../../../core/utils/people-visibility';
 
 interface Category {
   id: string;
@@ -149,7 +150,7 @@ const CATEGORIES: Category[] = [
 export class QuizCrianza implements OnInit {
   private readonly route = inject(ActivatedRoute);
 
-  readonly categories = CATEGORIES;
+  readonly categories = CATEGORIES.filter((c) => !isAuthorInactive(c.contactName));
 
   readonly step = signal(0);
   readonly currentQuestionIdx = signal(0);

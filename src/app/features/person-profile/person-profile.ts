@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Location } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { people } from '../../core/data/people-data';
+import { isPersonActive } from '../../core/utils/people-visibility';
 import { ApiService, ShortVideo } from '../../core/services/api.service';
 import { MisionProfile } from './mision-profile/mision-profile';
 import { ServicesProfile } from './services-profile/services-profile';
@@ -63,7 +64,7 @@ export class PersonProfile implements OnInit {
   readonly shortVideos = signal<ShortVideo[]>([]);
 
   readonly person = computed<PersonRecord | undefined>(() =>
-    (people as PersonRecord[]).find((p) => p.id === Number(this.id())),
+    (people as PersonRecord[]).find((p) => p.id === Number(this.id()) && isPersonActive(p.id)),
   );
 
   ngOnInit(): void {

@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular
 import { RouterLink } from '@angular/router';
 import { ApiService, Blog } from '../../../core/services/api.service';
 import { filterPublished } from '../../../core/utils/schedule';
+import { filterBlogsByActiveAuthors } from '../../../core/utils/people-visibility';
 
 declare global {
   interface Window {
@@ -48,7 +49,7 @@ export class BlogRecommended implements OnInit, OnDestroy {
     try {
       const fetchedBlogs = await this.api.getCollection<Blog>('blogs');
       const published = filterPublished(fetchedBlogs as (Blog & { publishAt?: string })[]);
-      this.blogs.set(published.filter((b) => b.title && b.imageUrl));
+      this.blogs.set(filterBlogsByActiveAuthors(published).filter((b) => b.title && b.imageUrl));
 
       if (this.blogCycle().length > 1) {
         this.startAlternating();

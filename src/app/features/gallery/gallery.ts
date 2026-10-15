@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService, Comment, Gallery as GalleryAlbum, GalleryImage } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { parseFlexibleDate, toSortableTime } from '../../core/utils/date-utils';
+import { isAuthorInactive } from '../../core/utils/people-visibility';
 
 type SortOrder = 'recent' | 'oldest';
 
@@ -92,7 +93,9 @@ export class Gallery implements OnInit {
 
   async ngOnInit(): Promise<void> {
     try {
-      const albums = await this.api.getGalleries();
+      const albums = (await this.api.getGalleries()).filter(
+        (album) => !isAuthorInactive(this.getPersonName(album.name)),
+      );
       this.allAlbums.set(albums);
 
       const idAlbum = this.route.snapshot.queryParamMap.get('idAlbum');
