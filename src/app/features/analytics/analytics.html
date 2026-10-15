@@ -20,7 +20,7 @@
       <h3 class="text-uppercase letter-spacing-2 text-dark mb-3 mt-0" style="font-size: 1.5rem; opacity: 0.8">
         Panel de Analíticas
       </h3>
-      <p class="section-subtitle mb-4">Rendimiento de contenido y comportamiento de audiencia.</p>
+      <p class="section-subtitle mb-4">Cómo va la página, de dónde llega la gente y qué temas le interesan.</p>
 
       <button class="btn-toggle-filters" (click)="showFilters.set(!showFilters())">
         <i class="fas fa-sliders-h me-2"></i>
@@ -32,9 +32,7 @@
       <section class="controls-section mb-4">
         <div class="controls-container">
           <div class="filter-group mb-3">
-            <label class="control-label">
-              <i class="far fa-calendar-alt me-2"></i>Rango de Fechas:
-            </label>
+            <label class="control-label"><i class="far fa-calendar-alt me-2"></i>Rango de Fechas:</label>
             <div class="date-selector-wrapper">
               <select
                 class="form-select modern-select"
@@ -44,7 +42,7 @@
                 <option value="7daysAgo">Últimos 7 días</option>
                 <option value="30daysAgo">Últimos 30 días</option>
                 <option value="90daysAgo">Últimos 90 días</option>
-                <option value="2023-01-01">Año actual (desde Ene 1)</option>
+                <option [value]="yearStart">Año actual (desde Ene 1)</option>
                 <option value="2020-08-15">Histórico Completo</option>
                 <option value="custom">Personalizado</option>
               </select>
@@ -64,18 +62,16 @@
           </div>
 
           <div class="filter-group">
-            <label class="control-label">
-              <i class="fas fa-user-md me-2"></i>Filtrar por Especialista:
-            </label>
+            <label class="control-label"><i class="fas fa-user-md me-2"></i>Blogs de un Especialista:</label>
             <div class="date-selector-wrapper">
               <select class="form-select modern-select" [ngModel]="selectedPersonId()" (ngModelChange)="selectedPersonId.set($event); fetchAllData()">
-                <option value="">Mostrar Todos</option>
+                <option value="">Todos</option>
                 @for (person of filteredPeopleList; track person.id) {
                   <option [value]="person.id">{{ person.name }}</option>
                 }
               </select>
               <span class="filter-badge mt-2">
-                {{ selectedPersonId() ? 'Mostrando rendimiento exclusivo del especialista seleccionado.' : 'Mostrando datos globales de todos los especialistas.' }}
+                {{ selectedPersonId() ? 'Blogs, temas y tendencia muestran solo a este especialista.' : 'Mostrando todos los especialistas.' }}
               </span>
             </div>
           </div>
@@ -83,108 +79,351 @@
       </section>
     }
 
+    @if (failedSections().length > 0 && !isLoading()) {
+      <div class="alert alert-warning small mb-4">
+        <i class="fas fa-triangle-exclamation me-2"></i>
+        No se pudieron cargar: {{ failedSections().join(', ') }}. El resto del panel sí está actualizado.
+      </div>
+    }
+
+    <!-- ================= 1. ¿CÓMO VAMOS? ================= -->
+    <h4 class="block-title fade-in delay-2"><i class="fas fa-heart-pulse me-2"></i>¿Cómo va la página?</h4>
+
     <div class="row mb-4 fade-in delay-2 g-3">
-      <div class="col-12 col-sm-6 col-lg-3">
-        <div class="kpi-card">
-          <div class="kpi-icon bg-blue-soft text-blue"><i class="fas fa-eye"></i></div>
-          <div class="kpi-data">
-            <h3>{{ formatNumber(totalVisits()) }}</h3>
-            <p>{{ selectedPersonId() ? 'Visitas a sus Blogs' : 'Visitas Totales a Blogs' }}</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-12 col-sm-6 col-lg-3">
-        <div class="kpi-card" title="% de sesiones con interacción significativa">
-          <div class="kpi-icon bg-purple-soft text-purple"><i class="fas fa-chart-pie"></i></div>
-          <div class="kpi-data">
-            <h3>{{ avgEngagementRate() }}%</h3>
-            <p>Tasa de Interacción Prom.</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-12 col-sm-6 col-lg-3"></div>
-      @if (topBlogData(); as topBlogData) {
+      @for (kpi of kpis(); track kpi.label) {
         <div class="col-12 col-sm-6 col-lg-3">
-          <div class="kpi-card highlight-card">
-            <div class="kpi-data w-100">
-              <p class="mb-2 text-muted font-small text-uppercase ls-1">
-                <i class="fas fa-trophy text-warning me-1"></i>
-                {{ selectedPersonId() ? 'Su Mejor Blog' : 'Mejor Blog Global' }}
-              </p>
-              <h5 class="text-truncate fw-bold mb-2" [title]="topBlogName()">{{ topBlogName() }}</h5>
-              <div class="d-flex justify-content-between align-items-center">
-                <span class="badge bg-primary rounded-pill px-3">{{ formatNumber(topBlogData.visits) }} visitas</span>
-                <small class="text-muted"><i class="far fa-clock me-1"></i>{{ formatTime(topBlogData.avgSessionDuration) }}</small>
-              </div>
+          <div class="kpi-card">
+            <div class="kpi-icon bg-blue-soft text-blue"><i [class]="kpi.icon"></i></div>
+            <div class="kpi-data">
+              <h3>{{ kpi.value }}</h3>
+              <p>{{ kpi.label }}</p>
+              <small class="kpi-hint">
+                @if (kpi.delta !== null) {
+                  <span [class]="kpi.delta >= 0 ? 'text-success fw-bold' : 'text-danger fw-bold'">
+                    {{ kpi.delta >= 0 ? '▲' : '▼' }} {{ kpi.delta >= 0 ? kpi.delta : -kpi.delta }}%
+                  </span>
+                  vs. periodo anterior ·
+                }
+                {{ kpi.hint }}
+              </small>
             </div>
-          </div>
-        </div>
-      } @else if (selectedPersonId() && !isLoading()) {
-        <div class="col-12 col-sm-6 col-lg-3">
-          <div class="kpi-card bg-light justify-content-center text-muted">
-            <small>Este especialista no tiene blogs con visitas en el periodo.</small>
           </div>
         </div>
       }
     </div>
 
-    <div class="row mb-4 fade-in delay-3 g-4">
+    <div class="row mb-5 fade-in delay-3 g-4">
       <div class="col-12 col-lg-8">
         <div class="chart-card h-100">
           <div class="card-header-clean">
-            <h4 class="card-title">
-              {{ selectedPersonId() ? 'Tendencia de Visitas (Blogs del Especialista)' : 'Tendencia de Visitas (Sitio Completo)' }}
-            </h4>
+            <h4 class="card-title">{{ selectedPersonId() ? 'Visitas diarias a sus blogs' : 'Visitantes por día (sitio completo)' }}</h4>
           </div>
           <div class="chart-container-large">
-            <canvas #totalChart></canvas>
+            <canvas #trendChart role="img" aria-label="Tendencia de visitantes por día"></canvas>
           </div>
         </div>
       </div>
-
       <div class="col-12 col-lg-4">
         <div class="chart-card h-100">
           <div class="card-header-clean">
-            <h4 class="card-title">{{ selectedPersonId() ? 'Top 5 Blogs del Especialista' : 'Top 5 Blogs Globales' }}</h4>
+            <h4 class="card-title"><i class="fas fa-lightbulb text-warning me-2"></i>En resumen</h4>
           </div>
-          <div class="chart-container-medium">
-            <canvas #topBlogsChart></canvas>
-          </div>
-          @if (sortedStatsList().length === 0 && !isLoading()) {
-            <div class="text-center text-muted mt-4">No hay datos de blogs para mostrar.</div>
+          @if (insights().length > 0) {
+            <ul class="insights-list">
+              @for (line of insights(); track line) {
+                <li>{{ line }}</li>
+              }
+            </ul>
+          } @else {
+            <p class="text-muted small mb-0">Sin datos suficientes en este periodo.</p>
+          }
+          @if (devices().length > 0) {
+            <div class="device-row mt-auto pt-3">
+              @for (d of devices(); track d.label) {
+                <div class="device-tile">
+                  <strong>{{ d.pct }}%</strong>
+                  <span>{{ d.label }}</span>
+                </div>
+              }
+            </div>
           }
         </div>
       </div>
     </div>
 
-    <div class="row mb-5 fade-in delay-3 g-4">
-      <div class="col-12 col-md-6">
-        <div class="chart-card">
+    <!-- ================= 2. ¿DE DÓNDE LLEGAN? ================= -->
+    <h4 class="block-title"><i class="fas fa-route me-2"></i>¿Cómo nos encuentran?</h4>
+
+    <div class="row mb-5 g-4">
+      <div class="col-12 col-lg-6">
+        <div class="chart-card h-100">
           <div class="card-header-clean">
-            <h4 class="card-title">Visitas por Sección Principal</h4>
+            <h4 class="card-title">Visitas por origen</h4>
           </div>
-          <div class="chart-container-medium">
-            <canvas #sectionsChart></canvas>
-          </div>
-          <div class="mt-4 table-responsive">
-            <table class="table table-sm table-hover mb-0" style="font-size: 0.9rem">
+          @if (originsWithShare().length > 0) {
+            <div class="bar-chart" [style.height.px]="barHeight(originsWithShare().length)">
+              <canvas #originsChart role="img" aria-label="Visitas por origen"></canvas>
+            </div>
+          } @else {
+            <p class="text-muted text-center p-4 mb-0">No hay datos de origen en este periodo.</p>
+          }
+        </div>
+      </div>
+      <div class="col-12 col-lg-6">
+        <div class="chart-card h-100">
+          <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0 small">
               <thead>
                 <tr>
-                  <th>Sección</th>
+                  <th>Origen</th>
                   <th class="text-center">Visitas</th>
-                  <th class="text-center">Tasa Int.</th>
-                  <th class="text-center">Tiempo</th>
+                  <th class="text-center">%</th>
+                  <th class="text-center" title="Tiempo promedio con la página en pantalla por visita">Tiempo</th>
                 </tr>
               </thead>
               <tbody>
-                @for (entry of sectionStats(); track entry[0]) {
+                @for (o of originsWithShare(); track o.origin) {
                   <tr>
-                    <td class="text-capitalize">{{ entry[0].replace('/', '') || 'Inicio' }}</td>
-                    <td class="text-center fw-bold">{{ formatNumber(entry[1].views) }}</td>
-                    <td class="text-center">
-                      <span class="badge" [class]="getEngagementClass(entry[1].engagementRate)">{{ entry[1].engagementRate }}%</span>
-                    </td>
-                    <td class="text-center text-muted">{{ formatTime(entry[1].avgSessionDuration) }}</td>
+                    <td>{{ o.origin }}</td>
+                    <td class="text-center fw-bold">{{ formatNumber(o.sessions) }}</td>
+                    <td class="text-center">{{ o.share }}%</td>
+                    <td class="text-center text-muted">{{ formatTime(o.avgTimePerSession) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <p class="note mt-3 mb-0">
+            <i class="fas fa-circle-info me-1"></i>
+            WhatsApp no avisa de dónde viene la visita, así que un link pegado a mano en WhatsApp cuenta como
+            <strong>"Directo"</strong>. Los links que se copian desde el sitio ya llevan etiqueta y aparecen como
+            <strong>"Enlace compartido"</strong>. Para medir WhatsApp exacto, compartan
+            <code>crianzasanabydkids.mx/?utm_source=whatsapp</code>.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= 3. ¿QUÉ HACEN? ================= -->
+    <h4 class="block-title"><i class="fas fa-hand-pointer me-2"></i>¿Qué hacen en la página?</h4>
+
+    <div class="row mb-4 g-3">
+      @for (tile of actionTiles(); track tile.label) {
+        <div class="col-6 col-md-3">
+          <div class="action-tile">
+            <i [class]="tile.icon"></i>
+            <strong>{{ formatNumber(tile.value) }}</strong>
+            <span>{{ tile.label }}</span>
+            @if (tile.sub) {
+              <small>{{ tile.sub }}</small>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="row mb-5 g-4">
+      <div class="col-12 col-lg-4">
+        <div class="chart-card h-100">
+          <h4 class="card-title mb-3"><i class="fab fa-whatsapp text-success me-2"></i>WhatsApp: ¿a quién escriben?</h4>
+          @if (events()?.whatsappByLabel?.length) {
+            <table class="table table-sm mb-0 small">
+              <tbody>
+                @for (r of events()!.whatsappByLabel; track r.label) {
+                  <tr><td>{{ r.label }}</td><td class="text-end fw-bold">{{ r.count }}</td></tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <p class="text-muted small mb-0">Aún sin datos. Se empieza a medir con esta versión del sitio.</p>
+          }
+        </div>
+      </div>
+      <div class="col-12 col-lg-4">
+        <div class="chart-card h-100">
+          <h4 class="card-title mb-3"><i class="fas fa-location-dot me-2"></i>WhatsApp: ¿desde qué página?</h4>
+          @if (whatsappByPage().length) {
+            <table class="table table-sm mb-0 small">
+              <tbody>
+                @for (r of whatsappByPage(); track r.label) {
+                  <tr><td class="text-truncate" style="max-width: 220px" [title]="r.label">{{ r.label }}</td><td class="text-end fw-bold">{{ r.count }}</td></tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <p class="text-muted small mb-0">Aún sin datos. Se empieza a medir con esta versión del sitio.</p>
+          }
+        </div>
+      </div>
+      <div class="col-12 col-lg-4">
+        <div class="chart-card h-100">
+          <h4 class="card-title mb-3"><i class="fas fa-clipboard-question me-2"></i>Quiz por tema</h4>
+          @if (events()?.quiz?.length) {
+            <table class="table table-sm mb-0 small">
+              <thead>
+                <tr><th>Tema</th><th class="text-center">Iniciados</th><th class="text-center">Terminados</th></tr>
+              </thead>
+              <tbody>
+                @for (q of events()!.quiz; track q.category) {
+                  <tr><td>{{ q.category }}</td><td class="text-center">{{ q.started }}</td><td class="text-center fw-bold">{{ q.finished }}</td></tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <p class="text-muted small mb-0">Aún sin datos. Se empieza a medir con esta versión del sitio.</p>
+          }
+        </div>
+      </div>
+
+      <div class="col-12 col-lg-4">
+        <div class="chart-card h-100">
+          <h4 class="card-title mb-3"><i class="fas fa-share-alt me-2"></i>Redes sociales visitadas</h4>
+          @if (events()?.social?.length) {
+            <table class="table table-sm mb-0 small">
+              <tbody>
+                @for (r of events()!.social; track r.label) {
+                  <tr><td>{{ r.label }}</td><td class="text-end fw-bold">{{ r.count }}</td></tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <p class="text-muted small mb-0">Aún sin datos. Se empieza a medir con esta versión del sitio.</p>
+          }
+        </div>
+      </div>
+      <div class="col-12 col-lg-4">
+        <div class="chart-card h-100">
+          <h4 class="card-title mb-3"><i class="fas fa-retweet me-2"></i>¿Cómo comparten?</h4>
+          @if (shareRows().length) {
+            <table class="table table-sm mb-0 small">
+              <tbody>
+                @for (r of shareRows(); track r.label) {
+                  <tr><td>{{ r.label }}</td><td class="text-end fw-bold">{{ r.count }}</td></tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <p class="text-muted small mb-0">Nadie ha compartido en este periodo.</p>
+          }
+        </div>
+      </div>
+      <div class="col-12 col-lg-4">
+        <div class="chart-card h-100">
+          <h4 class="card-title mb-3"><i class="fas fa-file-arrow-down me-2"></i>Descargas</h4>
+          @if (events()?.downloads?.length) {
+            <table class="table table-sm mb-0 small">
+              <tbody>
+                @for (r of events()!.downloads; track r.label) {
+                  <tr><td>{{ r.label }}</td><td class="text-end fw-bold">{{ r.count }}</td></tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <p class="text-muted small mb-0">Aún sin datos. Se empieza a medir con esta versión del sitio.</p>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= 4. VIDEOS ================= -->
+    <h4 class="block-title"><i class="fas fa-circle-play me-2"></i>Videos vistos</h4>
+
+    <div class="chart-card mb-5">
+      @if (events()?.videos?.length) {
+        <div class="table-responsive">
+          <table class="table table-sm table-hover mb-0 small">
+            <thead>
+              <tr>
+                <th>Video</th>
+                <th class="text-center">Origen</th>
+                <th class="text-center">Reproducciones</th>
+                <th class="text-center" title="Solo videos propios: YouTube/Facebook no avisan cuándo terminan">Vistos completos</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (v of events()!.videos; track v.title) {
+                <tr>
+                  <td class="text-truncate" style="max-width: 360px" [title]="v.title">{{ v.title }}</td>
+                  <td class="text-center text-muted">{{ v.provider === 'propio' ? 'Sitio' : v.provider }}</td>
+                  <td class="text-center fw-bold">{{ v.plays }}</td>
+                  <td class="text-center">{{ v.provider === 'propio' ? v.completed : '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p class="text-muted text-center p-3 mb-0">Aún sin datos. Se empieza a medir con esta versión del sitio.</p>
+      }
+    </div>
+
+    <!-- ================= 5. TEMAS Y BLOGS ================= -->
+    <h4 class="block-title"><i class="fas fa-book-open me-2"></i>¿Qué temas interesan?</h4>
+
+    <div class="row mb-4 g-3">
+      <div class="col-12 col-sm-4">
+        <div class="kpi-card">
+          <div class="kpi-icon bg-blue-soft text-blue"><i class="fas fa-eye"></i></div>
+          <div class="kpi-data">
+            <h3>{{ formatNumber(blogTotals().visits) }}</h3>
+            <p>Visitas a blogs</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-4">
+        <div class="kpi-card" title="% de visitas que leyeron hasta el final, escucharon o compartieron el blog">
+          <div class="kpi-icon bg-purple-soft text-purple"><i class="fas fa-hand-sparkles"></i></div>
+          <div class="kpi-data">
+            <h3>{{ blogTotals().interactionRate }}%</h3>
+            <p>Tasa de interacción</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-4">
+        <div class="kpi-card" title="% de visitas que bajaron hasta el final del blog">
+          <div class="kpi-icon bg-orange-soft text-orange"><i class="fas fa-flag-checkered"></i></div>
+          <div class="kpi-data">
+            <h3>{{ blogTotals().completeReadRate }}%</h3>
+            <p>Leen hasta el final</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-4 g-4">
+      <div class="col-12 col-lg-6">
+        <div class="chart-card h-100">
+          <h4 class="card-title mb-3">Visitas por tema</h4>
+          @if (topics().length > 0) {
+            <div class="bar-chart" [style.height.px]="barHeight(topics().length)">
+              <canvas #topicsChart role="img" aria-label="Visitas por tema"></canvas>
+            </div>
+          } @else {
+            <p class="text-muted text-center p-4 mb-0">No hay visitas a blogs en este periodo.</p>
+          }
+        </div>
+      </div>
+      <div class="col-12 col-lg-6">
+        <div class="chart-card h-100">
+          <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0 small">
+              <thead>
+                <tr>
+                  <th>Tema</th>
+                  <th class="text-center">Blogs</th>
+                  <th class="text-center">Visitas</th>
+                  <th class="text-center">Lectura</th>
+                  <th class="text-center">Interacción</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (t of topics(); track t.topic) {
+                  <tr>
+                    <td>{{ t.topic }}</td>
+                    <td class="text-center text-muted">{{ t.blogs }}</td>
+                    <td class="text-center fw-bold">{{ formatNumber(t.visits) }}</td>
+                    <td class="text-center">{{ formatTime(t.avgReadTime) }}</td>
+                    <td class="text-center"><span class="badge" [class]="rateClass(t.interactionRate)">{{ t.interactionRate }}%</span></td>
                   </tr>
                 }
               </tbody>
@@ -192,152 +431,51 @@
           </div>
         </div>
       </div>
-
-      <div class="col-12 col-md-6">
-        <div class="chart-card">
-          <div class="card-header-clean d-flex justify-content-between align-items-center">
-            <h4 class="card-title mb-0">{{ selectedPersonId() ? 'Visitas a su Perfil' : 'Comparativa de Especialistas' }}</h4>
-            <span class="badge bg-info text-white rounded-pill">{{ formatNumber(personViewsTotal()) }} visitas</span>
-          </div>
-          @if (personViews().length > 0) {
-            <div class="chart-container-medium d-flex justify-content-center align-items-center">
-              <canvas #personPieChart style="max-height: 260px"></canvas>
-            </div>
-          } @else {
-            <div class="d-flex justify-content-center align-items-center h-100 text-muted">
-              {{ selectedPersonId() ? 'El perfil de este especialista no tiene visitas en el periodo.' : 'No hay datos de visitas a perfiles.' }}
-            </div>
-          }
-          @if (personViews().length > 0) {
-            <div class="mt-4 table-responsive">
-              <table class="table table-sm table-hover mb-0" style="font-size: 0.9rem">
-                <thead>
-                  <tr>
-                    <th>Especialista</th>
-                    <th class="text-center">Visitas</th>
-                    <th class="text-center">Tasa Int.</th>
-                    <th class="text-center">Tiempo</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (person of personViews(); track person.name) {
-                    <tr>
-                      <td>
-                        <div class="d-flex align-items-center">
-                          <div class="category-indicator me-2" [style.backgroundColor]="person.color"></div>
-                          {{ person.name }}
-                        </div>
-                      </td>
-                      <td class="text-center fw-bold">{{ formatNumber(person.views) }}</td>
-                      <td class="text-center">
-                        <span class="badge" [class]="getEngagementClass(person.engagementRate)">{{ person.engagementRate }}%</span>
-                      </td>
-                      <td class="text-center text-muted">{{ formatTime(person.avgSessionDuration) }}</td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-          }
-        </div>
-      </div>
     </div>
 
-    <div class="row mb-5 fade-in delay-3 g-4">
-      <div class="col-12">
-        <div class="chart-card">
-          <div class="card-header-clean d-flex justify-content-between align-items-center">
-            <h4 class="card-title mb-0"><i class="fas fa-map-marker-alt text-muted me-2"></i>Visitas por Ubicación</h4>
-            @if (locationsData().length > 0) {
-              <span class="badge bg-secondary text-white rounded-pill">Top {{ Math.min(locationsData().length, 8) }}</span>
-            }
-          </div>
-
-          @if (locationsData().length > 0) {
-            <div class="row mt-3 align-items-start g-3">
-              <div class="col-12 col-md-7">
-                <div style="position: relative; height: 220px">
-                  <canvas #locationsChart></canvas>
-                </div>
-              </div>
-              <div class="col-12 col-md-5">
-                <table class="table table-sm table-hover mb-0" style="font-size: 0.8rem">
-                  <thead class="table-light">
-                    <tr>
-                      <th>País / Ciudad</th>
-                      <th class="text-end">Visitas</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @for (loc of locationsData().slice(0, 8); track $index) {
-                      <tr>
-                        <td>
-                          <div class="fw-medium" style="font-size: 0.8rem">{{ loc.country }}</div>
-                          <div class="text-muted" style="font-size: 0.72rem">{{ loc.city }}</div>
-                        </td>
-                        <td class="text-end fw-bold">{{ formatNumber(loc.views) }}</td>
-                      </tr>
-                    }
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          } @else {
-            <div class="text-center text-muted p-4">
-              {{ isLoading() ? 'Cargando ubicaciones...' : 'No hay datos de ubicaciones para mostrar en el periodo seleccionado.' }}
-            </div>
-          }
-        </div>
-      </div>
-    </div>
-
-    @if (sortedStatsList().length > 0) {
-      <div class="detail-section fade-in delay-3 mb-5">
+    @if (sortedBlogs().length > 0) {
+      <div class="detail-section mb-5">
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-          <h3 class="section-title">{{ selectedPersonId() ? 'Detalle de Blogs del Especialista' : 'Rendimiento Detallado de Blogs' }}</h3>
-          <button class="btn btn-outline-primary btn-sm rounded-pill px-3" (click)="showStatsTable.set(!showStatsTable())">
-            {{ showStatsTable() ? 'Ocultar Tabla' : 'Ver Tabla Completa' }}
+          <h3 class="section-title">{{ selectedPersonId() ? 'Blogs del especialista' : 'Detalle por blog' }}</h3>
+          <button class="btn btn-outline-primary btn-sm rounded-pill px-3" (click)="showBlogTable.set(!showBlogTable())">
+            {{ showBlogTable() ? 'Ocultar Tabla' : 'Ver Tabla Completa' }}
           </button>
         </div>
 
-        @if (showStatsTable()) {
+        @if (showBlogTable()) {
           <div class="table-responsive modern-table-wrapper">
-            <div class="p-3 bg-light border-bottom small text-muted d-flex gap-4 flex-wrap">
-              <div class="d-flex align-items-center">
-                <i class="fas fa-info-circle me-2 text-primary"></i>
-                <span><strong>Tasa de Interacción:</strong> % de sesiones > 10s, con conversión o > 2 vistas.</span>
-              </div>
-              <div class="d-flex align-items-center">
-                <i class="far fa-clock me-2 text-primary"></i>
-                <span><strong>Duración de Sesión:</strong> Tiempo promedio que dura una sesión (incluye tiempos inactivos).</span>
-              </div>
+            <div class="p-3 border-bottom small text-muted">
+              <i class="fas fa-info-circle me-2 text-primary"></i>
+              <strong>Interacción:</strong> % de visitas que leyeron hasta el final, escucharon o compartieron el blog.
+              <strong>Lectura:</strong> tiempo promedio con el blog en pantalla.
             </div>
-
-            <table class="table table-hover align-middle mb-0">
-              <thead class="table-light">
+            <table class="table table-hover align-middle mb-0 small">
+              <thead>
                 <tr>
-                  <th style="width: 35%">Título del Blog</th>
-                  <th class="text-center cursor-pointer" (click)="toggleSort('visits')">Visitas <i class="fas fa-sort small text-muted"></i></th>
-                  <th class="text-center cursor-pointer" (click)="toggleSort('engagementRate')">Tasa Int. <i class="fas fa-sort small text-muted"></i></th>
-                  <th class="text-center cursor-pointer" (click)="toggleSort('shares')">Compartidos <i class="fas fa-sort small text-muted"></i></th>
+                  <th style="width: 34%">Blog</th>
+                  <th class="text-center cursor-pointer" (click)="toggleSort('visits')">Visitas <i class="fas {{ sortIcon('visits') }}"></i></th>
+                  <th class="text-center cursor-pointer" (click)="toggleSort('readTime')">Lectura <i class="fas {{ sortIcon('readTime') }}"></i></th>
+                  <th class="text-center cursor-pointer" (click)="toggleSort('completeReadRate')">Hasta el final <i class="fas {{ sortIcon('completeReadRate') }}"></i></th>
+                  <th class="text-center cursor-pointer" (click)="toggleSort('listens')">Escuchas <i class="fas {{ sortIcon('listens') }}"></i></th>
+                  <th class="text-center cursor-pointer" (click)="toggleSort('shares')">Compartidos <i class="fas {{ sortIcon('shares') }}"></i></th>
+                  <th class="text-center cursor-pointer" (click)="toggleSort('engagementRate')">Interacción <i class="fas {{ sortIcon('engagementRate') }}"></i></th>
                 </tr>
               </thead>
               <tbody>
-                @for (entry of sortedStatsList(); track entry[0]) {
+                @for (entry of sortedBlogs(); track entry[0]) {
                   <tr>
                     <td>
-                      <div class="d-flex align-items-center">
-                        <div class="category-indicator me-2" [style.backgroundColor]="colors()[entry[0]] || '#ccc'"></div>
-                        <a [href]="entry[0]" target="_blank" class="fw-bold text-dark text-decoration-none text-truncate d-block" style="max-width: 300px" [title]="titles()[entry[0]] || entry[0]">
-                          {{ titles()[entry[0]] || entry[0] }}
-                        </a>
-                      </div>
+                      <a [href]="entry[0]" target="_blank" class="fw-bold text-decoration-none text-truncate d-block" style="max-width: 320px" [title]="titles()[entry[0]] || entry[0]">
+                        {{ titles()[entry[0]] || entry[0] }}
+                      </a>
+                      <small class="text-muted">{{ categories()[entry[0]] }}</small>
                     </td>
                     <td class="text-center fw-bold">{{ formatNumber(entry[1].visits) }}</td>
-                    <td class="text-center">
-                      <span class="badge" [class]="getEngagementClass(entry[1].engagementRate)">{{ entry[1].engagementRate }}%</span>
-                    </td>
-                    <td class="text-center">{{ formatNumber(entry[1].shares) }}</td>
+                    <td class="text-center">{{ formatTime(entry[1].readTime) }}</td>
+                    <td class="text-center">{{ entry[1].completeReadRate ?? 0 }}%</td>
+                    <td class="text-center">{{ entry[1].listens ?? 0 }}</td>
+                    <td class="text-center">{{ entry[1].shares ?? 0 }}</td>
+                    <td class="text-center"><span class="badge" [class]="rateClass(entry[1].engagementRate)">{{ entry[1].engagementRate }}%</span></td>
                   </tr>
                 }
               </tbody>
@@ -346,5 +484,100 @@
         }
       </div>
     }
+
+    <!-- ================= 6. SECCIONES Y ESPECIALISTAS ================= -->
+    <h4 class="block-title"><i class="fas fa-sitemap me-2"></i>Secciones y especialistas</h4>
+
+    <div class="row mb-5 g-4">
+      <div class="col-12 col-md-6">
+        <div class="chart-card h-100">
+          <h4 class="card-title mb-3">Visitas por sección</h4>
+          @if (sectionStats().length > 0) {
+            <div class="bar-chart" [style.height.px]="barHeight(sectionStats().length)">
+              <canvas #sectionsChart role="img" aria-label="Visitas por sección"></canvas>
+            </div>
+            <table class="table table-sm table-hover mb-0 mt-3 small">
+              <thead>
+                <tr><th>Sección</th><th class="text-center">Visitas</th><th class="text-center">Tiempo por visita</th></tr>
+              </thead>
+              <tbody>
+                @for (entry of sectionStats(); track entry[0]) {
+                  <tr>
+                    <td>{{ pageName(entry[0]) }}</td>
+                    <td class="text-center fw-bold">{{ formatNumber(entry[1].views) }}</td>
+                    <td class="text-center text-muted">{{ formatTime(entry[1].avgEngagementPerView) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <p class="text-muted text-center p-4 mb-0">No hay datos de secciones.</p>
+          }
+        </div>
+      </div>
+
+      <div class="col-12 col-md-6">
+        <div class="chart-card h-100">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="card-title mb-0">Visitas a perfiles</h4>
+            <span class="badge bg-info text-white rounded-pill">{{ formatNumber(personViewsTotal()) }} visitas</span>
+          </div>
+          @if (personViews().length > 0) {
+            <div class="bar-chart" [style.height.px]="barHeight(personViews().length)">
+              <canvas #personsChart role="img" aria-label="Visitas a perfiles de especialistas"></canvas>
+            </div>
+            <table class="table table-sm table-hover mb-0 mt-3 small">
+              <thead>
+                <tr><th>Especialista</th><th class="text-center">Visitas</th><th class="text-center">Tiempo por visita</th></tr>
+              </thead>
+              <tbody>
+                @for (person of personViews(); track person.id) {
+                  <tr>
+                    <td>{{ person.name }}</td>
+                    <td class="text-center fw-bold">{{ formatNumber(person.views) }}</td>
+                    <td class="text-center text-muted">{{ formatTime(person.avgEngagementPerView) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <p class="text-muted text-center p-4 mb-0">No hay visitas a perfiles en este periodo.</p>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= 7. UBICACIONES ================= -->
+    <h4 class="block-title"><i class="fas fa-map-marker-alt me-2"></i>¿Desde dónde nos visitan?</h4>
+
+    <div class="chart-card mb-5">
+      @if (locationsData().length > 0) {
+        <div class="row align-items-start g-3">
+          <div class="col-12 col-md-7">
+            <div class="bar-chart" [style.height.px]="barHeight(Math.min(locationsData().length, 8))">
+              <canvas #locationsChart role="img" aria-label="Visitas por ubicación"></canvas>
+            </div>
+          </div>
+          <div class="col-12 col-md-5">
+            <table class="table table-sm table-hover mb-0 small">
+              <thead><tr><th>País / Ciudad</th><th class="text-end">Visitas</th></tr></thead>
+              <tbody>
+                @for (loc of locationsData().slice(0, 8); track $index) {
+                  <tr>
+                    <td>
+                      <div class="fw-medium">{{ loc.country }}</div>
+                      <div class="text-muted">{{ loc.city }}</div>
+                    </td>
+                    <td class="text-end fw-bold">{{ formatNumber(loc.views) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      } @else {
+        <p class="text-muted text-center p-4 mb-0">No hay datos de ubicaciones en este periodo.</p>
+      }
+    </div>
   </div>
 </div>

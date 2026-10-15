@@ -28,7 +28,7 @@
               <ul class="list-inline social-list mb-0 mt-auto">
                 @for (social of person.socials; track $index) {
                   <li class="list-inline-item">
-                    <a [href]="social.link" target="_blank" class="social-btn-link" [style.--hover-color]="person.color" [style.color]="person.color">
+                    <a [href]="social.link" [attr.data-track-label]="'Perfil: ' + person.name" target="_blank" class="social-btn-link" [style.--hover-color]="person.color" [style.color]="person.color">
                       <i [class]="social.iconClass + ' fa-lg'"></i>
                       <span class="social-text">{{ getSocialName(social.iconClass) }}</span>
                     </a>

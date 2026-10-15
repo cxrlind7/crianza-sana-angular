@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
 import { isValidEmail } from '../../core/utils/auth-errors';
+import { trackEvent } from '../../core/utils/tracking';
 
 const STORAGE_KEY = 'csdkids_subscribe_dismissed';
 
@@ -45,6 +46,7 @@ export class SubscribeModal implements OnInit {
       const result = await this.api.subscribeEmail(this.email.trim());
       if (result.success) {
         this.submitted.set(true);
+        trackEvent('suscripcion_newsletter');
         localStorage.setItem(STORAGE_KEY, '1');
       } else if (result.alreadyExists) {
         this.errorMsg.set('¡Ya estás suscrito/a con ese correo!');

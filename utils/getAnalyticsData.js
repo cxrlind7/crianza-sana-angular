@@ -63,6 +63,20 @@ export async function getBlogPageViews(startDate = '30daysAgo', endDate = 'today
     metrics: [{ name: 'screenPageViews' }],
   })
 
+  // 4️⃣ Consulta: interacciones reales con cada blog (leer hasta el final, escuchar, compartir)
+  const [interactionsResponse] = await analyticsDataClient.runReport({
+    property: `properties/${PROPERTY_ID}`,
+    dateRanges: [{ startDate, endDate }],
+    dimensions: [{ name: 'pagePath' }, { name: 'eventName' }],
+    metrics: [{ name: 'eventCount' }],
+    dimensionFilter: {
+      filter: {
+        fieldName: 'eventName',
+        inListFilter: { values: ['scroll_blog_completo', 'escuchar_blog', 'share_blog'] },
+      },
+    },
+  })
+
   const viewsByPath = {}
 
   pageViewsResponse.rows?.forEach((row) => {
@@ -81,7 +95,9 @@ export async function getBlogPageViews(startDate = '30daysAgo', endDate = 'today
         avgEngagementPerVisit: values[0] > 0 ? Math.round(values[3] / values[0]) : 0,
         readTime: values[0] > 0 ? Math.round(values[3] / values[0]) : 0, // segundos (userEngagementDuration es en segundos)
         totalEvents: values[4],
-        engagementRate: (parseFloat(values[5]) * 100).toFixed(2), // GA4 devuelve decimal (0.55), convertimos a %
+        // engagementRate de GA es por SESIÓN (>10 s, 2+ páginas o conversión), no mide lo que se hizo
+        // en el blog. Se conserva como referencia; la "tasa de interacción" se calcula abajo.
+        gaEngagementRate: (parseFloat(values[5]) * 100).toFixed(2),
         avgSessionDuration: parseFloat(values[6]).toFixed(0),
         daily: {},
       }
@@ -98,6 +114,29 @@ export async function getBlogPageViews(startDate = '30daysAgo', endDate = 'today
       // const v = viewsByPath[path].visits
       // viewsByPath[path].interactionRate = v > 0 ? Math.round((shares / v) * 100) : 0
     }
+  })
+
+  // Interacciones por blog → tasa de interacción = % de visitas con una interacción real.
+  interactionsResponse.rows?.forEach((row) => {
+    const path = row.dimensionValues[0].value
+    const event = row.dimensionValues[1].value
+    const count = parseInt(row.metricValues[0].value)
+    const entry = viewsByPath[path]
+    if (!entry) return
+    if (event === 'scroll_blog_completo') entry.completeReads = count
+    if (event === 'escuchar_blog') entry.listens = count
+    if (event === 'share_blog') entry.shares = Math.max(entry.shares || 0, count)
+  })
+
+  Object.values(viewsByPath).forEach((entry) => {
+    entry.completeReads ??= 0
+    entry.listens ??= 0
+    entry.shares ??= 0
+    const interactions = entry.completeReads + entry.listens + entry.shares
+    entry.interactions = interactions
+    // Una misma visita puede leer, escuchar y compartir: se topa en 100 %.
+    entry.engagementRate = entry.visits > 0 ? Math.min(100, Math.round((interactions / entry.visits) * 100)) : 0
+    entry.completeReadRate = entry.visits > 0 ? Math.min(100, Math.round((entry.completeReads / entry.visits) * 100)) : 0
   })
 
   // Procesar visitas diarias
@@ -201,6 +240,7 @@ export async function getRoutePageViews(paths = [], startDate = '30daysAgo', end
       views,
       users,
       avgEngagementPerUser: users > 0 ? Math.round(duration / users) : 0,
+      avgEngagementPerView: views > 0 ? Math.round(duration / views) : 0,
       engagementRate: (engagementRate * 100).toFixed(0),
       avgSessionDuration: avgSessionDuration.toFixed(0), // ✅ Added
     }
@@ -246,6 +286,7 @@ export async function getPersonPageViews(startDate = '30daysAgo', endDate = 'tod
       views,
       users,
       avgEngagementPerUser: users > 0 ? Math.round(duration / users) : 0,
+      avgEngagementPerView: views > 0 ? Math.round(duration / views) : 0,
       engagementRate: (engagementRate * 100).toFixed(0),
       avgSessionDuration: avgSessionDuration.toFixed(0), // ✅ Added
     }
@@ -300,4 +341,245 @@ export async function getLocationViews(startDate = '30daysAgo', endDate = 'today
   })
 
   return locations
+}
+
+// ==========================================
+// PANEL DE ANALÍTICAS: resumen, origen del tráfico y eventos
+// ==========================================
+
+const toISODate = (d) => d.toISOString().slice(0, 10)
+
+/** Convierte 'today', 'NdaysAgo' o 'YYYY-MM-DD' a Date (UTC, sin hora). */
+function resolveDate(value) {
+  const now = new Date()
+  const today = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
+  if (!value || value === 'today') return today
+  if (value === 'yesterday') return new Date(today.getTime() - 86400000)
+  const ago = /^(\d+)daysAgo$/.exec(value)
+  if (ago) return new Date(today.getTime() - Number(ago[1]) * 86400000)
+  const d = new Date(`${value}T00:00:00Z`)
+  return isNaN(d.getTime()) ? today : d
+}
+
+/** Periodo anterior de la misma duración, para comparar ("vs. periodo anterior"). */
+function previousRange(startDate, endDate) {
+  const start = resolveDate(startDate)
+  const end = resolveDate(endDate)
+  const days = Math.max(1, Math.round((end - start) / 86400000) + 1)
+  const prevEnd = new Date(start.getTime() - 86400000)
+  const prevStart = new Date(prevEnd.getTime() - (days - 1) * 86400000)
+  return { startDate: toISODate(prevStart), endDate: toISODate(prevEnd) }
+}
+
+const runReport = (request) =>
+  analyticsDataClient.runReport({ property: `properties/${PROPERTY_ID}`, ...request }).then(([r]) => r)
+
+/** Un reporte que falla (p. ej. una dimensión sin datos aún) no tumba todo el panel. */
+const safeReport = (label, request) =>
+  runReport(request).catch((error) => {
+    console.warn(`⚠️ Analytics: reporte "${label}" falló:`, error.message)
+    return { rows: [] }
+  })
+
+const eventFilter = (names) => ({
+  filter: { fieldName: 'eventName', inListFilter: { values: names } },
+})
+
+const num = (v) => Number(v?.value ?? 0)
+
+export async function getSiteOverview(startDate = '30daysAgo', endDate = 'today') {
+  const prev = previousRange(startDate, endDate)
+  const metrics = [
+    { name: 'activeUsers' },
+    { name: 'newUsers' },
+    { name: 'sessions' },
+    { name: 'screenPageViews' },
+    { name: 'userEngagementDuration' },
+    { name: 'engagedSessions' },
+  ]
+
+  const [current, previous, daily, devices] = await Promise.all([
+    runReport({ dateRanges: [{ startDate, endDate }], metrics }),
+    runReport({ dateRanges: [prev], metrics }),
+    runReport({
+      dateRanges: [{ startDate, endDate }],
+      dimensions: [{ name: 'date' }],
+      metrics: [{ name: 'activeUsers' }, { name: 'screenPageViews' }],
+    }),
+    runReport({
+      dateRanges: [{ startDate, endDate }],
+      dimensions: [{ name: 'deviceCategory' }],
+      metrics: [{ name: 'activeUsers' }],
+    }),
+  ])
+
+  const totals = (report) => {
+    const m = report.rows?.[0]?.metricValues ?? []
+    const users = num(m[0])
+    const sessions = num(m[2])
+    return {
+      users,
+      newUsers: num(m[1]),
+      sessions,
+      pageViews: num(m[3]),
+      // Tiempo real con la página en primer plano, promedio por visitante (segundos).
+      avgEngagementPerUser: users > 0 ? Math.round(num(m[4]) / users) : 0,
+      engagedSessionsRate: sessions > 0 ? Math.round((num(m[5]) / sessions) * 100) : 0,
+    }
+  }
+
+  return {
+    current: totals(current),
+    previous: totals(previous),
+    previousRange: prev,
+    daily: (daily.rows ?? [])
+      .map((r) => ({
+        date: r.dimensionValues[0].value,
+        users: num(r.metricValues[0]),
+        pageViews: num(r.metricValues[1]),
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date)),
+    devices: (devices.rows ?? []).map((r) => ({ device: r.dimensionValues[0].value, users: num(r.metricValues[0]) })),
+  }
+}
+
+/** Agrupa la fuente de cada sesión en orígenes entendibles. */
+function classifySource(source, medium, channel) {
+  const s = `${source} ${medium}`.toLowerCase()
+  if (/whatsapp|wa\.me/.test(s)) return 'WhatsApp'
+  if (/instagram|^ig\b/.test(s)) return 'Instagram'
+  if (/facebook|fb\.|^fb\b|meta/.test(s)) return 'Facebook'
+  if (/tiktok/.test(s)) return 'TikTok'
+  if (/youtube/.test(s)) return 'YouTube'
+  if (/spotify/.test(s)) return 'Spotify'
+  if (/compartido/.test(s)) return 'Enlace compartido'
+  if (/google/.test(s)) return medium === 'cpc' ? 'Google (anuncios)' : 'Google'
+  if (/bing|yahoo|duckduckgo|ecosia/.test(s)) return 'Otros buscadores'
+  if (/chatgpt|openai|perplexity|claude|gemini|copilot/.test(s)) return 'Asistentes de IA'
+  if (source === '(direct)') return 'Directo / WhatsApp sin etiqueta'
+  if (channel === 'Organic Social') return 'Otras redes sociales'
+  if (channel === 'Referral') return 'Otros sitios web'
+  return 'Otros'
+}
+
+export async function getTrafficSources(startDate = '30daysAgo', endDate = 'today') {
+  const report = await runReport({
+    dateRanges: [{ startDate, endDate }],
+    dimensions: [{ name: 'sessionSource' }, { name: 'sessionMedium' }, { name: 'sessionDefaultChannelGroup' }],
+    metrics: [{ name: 'sessions' }, { name: 'activeUsers' }, { name: 'engagedSessions' }, { name: 'userEngagementDuration' }],
+    orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+    limit: 200,
+  })
+
+  const byOrigin = {}
+  const sources = []
+  for (const row of report.rows ?? []) {
+    const [source, medium, channel] = row.dimensionValues.map((d) => d.value)
+    const [sessions, users, engaged, duration] = row.metricValues.map(num)
+    const origin = classifySource(source, medium, channel)
+    sources.push({ source, medium, origin, sessions, users })
+    const o = (byOrigin[origin] ??= { origin, sessions: 0, users: 0, engagedSessions: 0, engagementDuration: 0 })
+    o.sessions += sessions
+    o.users += users
+    o.engagedSessions += engaged
+    o.engagementDuration += duration
+  }
+
+  const origins = Object.values(byOrigin)
+    .map((o) => ({
+      origin: o.origin,
+      sessions: o.sessions,
+      users: o.users,
+      engagedRate: o.sessions > 0 ? Math.round((o.engagedSessions / o.sessions) * 100) : 0,
+      avgTimePerSession: o.sessions > 0 ? Math.round(o.engagementDuration / o.sessions) : 0,
+    }))
+    .sort((a, b) => b.sessions - a.sessions)
+
+  return { origins, sources: sources.slice(0, 25) }
+}
+
+const TRACKED_EVENTS = [
+  'click_whatsapp',
+  'click_red_social',
+  'ver_video',
+  'video_completo',
+  'quiz_inicio',
+  'quiz_resultado',
+  'suscripcion_newsletter',
+  'descarga',
+  'share_blog',
+  'compartir',
+  'escuchar_blog',
+  'scroll_blog_completo',
+]
+
+export async function getSiteEvents(startDate = '30daysAgo', endDate = 'today') {
+  const range = [{ startDate, endDate }]
+  const prev = previousRange(startDate, endDate)
+  const breakdown = (label, dims, events, limit = 25) =>
+    safeReport(label, {
+      dateRanges: range,
+      dimensions: dims.map((name) => ({ name })),
+      metrics: [{ name: 'eventCount' }],
+      dimensionFilter: eventFilter(events),
+      orderBys: [{ metric: { metricName: 'eventCount' }, desc: true }],
+      limit,
+    })
+
+  const [totals, prevTotals, whatsappByLabel, whatsappByPage, videos, social, quiz, shares, downloads] =
+    await Promise.all([
+      breakdown('totales', ['eventName'], TRACKED_EVENTS, 50),
+      safeReport('totales anteriores', {
+        dateRanges: [prev],
+        dimensions: [{ name: 'eventName' }],
+        metrics: [{ name: 'eventCount' }],
+        dimensionFilter: eventFilter(TRACKED_EVENTS),
+      }),
+      breakdown('whatsapp por botón', ['linkText'], ['click_whatsapp']),
+      breakdown('whatsapp por página', ['pagePath'], ['click_whatsapp']),
+      breakdown('videos', ['eventName', 'videoTitle', 'videoProvider'], ['ver_video', 'video_completo'], 100),
+      breakdown('redes sociales', ['linkDomain'], ['click_red_social']),
+      breakdown('quiz', ['eventName', 'method'], ['quiz_inicio', 'quiz_resultado']),
+      breakdown('compartidos', ['method'], ['share_blog', 'compartir']),
+      breakdown('descargas', ['fileName'], ['descarga']),
+    ])
+
+  const countsByName = (report) =>
+    Object.fromEntries((report.rows ?? []).map((r) => [r.dimensionValues[0].value, num(r.metricValues[0])]))
+  const simple = (report) =>
+    (report.rows ?? [])
+      .map((r) => ({ label: r.dimensionValues[0].value, count: num(r.metricValues[0]) }))
+      .filter((r) => r.label && r.label !== '(not set)')
+
+  const videoMap = {}
+  for (const r of videos.rows ?? []) {
+    const [event, title, provider] = r.dimensionValues.map((d) => d.value)
+    const v = (videoMap[title] ??= { title, provider, plays: 0, completed: 0 })
+    if (event === 'ver_video') v.plays += num(r.metricValues[0])
+    else v.completed += num(r.metricValues[0])
+  }
+
+  const quizMap = {}
+  for (const r of quiz.rows ?? []) {
+    const [event, category] = r.dimensionValues.map((d) => d.value)
+    const q = (quizMap[category] ??= { category, started: 0, finished: 0 })
+    if (event === 'quiz_inicio') q.started += num(r.metricValues[0])
+    else q.finished += num(r.metricValues[0])
+  }
+
+  return {
+    totals: countsByName(totals),
+    previousTotals: countsByName(prevTotals),
+    whatsappByLabel: simple(whatsappByLabel),
+    whatsappByPage: simple(whatsappByPage),
+    videos: Object.values(videoMap)
+      .filter((v) => v.title && v.title !== '(not set)')
+      .sort((a, b) => b.plays - a.plays),
+    social: simple(social),
+    quiz: Object.values(quizMap)
+      .filter((q) => q.category && q.category !== '(not set)')
+      .sort((a, b) => b.started - a.started),
+    shares: simple(shares),
+    downloads: simple(downloads),
+  }
 }

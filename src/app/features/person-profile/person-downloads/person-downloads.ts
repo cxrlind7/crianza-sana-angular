@@ -1,5 +1,6 @@
 import { Component, Input, inject, signal } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { trackEvent } from '../../../core/utils/tracking';
 
 interface DownloadFile {
   name: string;
@@ -21,6 +22,7 @@ export class PersonDownloads {
   readonly currentFileUrl = signal<SafeResourceUrl | null>(null);
 
   openPreview(file: DownloadFile): void {
+    trackEvent('descarga', { file_name: file.name.slice(0, 100), link_url: file.url.slice(0, 100) });
     const previewUrl = this.getPreviewUrl(file.url);
     if (previewUrl) {
       this.currentFileUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(previewUrl));
