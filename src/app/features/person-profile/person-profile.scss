@@ -176,3 +176,102 @@
     transform: translateY(0);
   }
 }
+
+/* Mismo lenguaje que .social-btn-link: píldora, sombra suave y sube al pasar el mouse. */
+.btn-intro-video {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 22px 6px 6px;
+  border-radius: 30px;
+  border: 2px solid var(--person-color);
+  background-color: var(--person-color);
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-intro-video:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.btn-intro-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 3px;
+  font-size: 0.8rem;
+}
+
+.business-video-section {
+  padding: 80px 0 40px;
+}
+
+.business-video-thumb {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  aspect-ratio: 16 / 9;
+  padding: 0;
+  border: none;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #000;
+  cursor: pointer;
+  box-shadow:
+    0 15px 35px rgba(50, 50, 93, 0.06),
+    0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.business-video-thumb img,
+.business-video-thumb video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+  transition: transform 0.4s ease;
+}
+
+.business-video-thumb:hover img,
+.business-video-thumb:hover video {
+  transform: scale(1.03);
+}
+
+.business-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  padding-left: 5px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+@media (max-width: 768px) {
+  .business-video-section {
+    padding: 50px 0 20px;
+  }
+  .business-play {
+    width: 60px;
+    height: 60px;
+    font-size: 1.25rem;
+  }
+}

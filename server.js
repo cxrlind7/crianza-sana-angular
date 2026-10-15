@@ -503,14 +503,52 @@ app.get('/api/firestore/short-videos', async (req, res) => {
   }
 })
 
+// Videos de especialistas. tipo: 'conociendo' (presentación), 'negocio' (su espacio/marca)
+// o 'educativo' (clips). Los documentos viejos sin tipo se tratan como 'educativo'.
+const VIDEO_TYPES = ['conociendo', 'negocio', 'educativo']
+
+const pickShortVideoFields = (body, { partial = false } = {}) => {
+  const data = {}
+  if (body.personId !== undefined) data.personId = String(body.personId)
+  if (typeof body.title === 'string') data.title = body.title.trim().slice(0, 200)
+  if (typeof body.url === 'string' && /^https:\/\//.test(body.url)) data.url = body.url
+  if (typeof body.poster === 'string' && (body.poster === '' || /^https:\/\//.test(body.poster))) data.poster = body.poster
+  if (body.orden !== undefined && !isNaN(Number(body.orden))) data.orden = Number(body.orden)
+  if (VIDEO_TYPES.includes(body.tipo)) data.tipo = body.tipo
+  if (!partial) {
+    if (!data.personId || !data.url) return null
+    data.tipo ??= 'educativo'
+    data.title ??= ''
+    data.orden ??= 0
+    data.createdAt = new Date().toISOString()
+  }
+  return data
+}
+
 app.post('/api/firestore/short-videos', async (req, res) => {
   if (!db) return res.json({ success: true, id: 'mock-id' })
+  const data = pickShortVideoFields(req.body)
+  if (!data) return res.status(400).json({ error: 'personId y url (https) son obligatorios' })
   try {
-    const docRef = await db.collection('videosCortos').add(req.body)
+    const docRef = await db.collection('videosCortos').add(data)
     res.json({ success: true, id: docRef.id })
   } catch (error) {
     console.error('Error creating short video:', error)
     res.status(500).json({ error: 'Error creating short video' })
+  }
+})
+
+app.put('/api/firestore/short-videos/:id', async (req, res) => {
+  if (!db) return res.json({ success: true })
+  const data = pickShortVideoFields(req.body, { partial: true })
+  delete data.personId
+  delete data.url
+  try {
+    await db.collection('videosCortos').doc(req.params.id).update(data)
+    res.json({ success: true })
+  } catch (error) {
+    console.error('Error updating short video:', error)
+    res.status(500).json({ error: 'Error updating short video' })
   }
 })
 

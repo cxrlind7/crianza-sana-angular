@@ -1,0 +1,19 @@
+<div #overlay class="video-modal-overlay" role="dialog" aria-modal="true" [attr.aria-label]="heading() || title()" (click)="$event.target === $event.currentTarget && close()">
+  <div class="video-modal-box" [style.aspect-ratio]="aspect()" [class.landscape]="aspect() > 1">
+    <button type="button" class="video-modal-close" (click)="close()" title="Cerrar" aria-label="Cerrar">✖</button>
+    @if (heading()) {
+      <div class="video-modal-heading">{{ heading() }}</div>
+    }
+    <video
+      #player
+      class="video-modal-player"
+      [src]="url()"
+      [poster]="poster()"
+      [attr.data-video-title]="title()"
+      (loadedmetadata)="onMetadata(player)"
+      controls
+      autoplay
+      playsinline
+    ></video>
+  </div>
+</div>

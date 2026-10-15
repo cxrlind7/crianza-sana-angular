@@ -516,6 +516,11 @@
             </div>
           }
 
+          <!-- VIDEOS DE ESPECIALISTAS (carga sus propios datos) -->
+          @else if (currentCollection() === 'videos') {
+            <app-person-videos-admin />
+          }
+
           <!-- SUSCRIPTORES -->
           @else if (currentCollection() === 'suscriptores') {
             <div>

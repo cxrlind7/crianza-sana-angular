@@ -1,0 +1,92 @@
+// Mismo acento violeta que el resto del panel de Configuración.
+$accent: #7c3aed;
+$accent-soft: #ede9fe;
+$accent-border: #a78bfa;
+
+.person-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.person-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.9rem 0.3rem 0.3rem;
+  border: 1px solid var(--dm-border);
+  border-radius: 999px;
+  background: var(--dm-surface);
+  color: var(--dm-text);
+  font-size: 0.875rem;
+  transition: all 0.18s ease;
+
+  img {
+    object-fit: cover;
+  }
+
+  &:hover {
+    border-color: $accent-border;
+  }
+
+  &.active {
+    border-color: $accent;
+    background: $accent-soft;
+    color: #4c1d95;
+    font-weight: 700;
+  }
+}
+
+.type-option {
+  text-align: left;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--dm-border);
+  border-radius: 12px;
+  background: var(--dm-surface);
+  color: var(--dm-text);
+  transition: all 0.18s ease;
+
+  i {
+    color: $accent;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: $accent-border;
+  }
+
+  .type-help {
+    color: var(--dm-text-secondary);
+  }
+
+  &.active {
+    border-color: $accent;
+    background: $accent-soft;
+    color: #4c1d95;
+    box-shadow: 0 0 0 1px $accent;
+
+    // El fondo activo es claro también en modo oscuro.
+    .type-help {
+      color: #5b21b6;
+    }
+  }
+}
+
+.video-preview {
+  background: #000;
+  aspect-ratio: 16 / 9;
+
+  &.portrait {
+    aspect-ratio: 9 / 12;
+  }
+
+  video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+}
+
+.progress-bar {
+  background-color: $accent;
+}

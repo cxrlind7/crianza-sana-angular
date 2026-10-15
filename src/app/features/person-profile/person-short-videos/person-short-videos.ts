@@ -1,15 +1,9 @@
-import { AfterViewInit, CUSTOM_ELEMENTS_SCHEMA, Component, ElementRef, Input, ViewChild, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { AfterViewInit, CUSTOM_ELEMENTS_SCHEMA, Component, ElementRef, Input, ViewChild, output, signal } from '@angular/core';
 import type { SwiperOptions } from 'swiper/types';
+import { ShortVideo } from '../../../core/services/api.service';
 import { trackEvent, withShareUtm } from '../../../core/utils/tracking';
 
-interface ShortVideo {
-  id?: string;
-  title: string;
-  url: string;
-  poster?: string;
-}
-
+/** Carrusel de clips educativos; al tocar uno se abre en la ventana emergente del perfil. */
 @Component({
   selector: 'app-person-short-videos',
   templateUrl: './person-short-videos.html',
@@ -17,27 +11,13 @@ interface ShortVideo {
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class PersonShortVideos implements AfterViewInit {
-  private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
-
-  private _videos: ShortVideo[] = [];
-  @Input()
-  set videos(value: ShortVideo[]) {
-    this._videos = value || [];
-    this.tryOpenFromQueryParam();
-  }
-  get videos(): ShortVideo[] {
-    return this._videos;
-  }
-
+  @Input() videos: ShortVideo[] = [];
   @Input() personColor = '#2563eb';
 
+  readonly play = output<ShortVideo>();
   readonly showToast = signal(false);
-  readonly selectedVideo = signal<ShortVideo | null>(null);
 
   @ViewChild('swiperContainer') swiperContainer?: ElementRef<HTMLElement>;
-  @ViewChild('sectionRoot') sectionRoot?: ElementRef<HTMLElement>;
-  @ViewChild('modalRoot') modalRoot?: ElementRef<HTMLElement>;
 
   ngAfterViewInit(): void {
     const swiperEl = this.swiperContainer?.nativeElement as (HTMLElement & { initialize: () => void }) | undefined;
@@ -61,24 +41,6 @@ export class PersonShortVideos implements AfterViewInit {
     swiperEl.initialize();
   }
 
-  private tryOpenFromQueryParam(): void {
-    if (this.selectedVideo()) return;
-    const id = this.route.snapshot.queryParamMap.get('video');
-    if (!id) return;
-    const match = this.videos.find((v) => v.id === id);
-    if (!match) return;
-    this.selectedVideo.set(match);
-    setTimeout(() => {
-      this.sectionRoot?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      // Un ancestro (`.fade-in`) anima `transform`, lo que crea un containing block
-      // para `position: fixed` y rompe el centrado del modal. Lo movemos a <body>.
-      const modalEl = this.modalRoot?.nativeElement;
-      if (modalEl && modalEl.parentElement !== document.body) {
-        document.body.appendChild(modalEl);
-      }
-    });
-  }
-
   async shareVideo(video: ShortVideo): Promise<void> {
     if (!video.id) return;
     const url = withShareUtm(`${window.location.origin}${window.location.pathname}?video=${video.id}`);
@@ -90,10 +52,5 @@ export class PersonShortVideos implements AfterViewInit {
     } catch (error) {
       console.error('❌ Error al copiar el enlace del video:', error);
     }
-  }
-
-  closeVideo(): void {
-    this.selectedVideo.set(null);
-    this.router.navigate([], { queryParams: {} });
   }
 }

@@ -128,13 +128,63 @@ swiper-slide {
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
 }
 
-.short-video-player {
+.clip-thumb {
+  position: relative;
+  display: block;
   width: 100%;
   aspect-ratio: 9 / 16;
   max-height: 480px;
-  object-fit: cover;
+  padding: 0;
+  border: none;
   background: #000;
-  display: block;
+  cursor: pointer;
+  overflow: hidden;
+
+  img,
+  video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    pointer-events: none;
+    transition: transform 0.4s ease;
+  }
+
+  &:hover img,
+  &:hover video {
+    transform: scale(1.04);
+  }
+}
+
+.play-badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  padding-left: 4px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  opacity: 0.92;
+}
+
+.clip-title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 36px 14px 14px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-align: left;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.75));
 }
 
 .fade-in {
@@ -160,7 +210,7 @@ swiper-slide {
   .person-short-videos-section {
     padding: 50px 0;
   }
-  .short-video-player {
+  .clip-thumb {
     max-height: 420px;
   }
 }
@@ -187,61 +237,4 @@ swiper-slide {
   color: #48bb78;
   margin-right: 10px;
   font-size: 1.1rem;
-}
-
-.short-video-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.85);
-  z-index: 8888;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 20px;
-  backdrop-filter: blur(8px);
-}
-
-.short-video-modal-container {
-  position: relative;
-  height: min(85vh, 760px);
-  max-width: 92vw;
-  aspect-ratio: 9 / 16;
-  border-radius: 16px;
-  overflow: hidden;
-  background: #000;
-}
-
-.short-video-modal-player {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  background: #000;
-  display: block;
-}
-
-.close-modal-btn-on-dark {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  width: 40px;
-  height: 40px;
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  border-radius: 50%;
-  font-size: 1.2rem;
-  color: #ffffff;
-  cursor: pointer;
-  z-index: 20;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  transition: all 0.3s ease;
-}
-
-.close-modal-btn-on-dark:hover {
-  background: rgba(255, 255, 255, 0.4);
-  transform: rotate(90deg);
 }
