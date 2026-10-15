@@ -145,7 +145,7 @@
                   <small>Estamos trabajando para restablecerlo. ¡Gracias por tu paciencia!</small>
                 </div>
               } @else if (isDirectVideo(selectedVideo.url)) {
-                <video [src]="selectedVideo.url" controls autoplay playsinline class="video-iframe-fit" (error)="videoError.set(true)"></video>
+                <video [src]="selectedVideo.url" [attr.data-video-title]="selectedVideo.title" controls autoplay playsinline class="video-iframe-fit" (error)="videoError.set(true)"></video>
               } @else if (selectedVideoUrl(); as videoUrl) {
                 <iframe
                   [src]="videoUrl"

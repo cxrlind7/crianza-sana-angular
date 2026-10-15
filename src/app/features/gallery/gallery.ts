@@ -5,6 +5,7 @@ import { ApiService, Comment, Gallery as GalleryAlbum, GalleryImage } from '../.
 import { AuthService } from '../../core/services/auth.service';
 import { parseFlexibleDate, toSortableTime } from '../../core/utils/date-utils';
 import { isAuthorInactive } from '../../core/utils/people-visibility';
+import { withShareUtm } from '../../core/utils/tracking';
 
 type SortOrder = 'recent' | 'oldest';
 
@@ -202,7 +203,7 @@ export class Gallery implements OnInit {
 
   shareAlbum(album: GalleryAlbum | null): void {
     if (!album?.id) return;
-    const url = `${window.location.origin}/gallery?idAlbum=${album.id}`;
+    const url = withShareUtm(`${window.location.origin}/gallery?idAlbum=${album.id}`);
     const message = `"${album.name}" - ¡Mira este álbum de fotos! 📷 ${url}`;
     navigator.clipboard.writeText(message).then(() => this.showToastNotification());
   }
@@ -210,7 +211,7 @@ export class Gallery implements OnInit {
   shareImage(image: GalleryImage | null): void {
     const album = this.selectedAlbum();
     if (!image || !album) return;
-    const url = `${window.location.origin}/gallery?idAlbum=${album.id}&idFoto=${image.id}`;
+    const url = withShareUtm(`${window.location.origin}/gallery?idAlbum=${album.id}&idFoto=${image.id}`);
     const message = `"${image.title || 'Foto'}" - ¡Mira esta imagen! 📸 ${url}`;
     navigator.clipboard.writeText(message).then(() => this.showToastNotification());
   }

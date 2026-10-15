@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { isAuthorInactive } from '../../../core/utils/people-visibility';
+import { trackEvent, withShareUtm } from '../../../core/utils/tracking';
 
 interface Category {
   id: string;
@@ -225,6 +226,7 @@ export class QuizCrianza implements OnInit {
     if (!this.isUnlocked(index)) return;
 
     this.selectedCategory.set(categoryData);
+    trackEvent('quiz_inicio', { method: categoryData.name });
     this.step.set(1);
     this.currentQuestionIdx.set(0);
     this.answers.set({});
@@ -283,6 +285,7 @@ export class QuizCrianza implements OnInit {
       this.finalResult.set(cat);
     }
 
+    trackEvent('quiz_resultado', { method: cat.name, link_text: score < 2 ? 'Va por buen camino' : 'Recomienda especialista' });
     this.step.set(2);
   }
 
@@ -295,7 +298,7 @@ export class QuizCrianza implements OnInit {
   }
 
   shareLink(catId: string | undefined): void {
-    const url = `${window.location.origin}${window.location.pathname}?cat=${catId}`;
+    const url = withShareUtm(`${window.location.origin}${window.location.pathname}?cat=${catId}`);
     navigator.clipboard
       .writeText(url)
       .then(() => {

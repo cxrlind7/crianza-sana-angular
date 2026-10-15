@@ -1,6 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { people } from '../../core/data/people-data';
 import { isPersonActive } from '../../core/utils/people-visibility';
+import { trackWhatsappClick } from '../../core/utils/tracking';
 
 interface SpecialistPerson {
   id: string | number;
@@ -64,6 +65,7 @@ export class WhatsappWidget {
 
     const message = this.getPersonalizedMessage(person);
     const url = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`;
+    trackWhatsappClick(url, `Widget: ${person.name}`);
     window.open(url, '_blank');
   }
 }

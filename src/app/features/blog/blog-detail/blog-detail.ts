@@ -9,6 +9,7 @@ import { getImagePerCategory, DEFAULT_AUTHOR_IMAGE } from '../../../core/utils/b
 import { people } from '../../../core/data/people-data';
 import { parseFlexibleDate } from '../../../core/utils/date-utils';
 import { SpeechSegment, buildSpeechSegments, findSegmentAtPoint } from '../../../core/utils/speech-segments';
+import { withShareUtm } from '../../../core/utils/tracking';
 
 @Component({
   selector: 'app-blog-detail',
@@ -329,7 +330,7 @@ export class BlogDetail implements OnInit, OnDestroy {
 
   shareBlog(id: string): void {
     if (!this.blog()) return;
-    const blogUrl = `${window.location.origin}/blog/${id}`;
+    const blogUrl = withShareUtm(`${window.location.origin}/blog/${id}`);
     navigator.clipboard
       .writeText(blogUrl)
       .then(() => {

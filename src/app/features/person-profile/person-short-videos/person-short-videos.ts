@@ -1,6 +1,7 @@
 import { AfterViewInit, CUSTOM_ELEMENTS_SCHEMA, Component, ElementRef, Input, ViewChild, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import type { SwiperOptions } from 'swiper/types';
+import { trackEvent, withShareUtm } from '../../../core/utils/tracking';
 
 interface ShortVideo {
   id?: string;
@@ -80,9 +81,10 @@ export class PersonShortVideos implements AfterViewInit {
 
   async shareVideo(video: ShortVideo): Promise<void> {
     if (!video.id) return;
-    const url = `${window.location.origin}${window.location.pathname}?video=${video.id}`;
+    const url = withShareUtm(`${window.location.origin}${window.location.pathname}?video=${video.id}`);
     try {
       await navigator.clipboard.writeText(url);
+      trackEvent('compartir', { method: 'video_corto', link_text: video.title });
       this.showToast.set(true);
       setTimeout(() => this.showToast.set(false), 3000);
     } catch (error) {

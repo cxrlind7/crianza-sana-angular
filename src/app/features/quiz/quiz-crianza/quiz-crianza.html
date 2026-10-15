@@ -117,7 +117,7 @@
                   <span>{{ finalResult.ctaText }}</span>
                 </a>
               } @else {
-                <a [href]="whatsappLink()" target="_blank" class="btn btn-success btn-lg rounded-pill px-4 shadow hover-scale d-inline-flex align-items-center gap-2" style="background-color: #25d366; border: none">
+                <a [href]="whatsappLink()" [attr.data-track-label]="'Quiz: ' + finalResult.name" target="_blank" class="btn btn-success btn-lg rounded-pill px-4 shadow hover-scale d-inline-flex align-items-center gap-2" style="background-color: #25d366; border: none">
                   <i class="bi bi-whatsapp fs-4"></i>
                   <span>{{ finalResult.ctaText || 'Contactar Especialista' }}</span>
                 </a>

@@ -6,6 +6,7 @@ import { ApiService, Comment } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { filterPublished } from '../../core/utils/schedule';
 import { parseFlexibleDate, toSortableTime } from '../../core/utils/date-utils';
+import { trackEvent, withShareUtm } from '../../core/utils/tracking';
 
 interface ProgramVideo {
   id: string;
@@ -169,7 +170,7 @@ export class Programs implements OnInit {
 
   shareVideo(video: ProgramVideo | null): void {
     if (!video?.id) return;
-    const url = `${window.location.origin}/programs?id=${video.id}`;
+    const url = withShareUtm(`${window.location.origin}/programs?id=${video.id}`);
     const message = `"${video.title}" - ¡Mira este programa en Crianza Sana! 📺 ${url}`;
 
     navigator.clipboard
@@ -189,6 +190,11 @@ export class Programs implements OnInit {
   async selectVideo(video: ProgramVideo): Promise<void> {
     this.videoError.set(false);
     this.selectedVideo.set(video);
+    // Los videos directos (<video>) se cuentan solos al reproducirse; los embebidos, al abrirlos.
+    if (!this.isDirectVideo(video.url)) {
+      const provider = /youtu/i.test(video.url) ? 'youtube' : /facebook|fb\./i.test(video.url) ? 'facebook' : 'embebido';
+      trackEvent('ver_video', { video_title: video.title.slice(0, 100), video_url: video.url.slice(0, 100), video_provider: provider });
+    }
     await this.loadComments(video.id);
     this.router.navigate([], { queryParams: { id: video.id } });
   }

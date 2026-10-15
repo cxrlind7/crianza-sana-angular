@@ -17,7 +17,7 @@
         @for (video of videos; track video.url) {
           <swiper-slide class="h-auto">
             <div class="short-video-card h-100">
-              <video class="short-video-player" [poster]="video.poster || ''" controls preload="metadata" playsinline>
+              <video class="short-video-player" [attr.data-video-title]="video.title" [poster]="video.poster || ''" controls preload="metadata" playsinline>
                 <source [src]="video.url" type="video/mp4" />
               </video>
               <button type="button" class="share-btn" (click)="shareVideo(video)" title="Compartir video">
@@ -44,6 +44,7 @@
       <button class="close-modal-btn-on-dark" (click)="closeVideo()" title="Cerrar">✖</button>
       <video
         class="short-video-modal-player"
+        [attr.data-video-title]="selectedVideo.title"
         [poster]="selectedVideo.poster || ''"
         controls
         autoplay

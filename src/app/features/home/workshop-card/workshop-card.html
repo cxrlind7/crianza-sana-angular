@@ -15,6 +15,7 @@
         <div class="cta-container text-center delay-2">
           <a
             [href]="actionLink()"
+            [attr.data-track-label]="'Evento: ' + (currentEvent.altText || currentEvent.buttonText)"
             (click)="handleBtnClick($event)"
             target="_blank"
             rel="noopener noreferrer"

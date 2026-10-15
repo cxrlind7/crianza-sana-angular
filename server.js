@@ -16,6 +16,9 @@ import {
   getPersonPageViews,
   getBlogEventBreakdown,
   getLocationViews,
+  getSiteOverview,
+  getTrafficSources,
+  getSiteEvents,
 } from './utils/getAnalyticsData.js'
 import compression from 'compression'
 // --- CONFIGURACIÓN DE RUTAS Y DIRECTORIOS ---
@@ -295,7 +298,7 @@ app.get('/api/episodios', async (req, res) => {
 // --- ANALYTICS (Google Analytics 4) ---
 app.get('/api/routes-views', async (req, res) => {
   try {
-    const paths = ['/about', '/blog', '/programs', '/login', '/live', '/gallery']
+    const paths = ['/about', '/blog', '/programs', '/live', '/gallery', '/quiz', '/store']
     const { startDate, endDate } = req.query
     const data = await getRoutePageViews(paths, startDate, endDate)
     res.json(data)
@@ -359,6 +362,20 @@ app.get('/api/location-views', async (req, res) => {
     res.status(500).json({ error: 'Error interno' })
   }
 })
+
+const analyticsRoute = (name, fn) => async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query
+    res.json(await fn(startDate, endDate))
+  } catch (error) {
+    console.error(`Error analytics ${name}:`, error.message)
+    res.status(500).json({ error: 'Error interno' })
+  }
+}
+
+app.get('/api/analytics/overview', analyticsRoute('overview', getSiteOverview))
+app.get('/api/analytics/sources', analyticsRoute('sources', getTrafficSources))
+app.get('/api/analytics/events', analyticsRoute('events', getSiteEvents))
 
 // --- ALMACENAMIENTO (Cloudflare R2 / AWS S3 legacy) ---
 const STORAGE_BUCKET = process.env.R2_BUCKET_NAME || process.env.AWS_BUCKET_NAME
