@@ -5,21 +5,29 @@
   </div>
 }
 
-<div #sectionRoot class="person-short-videos-section" [class.d-none]="!videos || videos.length === 0">
+<div class="person-short-videos-section" [class.d-none]="!videos || videos.length === 0">
   <div class="container-fluid main-container">
     <div class="text-center mb-5 fade-in">
-      <h6 class="text-uppercase letter-spacing-2 text-muted mb-2">Contenido Exclusivo</h6>
-      <h2 class="display-6 fw-bold text-dark">Videos Cortos</h2>
+      <h6 class="text-uppercase letter-spacing-2 text-muted mb-2">Aprende en minutos</h6>
+      <h2 class="display-6 fw-bold text-dark">Clips Educativos</h2>
     </div>
 
     <div class="carousel-container position-relative fade-in delay-1" [style.--arrow-color]="personColor">
       <swiper-container #swiperContainer init="false" class="short-videos-swiper" [style.--swiper-pagination-color]="personColor">
-        @for (video of videos; track video.url) {
+        @for (video of videos; track video.id) {
           <swiper-slide class="h-auto">
             <div class="short-video-card h-100">
-              <video class="short-video-player" [attr.data-video-title]="video.title" [poster]="video.poster || ''" controls preload="metadata" playsinline>
-                <source [src]="video.url" type="video/mp4" />
-              </video>
+              <button type="button" class="clip-thumb" (click)="play.emit(video)" [attr.aria-label]="'Ver video: ' + (video.title || 'clip')">
+                @if (video.poster) {
+                  <img [src]="video.poster" [alt]="video.title" loading="lazy" />
+                } @else {
+                  <video [src]="video.url + '#t=1'" preload="metadata" muted playsinline tabindex="-1"></video>
+                }
+                <span class="play-badge" [style.backgroundColor]="personColor"><i class="fas fa-play"></i></span>
+                @if (video.title) {
+                  <span class="clip-title">{{ video.title }}</span>
+                }
+              </button>
               <button type="button" class="share-btn" (click)="shareVideo(video)" title="Compartir video">
                 <i class="fas fa-share-nodes"></i>
               </button>
@@ -37,21 +45,3 @@
     </div>
   </div>
 </div>
-
-@if (selectedVideo(); as selectedVideo) {
-  <div #modalRoot class="short-video-modal-overlay" (click)="$event.target === $event.currentTarget && closeVideo()">
-    <div class="short-video-modal-container">
-      <button class="close-modal-btn-on-dark" (click)="closeVideo()" title="Cerrar">✖</button>
-      <video
-        class="short-video-modal-player"
-        [attr.data-video-title]="selectedVideo.title"
-        [poster]="selectedVideo.poster || ''"
-        controls
-        autoplay
-        playsinline
-      >
-        <source [src]="selectedVideo.url" type="video/mp4" />
-      </video>
-    </div>
-  </div>
-}

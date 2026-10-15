@@ -8,6 +8,10 @@ import { environment } from '../../../environments/environment';
 const FOLDER_LABELS: Record<string, string> = {
   video: 'programas',
   'video-corto': 'videos-cortos',
+  'video-conociendo': 'videos-especialistas/conociendo',
+  'video-negocio': 'videos-especialistas/negocio',
+  'video-educativo': 'videos-especialistas/clips',
+  'video-poster': 'videos-especialistas/miniaturas',
   blog: 'blogs',
   ad: 'anuncios',
   banner: 'banners',
@@ -68,12 +72,46 @@ export class AwsService {
     }
   }
 
-  async uploadFile(file: File, folder: string): Promise<string | null> {
+  private buildKey(file: File, folder: string): string {
     const label = FOLDER_LABELS[folder] || this.slugify(folder);
     const extMatch = file.name.match(/\.([a-zA-Z0-9]+)$/);
     const ext = extMatch ? extMatch[1].toLowerCase() : 'bin';
     const baseName = file.name.replace(/\.[^.]+$/, '');
-    const key = `${label}/${this.slugify(baseName)}-${Date.now()}.${ext}`;
+    return `${label}/${this.slugify(baseName)}-${Date.now()}.${ext}`;
+  }
+
+  /**
+   * Igual que uploadFile pero reporta el avance (0–100). fetch no expone el progreso de subida,
+   * por eso se usa XMLHttpRequest; importa para videos de cientos de MB.
+   */
+  async uploadFileWithProgress(file: File, folder: string, onProgress: (pct: number) => void): Promise<string | null> {
+    const contentType = file.type || 'application/octet-stream';
+    const result = await this.getUploadUrl(this.buildKey(file, folder), contentType);
+    if (!result) return null;
+    return new Promise((resolve) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('PUT', result.url);
+      xhr.setRequestHeader('Content-Type', contentType);
+      xhr.upload.onprogress = (e) => e.lengthComputable && onProgress(Math.round((e.loaded / e.total) * 100));
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          onProgress(100);
+          resolve(result.publicUrl);
+        } else {
+          console.error('❌ Error subiendo archivo:', xhr.status);
+          resolve(null);
+        }
+      };
+      xhr.onerror = () => {
+        console.error('❌ Error de red subiendo archivo');
+        resolve(null);
+      };
+      xhr.send(file);
+    });
+  }
+
+  async uploadFile(file: File, folder: string): Promise<string | null> {
+    const key = this.buildKey(file, folder);
     const result = await this.getUploadUrl(key, file.type || 'application/octet-stream');
     if (!result) return null;
     try {

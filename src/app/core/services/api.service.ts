@@ -100,6 +100,9 @@ export interface Comment {
   [key: string]: unknown;
 }
 
+/** conociendo: presentación ("Conociendo a…"), negocio: su espacio/marca, educativo: clips. */
+export type ShortVideoType = 'conociendo' | 'negocio' | 'educativo';
+
 export interface ShortVideo {
   id: string;
   personId: string;
@@ -107,6 +110,8 @@ export interface ShortVideo {
   url: string;
   poster?: string;
   orden?: number;
+  /** Los videos subidos antes de existir los tipos no lo traen: cuentan como 'educativo'. */
+  tipo?: ShortVideoType;
 }
 
 export interface GalleryImage {
@@ -367,6 +372,38 @@ export class ApiService {
     } catch (error) {
       console.error(`❌ Error obteniendo videos cortos para persona ${personId}:`, error);
       return [];
+    }
+  }
+
+  async createShortVideo(data: Omit<ShortVideo, 'id'>): Promise<string | null> {
+    try {
+      const response = await firstValueFrom(
+        this.http.post<{ id: string }>(`${this.baseUrl}/api/firestore/short-videos`, data),
+      );
+      return response.id;
+    } catch (error) {
+      console.error('❌ Error creando video de especialista:', error);
+      return null;
+    }
+  }
+
+  async updateShortVideo(id: string, data: Partial<ShortVideo>): Promise<boolean> {
+    try {
+      await firstValueFrom(this.http.put(`${this.baseUrl}/api/firestore/short-videos/${id}`, data));
+      return true;
+    } catch (error) {
+      console.error(`❌ Error actualizando video de especialista ${id}:`, error);
+      return false;
+    }
+  }
+
+  async deleteShortVideo(id: string): Promise<boolean> {
+    try {
+      await firstValueFrom(this.http.delete(`${this.baseUrl}/api/firestore/short-videos/${id}`));
+      return true;
+    } catch (error) {
+      console.error(`❌ Error eliminando video de especialista ${id}:`, error);
+      return false;
     }
   }
 

@@ -25,6 +25,15 @@
 
               <div class="bio-text lead text-muted mb-4" [innerHTML]="person.detalle"></div>
 
+              @if (introVideo(); as intro) {
+                <div class="mb-4 text-center text-lg-start">
+                  <button type="button" class="btn-intro-video" [style.--person-color]="person.color" (click)="playVideo(intro)">
+                    <span class="btn-intro-icon"><i class="fas fa-play"></i></span>
+                    <span>Conociendo a {{ firstName() }}</span>
+                  </button>
+                </div>
+              }
+
               <ul class="list-inline social-list mb-0 mt-auto">
                 @for (social of person.socials; track $index) {
                   <li class="list-inline-item">
@@ -47,6 +56,23 @@
         </div>
       </div>
 
+      @if (businessVideo(); as business) {
+        <div class="content-section business-video-section fade-in delay-2">
+          <div class="text-center mb-5">
+            <h6 class="text-uppercase letter-spacing-2 text-muted mb-2">Mi espacio</h6>
+            <h2 class="display-6 fw-bold text-dark">{{ business.title || 'Conoce dónde te atiendo' }}</h2>
+          </div>
+          <button type="button" class="business-video-thumb" (click)="playVideo(business)" [attr.aria-label]="'Ver video: ' + (business.title || 'Mi espacio')">
+            @if (business.poster) {
+              <img [src]="business.poster" [alt]="business.title" loading="lazy" />
+            } @else {
+              <video [src]="business.url + '#t=1'" preload="metadata" muted playsinline tabindex="-1"></video>
+            }
+            <span class="business-play" [style.backgroundColor]="person.color"><i class="fas fa-play"></i></span>
+          </button>
+        </div>
+      }
+
       <div class="content-section mb-2 fade-in delay-2">
         <app-mision-profile [mision]="person.mision" [vision]="person.vision" />
       </div>
@@ -59,9 +85,11 @@
       <div class="content-section mb-2 fade-in delay-3">
         <app-person-downloads [files]="person.files" [personColor]="person.color" />
       </div>
-      <div class="content-section mb-2 fade-in delay-3">
-        <app-person-short-videos [videos]="shortVideos()" [personColor]="person.color" />
-      </div>
+      @if (clips().length > 0) {
+        <div class="content-section mb-2 fade-in delay-3">
+          <app-person-short-videos [videos]="clips()" [personColor]="person.color" (play)="playVideo($event)" />
+        </div>
+      }
       <div class="content-section mb-2 fade-in delay-3">
         <app-person-reels [instagramProfileData]="person.instagramProfileData || null" />
       </div>
@@ -72,6 +100,9 @@
         <app-person-youtube [videos]="person.youtubeVideos || []" [channelUrl]="person.youtubeChannelUrl || ''" [personColor]="person.color" />
       </div>
     </div>
+    @if (openVideo(); as video) {
+      <app-video-modal [url]="video.url" [title]="video.title" [poster]="video.poster || ''" [heading]="openVideoHeading()" (closed)="closeVideo()" />
+    }
   } @else {
     <div class="container py-5 text-center">
       <p class="text-muted">Persona no encontrada.</p>

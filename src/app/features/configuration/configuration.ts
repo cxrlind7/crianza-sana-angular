@@ -16,9 +16,10 @@ import {
 import { AuthService } from '../../core/services/auth.service';
 import { AwsService } from '../../core/services/aws.service';
 import { activePeople } from '../../core/utils/people-visibility';
+import { PersonVideosAdmin } from './person-videos-admin/person-videos-admin';
 import { environment } from '../../../environments/environment';
 import { parseFlexibleDate, toDateInputValue, toSortableTime } from '../../core/utils/date-utils';
-type CollectionKey = 'ad' | 'banner' | 'blogs' | 'campana' | 'eventos' | 'programas' | 'temas' | 'suscriptores';
+type CollectionKey = 'ad' | 'banner' | 'blogs' | 'campana' | 'eventos' | 'programas' | 'temas' | 'suscriptores' | 'videos';
 type ModalType = 'blog' | 'ad' | 'banner' | 'evento' | 'video' | '';
 
 interface CollectionMeta {
@@ -42,6 +43,7 @@ const COLLECTIONS: CollectionMeta[] = [
   { key: 'campana', label: 'Campañas', icon: '📣' },
   { key: 'eventos', label: 'Eventos', icon: '📅' },
   { key: 'programas', label: 'Programas', icon: '🎬' },
+  { key: 'videos', label: 'Videos de especialistas', icon: '🎥' },
   { key: 'temas', label: 'Temas', icon: '🎨' },
   { key: 'suscriptores', label: 'Suscriptores', icon: '📧' },
 ];
@@ -59,7 +61,7 @@ type ModalData = Record<string, any>;
 
 @Component({
   selector: 'app-configuration',
-  imports: [FormsModule, RouterLink, DatePipe],
+  imports: [FormsModule, RouterLink, DatePipe, PersonVideosAdmin],
   templateUrl: './configuration.html',
   styleUrl: './configuration.scss',
 })

@@ -1,6 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Location } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { people } from '../../core/data/people-data';
 import { isPersonActive } from '../../core/utils/people-visibility';
 import { ApiService, ShortVideo } from '../../core/services/api.service';
@@ -12,6 +12,7 @@ import { PersonReels } from './person-reels/person-reels';
 import { PersonBlogs } from './person-blogs/person-blogs';
 import { PersonYoutube } from './person-youtube/person-youtube';
 import { PersonShortVideos } from './person-short-videos/person-short-videos';
+import { VideoModal } from '../../shared/video-modal/video-modal';
 
 interface PersonRecord {
   id: number;
@@ -51,6 +52,7 @@ interface PersonRecord {
     PersonBlogs,
     PersonYoutube,
     PersonShortVideos,
+    VideoModal,
   ],
   templateUrl: './person-profile.html',
   styleUrl: './person-profile.scss',
@@ -59,9 +61,28 @@ export class PersonProfile implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly location = inject(Location);
   private readonly api = inject(ApiService);
+  private readonly router = inject(Router);
 
   readonly id = signal<string>('');
   readonly shortVideos = signal<ShortVideo[]>([]);
+
+  /** Solo se muestra uno de cada uno; si hubiera varios, gana el último. */
+  readonly introVideo = computed(() => this.shortVideos().filter((v) => v.tipo === 'conociendo').at(-1) ?? null);
+  readonly businessVideo = computed(() => this.shortVideos().filter((v) => v.tipo === 'negocio').at(-1) ?? null);
+  readonly clips = computed(() => this.shortVideos().filter((v) => !v.tipo || v.tipo === 'educativo'));
+
+  /** Video abierto en la ventana emergente (cualquiera de los tres tipos). */
+  readonly openVideo = signal<ShortVideo | null>(null);
+
+  readonly firstName = computed(() => this.person()?.name.split(' ')[0] ?? '');
+
+  readonly openVideoHeading = computed(() => {
+    const video = this.openVideo();
+    if (!video) return '';
+    if (video.tipo === 'conociendo') return `Conociendo a ${this.firstName()}`;
+    if (video.tipo === 'negocio') return video.title || `El espacio de ${this.firstName()}`;
+    return video.title;
+  });
 
   readonly person = computed<PersonRecord | undefined>(() =>
     (people as PersonRecord[]).find((p) => p.id === Number(this.id()) && isPersonActive(p.id)),
@@ -70,7 +91,13 @@ export class PersonProfile implements OnInit {
   ngOnInit(): void {
     this.id.set(this.route.snapshot.paramMap.get('id') ?? '');
 
-    this.api.getShortVideos(this.id()).then((videos) => this.shortVideos.set(videos));
+    this.api.getShortVideos(this.id()).then((videos) => {
+      this.shortVideos.set(videos);
+      // Links compartidos: /person/2?video=ID abre ese video directo.
+      const sharedId = this.route.snapshot.queryParamMap.get('video');
+      const shared = sharedId ? videos.find((v) => v.id === sharedId) : null;
+      if (shared) this.openVideo.set(shared);
+    });
 
     if (typeof window.gtag === 'function') {
       const path = `/person/${this.id()}`;
@@ -85,6 +112,17 @@ export class PersonProfile implements OnInit {
 
   goBack(): void {
     this.location.back();
+  }
+
+  playVideo(video: ShortVideo): void {
+    this.openVideo.set(video);
+  }
+
+  closeVideo(): void {
+    this.openVideo.set(null);
+    if (this.route.snapshot.queryParamMap.has('video')) {
+      this.router.navigate([], { queryParams: { video: null }, queryParamsHandling: 'merge', replaceUrl: true });
+    }
   }
 
   getSocialName(iconClass: string | undefined): string {
