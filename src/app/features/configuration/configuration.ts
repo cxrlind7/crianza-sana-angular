@@ -15,7 +15,7 @@ import {
 } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { AwsService } from '../../core/services/aws.service';
-import { people } from '../../core/data/people-data';
+import { activePeople } from '../../core/utils/people-visibility';
 import { environment } from '../../../environments/environment';
 import { parseFlexibleDate, toDateInputValue, toSortableTime } from '../../core/utils/date-utils';
 type CollectionKey = 'ad' | 'banner' | 'blogs' | 'campana' | 'eventos' | 'programas' | 'temas' | 'suscriptores';
@@ -75,7 +75,7 @@ export class Configuration {
 
   readonly currentUser = this.authService.currentUser;
   readonly collections = COLLECTIONS;
-  readonly allPeople = people as { id: number; name: string; image: string }[];
+  readonly allPeople = activePeople as { id: number; name: string; image: string }[];
 
   readonly currentCollection = signal<CollectionKey>('blogs');
   readonly loading = signal(false);

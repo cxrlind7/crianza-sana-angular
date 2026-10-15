@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { people as peopleData } from '../../../core/data/people-data';
+import { isPersonActive } from '../../../core/utils/people-visibility';
 
 interface TeamPerson {
   id: string | number;
@@ -24,7 +25,10 @@ export class TeamGrid {
   private readonly router = inject(Router);
 
   readonly people = signal<TeamPerson[]>(
-    (peopleData as TeamPerson[]).slice(0, 8).map((person) => ({ ...person, showFullDetails: false })),
+    (peopleData as TeamPerson[])
+      .slice(0, 8)
+      .filter((person) => isPersonActive(person.id))
+      .map((person) => ({ ...person, showFullDetails: false })),
   );
 
   toggleContent(index: number): void {

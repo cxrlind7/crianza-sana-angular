@@ -77,6 +77,7 @@ export const people: any[] = [
   {
     id: 3,
     name: 'Silvia Andrea Soria Díaz',
+    active: false, // oculta del sitio, ver core/utils/people-visibility.ts
     title: 'Lic. En Nutrición',
     description:
       'En Cambiando Hábitos ofrecemos soluciones accesibles y personalizadas que ayuden a cada persona a alcanzar un peso saludable, mejorar su salud y controlar enfermedades a través de una buena alimentación.',
@@ -346,6 +347,7 @@ export const people: any[] = [
   {
     id: 1,
     name: 'Karen Meraz Cardosa',
+    active: false, // oculta del sitio, ver core/utils/people-visibility.ts
     title: 'Lic. Fisioterapia',
     description:
       'Somos un centro comprometido con el bienestar de nuestros pacientes, a través de una atención segura respaldada por personal, equipo e instalaciones de calidad para mejorar las condiciones de salud de los usuarios de manera integral.',
@@ -510,6 +512,7 @@ export const people: any[] = [
   {
     id: 4,
     name: 'Patricia Peña Raigosa',
+    active: false, // oculta del sitio, ver core/utils/people-visibility.ts
     title: 'Odontopediatra',
     description:
       'Nuestra misión es ser el hogar dental de cada niño y su familia, brindando cuidados odontológicos preventivos e innovadores en un ambiente lleno de empatía,confianza y amor, donde todos se sientan seguros, protegidos y parte de nuestra familia.',

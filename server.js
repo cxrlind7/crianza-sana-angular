@@ -1290,10 +1290,7 @@ app.get('/quiz', noStore, async (req, res) => {
   const categories = [
     { id: 'pediatria', name: 'Pediatría / Cardiología', emoji: '🩺' },
     { id: 'psicologia', name: 'Psicología Infantil', emoji: '❤️' },
-    { id: 'nutricion', name: 'Nutrición', emoji: '🍎' },
     { id: 'lenguaje', name: 'Lenguaje / Comunicación', emoji: '👅' },
-    { id: 'fisioterapia', name: 'Fisioterapia', emoji: '🤸' },
-    { id: 'odontopediatria', name: 'Odontopediatría', emoji: '🦷' },
     { id: 'tcc', name: 'Terapia Cognitivo-Conductual', emoji: '🧠' },
     { id: 'legal', name: 'Orientación Legal Familiar', emoji: '⚖️' },
   ]

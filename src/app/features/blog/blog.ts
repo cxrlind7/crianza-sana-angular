@@ -2,6 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { ApiService, Blog as BlogModel } from '../../core/services/api.service';
 import { filterPublished } from '../../core/utils/schedule';
+import { filterBlogsByActiveAuthors } from '../../core/utils/people-visibility';
 import { getImagePerCategory } from '../../core/utils/blog-author-images';
 import { toSortableTime } from '../../core/utils/date-utils';
 
@@ -111,7 +112,7 @@ export class Blog implements OnInit {
   async ngOnInit(): Promise<void> {
     try {
       const data = await this.api.getCollection<BlogWithPublish>('blogs');
-      this.originalBlogs.set(filterPublished(data));
+      this.originalBlogs.set(filterBlogsByActiveAuthors(filterPublished(data)));
     } catch (error) {
       console.error('Error cargando blogs:', error);
     } finally {
