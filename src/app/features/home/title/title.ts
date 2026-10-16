@@ -1,4 +1,4 @@
-import { Component, OnDestroy, computed, signal } from '@angular/core';
+import { Component, OnDestroy, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { isPersonActive } from '../../../core/utils/people-visibility';
 
@@ -23,6 +23,16 @@ const TEAM: TeamMember[] = ([
 
 const ROTATIONS = [3, -2, 4, -3, 2, -4, 3, -2];
 
+/**
+ * Cuántas tarjetas por fila para que las filas queden parejas: se usan las filas mínimas
+ * con ese máximo y se reparten. 5 con máximo 5 → una fila; 6 → 3 + 3; 7 → 4 + 3; 9 → 5 + 4.
+ */
+export function columnasParejas(total: number, maximo: number): number {
+  if (total <= 0) return 1;
+  const filas = Math.ceil(total / maximo);
+  return Math.ceil(total / filas);
+}
+
 @Component({
   selector: 'app-title',
   imports: [RouterLink],
@@ -31,6 +41,11 @@ const ROTATIONS = [3, -2, 4, -3, 2, -4, 3, -2];
 })
 export class Title implements OnDestroy {
   readonly team = TEAM;
+  readonly columnas = signal({
+    lg: columnasParejas(TEAM.length, 5),
+    md: columnasParejas(TEAM.length, 3),
+    sm: columnasParejas(TEAM.length, 3),
+  });
 
   readonly activeIndex = signal(0);
   readonly hoveredIndex = signal<number | null>(null);
@@ -56,7 +71,7 @@ export class Title implements OnDestroy {
     const isHovered = this.hoveredIndex() === index;
     const isActive = this.activeIndex() === index && this.hoveredIndex() === null;
 
-    const rotation = isHovered ? 0 : ROTATIONS[index];
+    const rotation = isHovered ? 0 : ROTATIONS[index % ROTATIONS.length];
     const scale = isHovered ? 1.1 : isActive ? 1.05 : 1;
     const translateY = isHovered ? '-20px' : '0px';
     const z = isHovered ? 50 : isActive ? 20 : 10;
