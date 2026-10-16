@@ -584,3 +584,6 @@ export async function getSiteEvents(startDate = '30daysAgo', endDate = 'today') 
     downloads: simple(downloads),
   }
 }
+
+// Piezas reutilizadas por utils/analyticsEspecialista.js
+export { runReport, safeReport, eventFilter, num, previousRange, classifySource, resolveDate }

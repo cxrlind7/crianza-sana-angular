@@ -103,3 +103,22 @@ export function withShareUtm(url: string, source = 'compartido'): string {
   u.searchParams.set('utm_medium', 'enlace');
   return u.toString();
 }
+
+const ultimaBusqueda: Record<string, string> = {};
+const temporizadores: Record<string, ReturnType<typeof setTimeout>> = {};
+
+/**
+ * Lo que escriben en un buscador (evento recomendado de GA4 `search` con `search_term`).
+ * Espera a que dejen de escribir y no repite el mismo término seguido, para registrar
+ * búsquedas completas y no cada letra.
+ */
+export function trackSearch(term: string, method: 'blog' | 'foro'): void {
+  clearTimeout(temporizadores[method]);
+  const limpio = term.trim().toLowerCase();
+  if (limpio.length < 3) return;
+  temporizadores[method] = setTimeout(() => {
+    if (ultimaBusqueda[method] === limpio) return;
+    ultimaBusqueda[method] = limpio;
+    trackEvent('search', { search_term: limpio.slice(0, 100), method });
+  }, 1500);
+}

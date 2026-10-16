@@ -109,7 +109,7 @@ export class WelcomeMascot implements OnInit, OnDestroy {
 
   private async loadBlogTips(): Promise<void> {
     try {
-      const blogs = await this.api.getBlogs();
+      const blogs = await this.api.getBlogList();
       const parseDate = (d: unknown): Date => {
         if (!d) return new Date(0);
         return new Date(d as string);

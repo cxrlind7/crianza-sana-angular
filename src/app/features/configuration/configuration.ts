@@ -275,6 +275,18 @@ export class Configuration {
     }
   }
 
+  async deleteBlog(blog: Blog): Promise<void> {
+    if (!confirm(`¿Eliminar el blog "${blog.title}" y sus comentarios? No se puede deshacer.`)) return;
+    if (await this.api.deleteBlog(blog.id)) {
+      this.blogs.update((list) => list.filter((b) => b.id !== blog.id));
+      this.expandedIndex.set(null);
+      this.calendarRefresh.update((n) => n + 1);
+      if (this.currentPage() > this.totalPages()) this.currentPage.set(Math.max(1, this.totalPages()));
+    } else {
+      alert('Error al eliminar el blog');
+    }
+  }
+
   private async fetchAds(): Promise<void> {
     this.loading.set(true);
     try {

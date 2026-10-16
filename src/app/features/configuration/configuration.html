@@ -100,6 +100,7 @@
                               <button class="btn btn-outline-primary btn-sm" (click)="editingId.set(blog.id)">
                                 <i class="fas fa-edit me-1"></i> Editar
                               </button>
+                              <button class="btn btn-outline-danger btn-sm" (click)="deleteBlog(blog)"><i class="bi bi-trash me-1"></i> Eliminar</button>
                             } @else {
                               <button class="btn btn-success btn-sm" (click)="saveBlog(blog)" [disabled]="isSaving()">
                                 @if (isSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }

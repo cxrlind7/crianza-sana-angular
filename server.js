@@ -21,6 +21,7 @@ import {
   getSiteEvents,
 } from './utils/getAnalyticsData.js'
 import compression from 'compression'
+import { getEspecialistaAnalytics, getTemasPadres } from './utils/analyticsEspecialista.js'
 import { registerForoRoutes, esComentarioVisible } from './utils/foro.js'
 import { registerEspecialistasRoutes } from './utils/especialistas.js'
 // --- CONFIGURACIÓN DE RUTAS Y DIRECTORIOS ---
@@ -384,6 +385,16 @@ const analyticsRoute = (name, fn) => async (req, res) => {
 app.get('/api/analytics/overview', analyticsRoute('overview', getSiteOverview))
 app.get('/api/analytics/sources', analyticsRoute('sources', getTrafficSources))
 app.get('/api/analytics/events', analyticsRoute('events', getSiteEvents))
+app.get('/api/analytics/temas', analyticsRoute('temas', (start, end) => getTemasPadres(db, start, end)))
+app.get('/api/analytics/especialista', async (req, res) => {
+  try {
+    const { personId, startDate, endDate } = req.query
+    res.json(await getEspecialistaAnalytics(db, personId, startDate, endDate))
+  } catch (error) {
+    console.error('Error analytics especialista:', error.message)
+    res.status(error.status || 500).json({ error: error.status === 404 ? 'Especialista no encontrado' : 'Error interno' })
+  }
+})
 
 // --- ALMACENAMIENTO (Cloudflare R2 / AWS S3 legacy) ---
 const STORAGE_BUCKET = process.env.R2_BUCKET_NAME || process.env.AWS_BUCKET_NAME
@@ -614,6 +625,8 @@ app.get('/api/firestore/videos', async (req, res) => {
 // Solo colecciones públicas: evita leer "subscribers" u otras colecciones privadas por esta ruta.
 const PUBLIC_COLLECTIONS = new Set(['blogs', 'programas', 'temas', 'banner', 'ad', 'eventos', 'galerias'])
 
+const BLOG_LIST_FIELDS = ['title', 'title1', 'description', 'authorName', 'authorImage', 'category', 'categoryColor', 'date', 'imageUrl', 'orden', 'publishAt']
+
 app.get('/api/firestore/collection/:name', async (req, res) => {
   if (!checkDb(res)) return
   const { name } = req.params
@@ -621,7 +634,10 @@ app.get('/api/firestore/collection/:name', async (req, res) => {
   const { orderField = 'orden' } = req.query
   const orderDirection = req.query.orderDirection === 'desc' ? 'desc' : 'asc'
   try {
-    const snapshot = await db.collection(name).orderBy(orderField, orderDirection).get()
+    let query = db.collection(name).orderBy(orderField, orderDirection)
+    // Listas de blogs (página del blog, inicio, perfiles): sin el texto completo, que es ~88 % del peso.
+    if (name === 'blogs' && req.query.sinTexto) query = query.select(...BLOG_LIST_FIELDS)
+    const snapshot = await query.get()
     const items = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
     res.json(items)
   } catch (error) {
@@ -1096,6 +1112,48 @@ app.get('/api/firestore/blogs', async (req, res) => {
   } catch (error) {
     console.error('Error Firestore Blogs:', error)
     res.status(500).json({ error: 'Error fetching blogs' })
+  }
+})
+
+// Un solo blog (la página del artículo ya no descarga todos para quedarse con uno).
+app.get('/api/firestore/blogs/:id', async (req, res) => {
+  if (!checkDb(res)) return
+  try {
+    const doc = await db.collection('blogs').doc(req.params.id).get()
+    if (!doc.exists) return res.status(404).json({ error: 'Blog no encontrado' })
+    res.json({ id: doc.id, ...doc.data() })
+  } catch (error) {
+    console.error('Error Firestore Blog:', error)
+    res.status(500).json({ error: 'Error fetching blog' })
+  }
+})
+
+// Versión ligera para analytics: solo los campos que usa (Firestore ni siquiera envía el texto).
+app.get('/api/firestore/blogs-resumen', async (req, res) => {
+  if (!checkDb(res)) return
+  try {
+    const snapshot = await db.collection('blogs').select('title', 'category', 'authorName').get()
+    res.json(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })))
+  } catch (error) {
+    console.error('Error Firestore Blogs resumen:', error)
+    res.status(500).json({ error: 'Error fetching blogs' })
+  }
+})
+
+// Elimina el blog y sus comentarios (admin, por el middleware de /api).
+app.delete('/api/firestore/blogs/:id', async (req, res) => {
+  if (!db) return res.json({ success: true })
+  try {
+    const ref = db.collection('blogs').doc(req.params.id)
+    const comments = await ref.collection('comments').get()
+    const batch = db.batch()
+    comments.docs.forEach((c) => batch.delete(c.ref))
+    batch.delete(ref)
+    await batch.commit()
+    res.json({ success: true })
+  } catch (error) {
+    console.error('Error deleting blog:', error)
+    res.status(500).json({ error: 'Error deleting blog' })
   }
 })
 

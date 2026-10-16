@@ -47,7 +47,7 @@ export class BlogRecommended implements OnInit, OnDestroy {
 
   private async loadBlogs(): Promise<void> {
     try {
-      const fetchedBlogs = await this.api.getCollection<Blog>('blogs');
+      const fetchedBlogs = await this.api.getBlogList<Blog>();
       const published = filterPublished(fetchedBlogs as (Blog & { publishAt?: string })[]);
       this.blogs.set(filterBlogsByActiveAuthors(published).filter((b) => b.title && b.imageUrl));
 

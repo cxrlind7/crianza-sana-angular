@@ -1,7 +1,16 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ApiService, Blog as BlogModel } from '../../core/services/api.service';
 import { filterPublished } from '../../core/utils/schedule';
+import { trackSearch } from '../../core/utils/tracking';
+
+const normalizar = (s: string) =>
+  s
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .trim();
 import { filterBlogsByActiveAuthors } from '../../core/utils/people-visibility';
 import { getImagePerCategory } from '../../core/utils/blog-author-images';
 import { toSortableTime } from '../../core/utils/date-utils';
@@ -14,6 +23,7 @@ type SortOrder = 'recent' | 'oldest';
 
 @Component({
   selector: 'app-blog',
+  imports: [FormsModule],
   templateUrl: './blog.html',
   styleUrl: './blog.scss',
 })
@@ -27,11 +37,18 @@ export class Blog implements OnInit {
   readonly selectedCategories = signal<string[]>([]);
   readonly sortOrder = signal<SortOrder>('recent');
   readonly showFilters = signal(false);
+  readonly busqueda = signal('');
   readonly currentPage = signal(1);
   readonly itemsPerPage = 9;
 
   readonly blogs = computed(() => {
     let filtered = [...this.originalBlogs()];
+    const q = normalizar(this.busqueda());
+    if (q) {
+      filtered = filtered.filter((blog) =>
+        normalizar(`${blog.title} ${blog.description ?? ''} ${blog.category ?? ''} ${blog.authorName ?? ''}`).includes(q),
+      );
+    }
     const categories = this.selectedCategories();
     if (categories.length > 0) {
       filtered = filtered.filter((blog) => blog.category && categories.includes(blog.category));
@@ -44,6 +61,12 @@ export class Blog implements OnInit {
     });
     return filtered;
   });
+
+  buscar(texto: string): void {
+    this.busqueda.set(texto);
+    this.currentPage.set(1);
+    trackSearch(texto, 'blog');
+  }
 
   readonly paginatedBlogs = computed(() => {
     const start = (this.currentPage() - 1) * this.itemsPerPage;
@@ -111,7 +134,7 @@ export class Blog implements OnInit {
 
   async ngOnInit(): Promise<void> {
     try {
-      const data = await this.api.getCollection<BlogWithPublish>('blogs');
+      const data = await this.api.getBlogList<BlogWithPublish>();
       this.originalBlogs.set(filterBlogsByActiveAuthors(filterPublished(data)));
     } catch (error) {
       console.error('Error cargando blogs:', error);

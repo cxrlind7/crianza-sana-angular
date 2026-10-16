@@ -1,0 +1,65 @@
+.card-box {
+  padding: 20px;
+  border-radius: var(--radius-lg, 16px);
+  background: var(--card-bg, var(--dm-surface));
+  box-shadow: var(--shadow-sm, 0 2px 6px rgba(0, 0, 0, 0.06));
+
+  h5 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--dm-text);
+    margin-bottom: 16px;
+
+    i {
+      color: #2a78d6;
+      margin-right: 6px;
+    }
+  }
+
+  h6 {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--dm-text-secondary);
+  }
+}
+
+.hint {
+  margin: 12px 0 0;
+  font-size: 0.76rem;
+  color: var(--dm-text-secondary);
+}
+
+.sin-respuesta {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 0.85rem;
+  }
+
+  a {
+    color: var(--dm-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.table {
+  --bs-table-bg: transparent;
+  color: var(--dm-text);
+}
