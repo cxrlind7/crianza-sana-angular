@@ -1,4 +1,4 @@
-import { Component, HostListener, OnDestroy, computed, input, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, OnDestroy, ViewChild, computed, input, signal } from '@angular/core';
 import { Accion, Formulario, Objetivo, Paso, RECORRIDOS, Recorrido, Seccion } from './tours';
 
 /** Lo que el tutorial necesita de la página de Configuración para preparar cada paso. */
@@ -30,7 +30,7 @@ const esperar = (ms: number) => new Promise((r) => setTimeout(r, ms));
   templateUrl: './config-tutorial.html',
   styleUrl: './config-tutorial.scss',
 })
-export class ConfigTutorial implements OnDestroy {
+export class ConfigTutorial implements AfterViewInit, OnDestroy {
   readonly host = input.required<TutorialHost>();
 
   readonly recorridos = RECORRIDOS;
@@ -69,7 +69,16 @@ export class ConfigTutorial implements OnDestroy {
   private elemento: HTMLElement | null = null;
   private turno = 0;
 
+  /** Las capas van en <body>: dentro del encabezado, un contenedor las dejaba debajo del formulario abierto. */
+  @ViewChild('capa') capa?: ElementRef<HTMLElement>;
+
+  ngAfterViewInit(): void {
+    const el = this.capa?.nativeElement;
+    if (el && el.parentElement !== document.body) document.body.appendChild(el);
+  }
+
   ngOnDestroy(): void {
+    this.capa?.nativeElement.remove();
     document.body.classList.remove('tut-activo');
   }
 

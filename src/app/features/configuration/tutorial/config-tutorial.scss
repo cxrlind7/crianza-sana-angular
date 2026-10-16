@@ -24,10 +24,11 @@
 }
 
 /* ------------------------------------------------ Invitación */
+/* Arriba a la derecha, bajo el menú del sitio: abajo tapaba el botón de WhatsApp. */
 .tut-invite {
   position: fixed;
   right: 24px;
-  bottom: 24px;
+  top: 84px;
   z-index: 1080;
   display: flex;
   align-items: center;
@@ -214,7 +215,7 @@
   border-radius: 12px;
   border: 2px solid var(--brand-red);
   // El oscurecido alrededor sale de la sombra gigante del recuadro: el elemento queda limpio.
-  box-shadow: 0 0 0 9999px rgba(10, 8, 20, 0.55);
+  box-shadow: 0 0 0 9999px rgba(10, 8, 20, 0.68);
   pointer-events: none;
   transition:
     top 0.25s ease,
@@ -227,7 +228,7 @@
   position: fixed;
   inset: 0;
   z-index: 1095;
-  background: rgba(10, 8, 20, 0.55);
+  background: rgba(10, 8, 20, 0.68);
   pointer-events: none;
 }
 
@@ -381,6 +382,6 @@
   .tut-invite {
     right: 8px;
     left: 8px;
-    bottom: 8px;
+    top: 70px;
   }
 }

@@ -4,6 +4,8 @@
   <span>Tutorial</span>
 </button>
 
+<!-- Capas flotantes: se mueven a <body> para quedar por encima de todo (incluido el formulario abierto). -->
+<div #capa class="tut-capa">
 @if (invitacion() && !recorrido()) {
   <div class="tut-invite" role="status">
     <i class="bi bi-stars"></i>
@@ -98,3 +100,4 @@
     </div>
   }
 }
+</div>
