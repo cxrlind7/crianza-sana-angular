@@ -48,8 +48,13 @@
         </div>
 
         <div class="cfg-card">
+          <!-- CALENDARIO (carga sus propios datos) -->
+          @if (currentCollection() === 'calendario') {
+            <app-content-calendar [refreshKey]="calendarRefresh()" (create)="onCalendarCreate($event)" (edit)="onCalendarEdit($event)" />
+          }
+
           <!-- BLOGS -->
-          @if (currentCollection() === 'blogs') {
+          @else if (currentCollection() === 'blogs') {
             <div>
               <div class="row mb-4 align-items-center">
                 <div class="col-md-6 mb-2 mb-md-0">
@@ -514,6 +519,11 @@
                 </form>
               }
             </div>
+          }
+
+          <!-- GALERÍAS (carga sus propios datos) -->
+          @else if (currentCollection() === 'galerias') {
+            <app-gallery-admin [focus]="galleryFocus()" />
           }
 
           <!-- VIDEOS DE ESPECIALISTAS (carga sus propios datos) -->

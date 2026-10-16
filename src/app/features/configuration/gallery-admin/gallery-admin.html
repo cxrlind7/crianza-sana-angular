@@ -1,0 +1,170 @@
+<ng-template #albumFields>
+  <div class="row g-3">
+    <div class="col-md-4">
+      <label class="form-label fw-semibold" for="album-person">Especialista</label>
+      <select id="album-person" class="form-select" [ngModel]="form().person" (ngModelChange)="updateForm('person', $event)" [disabled]="busy()">
+        @for (p of people; track p) {
+          <option [value]="p">{{ p }}</option>
+        }
+      </select>
+    </div>
+    <div class="col-md-8">
+      <label class="form-label fw-semibold" for="album-title">Título del álbum *</label>
+      <input id="album-title" class="form-control" [ngModel]="form().title" (ngModelChange)="updateForm('title', $event)" placeholder="Ej. Taller de arte de octubre" maxlength="160" [disabled]="busy()" />
+    </div>
+    <div class="col-md-4">
+      <label class="form-label fw-semibold" for="album-date">Fecha del álbum</label>
+      <input id="album-date" type="date" class="form-control" [ngModel]="form().date" (ngModelChange)="updateForm('date', $event)" [disabled]="busy()" />
+    </div>
+    <div class="col-md-8">
+      <label class="form-label fw-semibold" for="album-publish">Programar publicación (opcional)</label>
+      <input id="album-publish" type="datetime-local" class="form-control" [ngModel]="form().publishAt" (ngModelChange)="updateForm('publishAt', $event)" [disabled]="busy()" />
+      <small class="text-muted">Si se deja vacío, se publica de inmediato.</small>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #uploadProgress>
+  @if (progress(); as p) {
+    <div class="mt-3">
+      <div class="d-flex justify-content-between small text-muted mb-1">
+        <span>Subiendo fotos…</span>
+        <span>{{ p.done }} de {{ p.total }}</span>
+      </div>
+      <div class="progress" role="progressbar" [attr.aria-valuenow]="p.done" aria-valuemin="0" [attr.aria-valuemax]="p.total">
+        <div class="progress-bar progress-bar-striped progress-bar-animated" [style.width.%]="(p.done / p.total) * 100"></div>
+      </div>
+    </div>
+  }
+</ng-template>
+
+@if (message(); as msg) {
+  <div class="alert alert-{{ msg.kind }} small d-flex align-items-center justify-content-between">
+    <span>{{ msg.text }}</span>
+    <button type="button" class="btn-close btn-sm" (click)="message.set(null)" aria-label="Cerrar"></button>
+  </div>
+}
+
+@if (selected(); as album) {
+  <!-- DETALLE DE UN ÁLBUM -->
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <button type="button" class="btn btn-outline-secondary btn-sm" (click)="closeAlbum()"><i class="bi bi-arrow-left me-1"></i>Todos los álbumes</button>
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-secondary btn-sm" [href]="'/gallery?idAlbum=' + album.id" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right me-1"></i>Ver en el sitio</a>
+      <button type="button" class="btn btn-outline-danger btn-sm" (click)="removeAlbum()"><i class="bi bi-trash me-1"></i>Eliminar álbum</button>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-3 mb-4">
+    <div class="card-body p-4">
+      <h5 class="fw-bold mb-3">
+        <i class="bi bi-images me-2"></i>{{ album.name }}
+        @if (isScheduled(album)) {
+          <span class="album-badge static ms-2"><i class="bi bi-clock me-1"></i>Programado</span>
+        }
+      </h5>
+      <ng-container [ngTemplateOutlet]="albumFields" />
+      <div class="text-end mt-3">
+        <button type="button" class="btn btn-primary" (click)="saveAlbum()" [disabled]="busy() || !form().title.trim()"><i class="bi bi-check-lg me-1"></i>Guardar cambios</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-3 mb-4">
+    <div class="card-body p-4">
+      <h6 class="fw-bold mb-3"><i class="bi bi-cloud-arrow-up me-2"></i>Agregar fotos</h6>
+      <div class="d-flex flex-wrap gap-2">
+        <input #addInput type="file" class="form-control flex-grow-1 w-auto" accept="image/*" multiple (change)="onFiles($event)" [disabled]="busy()" />
+        <button type="button" class="btn btn-primary" (click)="addPhotos(addInput)" [disabled]="busy() || !files().length">
+          <i class="bi bi-upload me-1"></i>Subir {{ files().length || '' }} {{ files().length === 1 ? 'foto' : 'fotos' }}
+        </button>
+      </div>
+      <ng-container [ngTemplateOutlet]="uploadProgress" />
+    </div>
+  </div>
+
+  <h6 class="fw-bold mb-3">{{ album.images.length }} {{ album.images.length === 1 ? 'foto' : 'fotos' }}</h6>
+  @if (album.images.length === 0) {
+    <p class="text-muted small">Este álbum todavía no tiene fotos.</p>
+  }
+  <div class="photo-grid">
+    @for (image of album.images; track image.id) {
+      <div class="photo-card">
+        <div class="photo-thumb">
+          <img [src]="image.url" [alt]="image.title || 'Foto'" loading="lazy" (error)="$any($event.target).src = '/logo_original.png'" />
+          <button type="button" class="photo-remove" (click)="removePhoto(image)" title="Quitar foto" aria-label="Quitar foto"><i class="bi bi-trash"></i></button>
+        </div>
+        <input
+          #caption
+          class="form-control form-control-sm photo-caption"
+          [value]="image.title || ''"
+          placeholder="Pie de foto (opcional)"
+          maxlength="300"
+          (blur)="saveCaption(image, caption.value)"
+          (keydown.enter)="caption.blur()"
+        />
+      </div>
+    }
+  </div>
+} @else {
+  <!-- LISTA DE ÁLBUMES -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <p class="text-muted mb-0">Crea álbumes, sube varias fotos a la vez y prográmalos para una fecha.</p>
+    @if (!showCreate()) {
+      <button type="button" class="btn btn-primary" (click)="startCreate()"><i class="bi bi-plus-lg me-1"></i>Nuevo álbum</button>
+    }
+  </div>
+
+  @if (showCreate()) {
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+      <div class="card-body p-4">
+        <h5 class="fw-bold mb-3"><i class="bi bi-folder-plus me-2"></i>Nuevo álbum</h5>
+        <ng-container [ngTemplateOutlet]="albumFields" />
+        <div class="mt-3">
+          <label class="form-label fw-semibold" for="album-files">Fotos</label>
+          <input #createInput id="album-files" type="file" class="form-control" accept="image/*" multiple (change)="onFiles($event)" [disabled]="busy()" />
+          @if (files().length) {
+            <small class="text-muted">{{ files().length }} {{ files().length === 1 ? 'foto seleccionada' : 'fotos seleccionadas' }}</small>
+          }
+        </div>
+        <ng-container [ngTemplateOutlet]="uploadProgress" />
+        <div class="d-flex justify-content-end gap-2 mt-3">
+          <button type="button" class="btn btn-secondary" (click)="showCreate.set(false)" [disabled]="busy()">Cancelar</button>
+          <button type="button" class="btn btn-primary" (click)="createAlbum(createInput)" [disabled]="busy() || !form().title.trim()">
+            @if (busy()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            Crear álbum
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
+  } @else {
+    <div class="row g-3">
+      @for (album of sortedAlbums(); track album.id) {
+        <div class="col-sm-6 col-lg-4">
+          <button type="button" class="album-card" (click)="openAlbum(album.id)">
+            <div class="album-cover">
+              @if (album.images[0]; as cover) {
+                <img [src]="cover.url" alt="" loading="lazy" (error)="$any($event.target).src = '/logo_original.png'" />
+              } @else {
+                <i class="bi bi-images"></i>
+              }
+              @if (isScheduled(album)) {
+                <span class="album-badge"><i class="bi bi-clock me-1"></i>Programado</span>
+              }
+            </div>
+            <div class="album-info">
+              <strong>{{ album.name }}</strong>
+              <small>{{ albumDate(album) }} · {{ album.images.length }} {{ album.images.length === 1 ? 'foto' : 'fotos' }}</small>
+            </div>
+          </button>
+        </div>
+      }
+    </div>
+  }
+}

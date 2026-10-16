@@ -654,6 +654,107 @@ app.get('/api/firestore/galleries', async (req, res) => {
   }
 })
 
+// --- Administración de galerías (escrituras protegidas por requireAdmin) ---
+const isHttpsUrl = (value) => typeof value === 'string' && /^https:\/\/\S+$/.test(value.trim())
+
+function pickGalleryFields(body = {}, { partial = false } = {}) {
+  const data = {}
+  if (body.name !== undefined) data.name = String(body.name).trim().slice(0, 200)
+  if (body.date !== undefined) {
+    const d = new Date(body.date)
+    if (!isNaN(d.getTime())) data.date = admin.firestore.Timestamp.fromDate(d)
+  }
+  if (body.publishAt !== undefined) {
+    const d = body.publishAt ? new Date(body.publishAt) : null
+    data.publishAt = d && !isNaN(d.getTime()) ? d.toISOString() : ''
+  }
+  if (!partial) {
+    if (!data.name) return null
+    data.date ??= admin.firestore.Timestamp.now()
+    data.publishAt ??= ''
+  }
+  return data
+}
+
+app.post('/api/firestore/galleries', async (req, res) => {
+  if (!db) return res.json({ success: true, id: 'mock-id' })
+  const data = pickGalleryFields(req.body)
+  if (!data) return res.status(400).json({ error: 'El nombre del álbum es obligatorio' })
+  try {
+    const docRef = await db.collection('galerias').add(data)
+    res.json({ success: true, id: docRef.id })
+  } catch (error) {
+    console.error('Error creating gallery:', error)
+    res.status(500).json({ error: 'Error creating gallery' })
+  }
+})
+
+app.put('/api/firestore/galleries/:id', async (req, res) => {
+  if (!db) return res.json({ success: true })
+  try {
+    await db.collection('galerias').doc(req.params.id).update(pickGalleryFields(req.body, { partial: true }))
+    res.json({ success: true })
+  } catch (error) {
+    console.error('Error updating gallery:', error)
+    res.status(500).json({ error: 'Error updating gallery' })
+  }
+})
+
+app.delete('/api/firestore/galleries/:id', async (req, res) => {
+  if (!db) return res.json({ success: true })
+  try {
+    const ref = db.collection('galerias').doc(req.params.id)
+    const fotos = await ref.collection('fotos').get()
+    const batch = db.batch()
+    fotos.docs.forEach((f) => batch.delete(f.ref))
+    batch.delete(ref)
+    await batch.commit()
+    res.json({ success: true })
+  } catch (error) {
+    console.error('Error deleting gallery:', error)
+    res.status(500).json({ error: 'Error deleting gallery' })
+  }
+})
+
+app.post('/api/firestore/galleries/:id/photos', async (req, res) => {
+  if (!db) return res.json({ success: true, id: 'mock-id' })
+  const { url, title } = req.body ?? {}
+  if (!isHttpsUrl(url)) return res.status(400).json({ error: 'URL (https) obligatoria' })
+  try {
+    const docRef = await db
+      .collection(`galerias/${req.params.id}/fotos`)
+      .add({ url: url.trim(), title: String(title ?? '').trim().slice(0, 300) })
+    res.json({ success: true, id: docRef.id })
+  } catch (error) {
+    console.error('Error adding gallery photo:', error)
+    res.status(500).json({ error: 'Error adding gallery photo' })
+  }
+})
+
+app.put('/api/firestore/galleries/:id/photos/:photoId', async (req, res) => {
+  if (!db) return res.json({ success: true })
+  try {
+    await db
+      .doc(`galerias/${req.params.id}/fotos/${req.params.photoId}`)
+      .update({ title: String(req.body?.title ?? '').trim().slice(0, 300) })
+    res.json({ success: true })
+  } catch (error) {
+    console.error('Error updating gallery photo:', error)
+    res.status(500).json({ error: 'Error updating gallery photo' })
+  }
+})
+
+app.delete('/api/firestore/galleries/:id/photos/:photoId', async (req, res) => {
+  if (!db) return res.json({ success: true })
+  try {
+    await db.doc(`galerias/${req.params.id}/fotos/${req.params.photoId}`).delete()
+    res.json({ success: true })
+  } catch (error) {
+    console.error('Error deleting gallery photo:', error)
+    res.status(500).json({ error: 'Error deleting gallery photo' })
+  }
+})
+
 app.get('/api/firestore/galleries/:galeriaId/images/:imageId/comments', async (req, res) => {
   if (!checkDb(res)) return
   const { galeriaId, imageId } = req.params
@@ -1291,7 +1392,9 @@ app.get('/blog/:id', noStore, async (req, res) => {
     if (db) {
       const blogRef = db.collection('blogs').doc(blogId)
       const doc = await blogRef.get()
-      if (doc.exists) {
+      const publishAt = doc.exists ? new Date(doc.data().publishAt || 0) : null
+      // Un blog programado no debe adelantar su título en la vista previa de WhatsApp/Facebook.
+      if (doc.exists && !(publishAt && publishAt.getTime() > Date.now())) {
         const blogData = doc.data()
 
         // --- CONSTRUCCIÓN DE LA DESCRIPCIÓN ---
