@@ -1,0 +1,43 @@
+@let p = person();
+<div
+  #overlay
+  class="qr-modal-overlay"
+  role="dialog"
+  aria-modal="true"
+  [attr.aria-label]="'Tarjeta digital de ' + p.name"
+  [style.--person-color]="p.color"
+  (click)="$event.target === $event.currentTarget && close()"
+>
+  <div class="qr-modal-card">
+    <button type="button" class="qr-modal-close" (click)="close()" title="Cerrar" aria-label="Cerrar">✖</button>
+
+    <div class="qr-modal-band"></div>
+    <img [src]="p.image" alt="" class="qr-modal-photo" (error)="$any($event.target).src = '/defaultAvatar5.jpg'" />
+    <h3 class="qr-modal-name">{{ p.name }}</h3>
+    <span class="qr-modal-title">{{ specialty(p) }}</span>
+
+    <div class="qr-modal-code">
+      @if (qr()) {
+        <img [src]="qr()" [alt]="'Código QR al perfil de ' + p.name" />
+      } @else {
+        <span class="spinner-border" role="status"></span>
+      }
+    </div>
+    <p class="qr-modal-hint">Escanea con la cámara del celular para ver el perfil</p>
+    <span class="qr-modal-url">{{ displayUrl() }}</span>
+
+    <div class="qr-modal-actions">
+      <button type="button" class="btn-ficha flex-fill" (click)="share.emit()"><i class="fas fa-share-alt"></i> Compartir</button>
+      <button type="button" class="btn-ficha btn-ficha-primary flex-fill" (click)="download.emit()" [disabled]="generating()">
+        @if (generating()) {
+          <span class="spinner-border spinner-border-sm"></span> Generando…
+        } @else {
+          <i class="fas fa-download"></i> Descargar
+        }
+      </button>
+    </div>
+    @if (feedback()) {
+      <p class="qr-modal-feedback">{{ feedback() }}</p>
+    }
+  </div>
+</div>

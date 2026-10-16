@@ -25,6 +25,7 @@
               "browser": ""
             },
             "browser": "src/main.ts",
+            "allowedCommonJsDependencies": ["qrcode", "dijkstrajs"],
             "polyfills": [
               "zone.js"
             ],

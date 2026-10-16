@@ -73,6 +73,12 @@ export const people: any[] = [
     preguntasFrecuentes: [],
     files: [],
     direccion: { iconClass: 'fab fa-maps', link: 'https://maps.app.goo.gl/7orXFmKFWRJSy2Wo9' },
+    // Ficha técnica (perfil tipo Doctoralia). Todos los campos son opcionales; ver core/utils/person-card.ts
+    ficha: {
+      atiende: 'Niñas y niños desde los 45 días de nacidos',
+      horario: 'Guardería: 7:30 am a 5:00 pm',
+      direccion: 'Av. Real del Mezquital #144, Fracc. Real del Mezquital, Durango, Dgo. C.P. 34199',
+    },
   },
   {
     id: 3,
@@ -343,6 +349,10 @@ export const people: any[] = [
     preguntasFrecuentes: [],
     files: [],
     direccion: { iconClass: 'fab fa-maps', link: 'https://g.co/kgs/mLX7Rt6' },
+    ficha: {
+      atiende: 'Niñas, niños y adolescentes',
+      direccion: 'Independencia 335 Sur, Durango, Dgo.',
+    },
   },
   {
     id: 1,
