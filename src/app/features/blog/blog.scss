@@ -45,6 +45,33 @@
   margin-top: 0;
 }
 
+/* Buscador: misma píldora que el botón de filtros. */
+.blog-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: min(460px, 100%);
+  margin: 0 auto 14px;
+  padding: 0 18px;
+  border-radius: 30px;
+  background: var(--dm-surface);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+
+  i {
+    color: var(--dm-text-secondary);
+  }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 11px 0;
+    color: var(--dm-text);
+  }
+}
+
 .btn-toggle-filters {
   background: var(--dm-surface);
   color: var(--dm-text-secondary);

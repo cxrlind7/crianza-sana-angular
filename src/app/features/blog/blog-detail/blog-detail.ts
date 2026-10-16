@@ -98,7 +98,8 @@ export class BlogDetail implements OnInit, OnDestroy {
     if (this.speechSupported) window.speechSynthesis.getVoices();
 
     try {
-      const blogs = await this.api.getCollection<Blog>('blogs');
+      const uno = await this.api.getBlog(this.id);
+      const blogs = uno ? [uno] : [];
       // Los programados solo los ve el admin (sirve como vista previa antes de publicar).
       const email = this.authService.currentUser()?.email;
       const isAdmin = !!email && environment.adminEmails.includes(email);

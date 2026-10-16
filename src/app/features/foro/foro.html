@@ -33,7 +33,7 @@
         <div class="foro-tools">
           <div class="foro-search">
             <i class="fas fa-search"></i>
-            <input type="search" placeholder="Buscar en el foro…" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" aria-label="Buscar en el foro" />
+            <input type="search" placeholder="Buscar en el foro…" [ngModel]="busqueda()" (ngModelChange)="buscar($event)" aria-label="Buscar en el foro" />
           </div>
           <select class="foro-sort" [ngModel]="orden()" (ngModelChange)="orden.set($event)" aria-label="Ordenar">
             <option value="recientes">Más recientes</option>

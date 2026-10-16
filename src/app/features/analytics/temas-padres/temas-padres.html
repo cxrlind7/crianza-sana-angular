@@ -1,0 +1,73 @@
+@if (error()) {
+  <p class="text-danger small">No se pudo cargar esta sección.</p>
+} @else if (datos(); as d) {
+  <div class="row g-4 mb-4">
+    <div class="col-12 col-lg-6">
+      <div class="card-box h-100">
+        <h5><i class="fas fa-magnifying-glass"></i> Lo que escriben en los buscadores</h5>
+        @if (d.busquedas.length) {
+          <table class="table table-sm small mb-0">
+            <thead>
+              <tr>
+                <th>Búsqueda</th>
+                <th class="text-end">Blog</th>
+                <th class="text-end">Foro</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (b of d.busquedas.slice(0, 15); track b.termino) {
+                <tr>
+                  <td>{{ b.termino }}</td>
+                  <td class="text-end">{{ b.blog || '' }}</td>
+                  <td class="text-end">{{ b.foro || '' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <p class="text-muted small mb-0">Aún sin búsquedas. Se empieza a medir con esta versión (buscador del blog y del foro).</p>
+        }
+        <p class="hint">Si algo se busca mucho y no hay blog de eso, es una buena idea para el próximo artículo.</p>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6">
+      <div class="card-box h-100">
+        <h5><i class="fas fa-comments"></i> Preguntas del foro por tema</h5>
+        <app-bar-list [items]="foroBarras()" [empty]="'Todavía no hay preguntas publicadas.'" />
+        @if (d.foro.pendientes) {
+          <p class="hint"><i class="fas fa-hourglass-half me-1"></i>{{ d.foro.pendientes }} pregunta(s) esperan aprobación en <a routerLink="/configuration">Configuración</a>.</p>
+        }
+        @if (d.foro.sinRespuesta.length) {
+          <h6 class="mt-3">Siguen sin respuesta</h6>
+          <ul class="sin-respuesta">
+            @for (h of d.foro.sinRespuesta; track h.id) {
+              <li>
+                <span class="dot" [style.background]="categoriaMeta(h.categoria).color"></span>
+                <a [routerLink]="['/foro', h.id]" target="_blank">{{ h.titulo }}</a>
+              </li>
+            }
+          </ul>
+          <p class="hint">Una respuesta del equipo o de un especialista aquí es contenido muy valioso.</p>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-12 col-md-6">
+      <div class="card-box h-100">
+        <h5><i class="fas fa-calendar-week"></i> ¿Qué días visitan el sitio?</h5>
+        <app-bar-list [items]="d.horario.porDia" [showShare]="true" />
+      </div>
+    </div>
+    <div class="col-12 col-md-6">
+      <div class="card-box h-100">
+        <h5><i class="fas fa-clock"></i> ¿A qué hora?</h5>
+        <app-bar-list [items]="franjas()" [showShare]="true" />
+        <p class="hint">Publicar justo antes de las horas con más visitas ayuda a que más personas lo vean.</p>
+      </div>
+    </div>
+  </div>
+} @else {
+  <div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div></div>
+}

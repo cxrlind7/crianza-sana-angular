@@ -485,6 +485,18 @@
       </div>
     }
 
+    <!-- ================= ¿QUÉ BUSCAN LOS PADRES? ================= -->
+    <h4 class="block-title"><i class="fas fa-magnifying-glass me-2"></i>¿Qué buscan los padres?</h4>
+    <div class="mb-5">
+      <app-temas-padres [startDate]="rango().start" [endDate]="rango().end" />
+    </div>
+
+    <!-- ================= PANEL POR ESPECIALISTA ================= -->
+    <h4 class="block-title"><i class="fas fa-user-doctor me-2"></i>Panel por especialista</h4>
+    <div class="mb-5">
+      <app-especialista-panel [startDate]="rango().start" [endDate]="rango().end" />
+    </div>
+
     <!-- ================= 6. SECCIONES Y ESPECIALISTAS ================= -->
     <h4 class="block-title"><i class="fas fa-sitemap me-2"></i>Secciones y especialistas</h4>
 

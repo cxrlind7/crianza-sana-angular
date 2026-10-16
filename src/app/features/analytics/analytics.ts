@@ -5,6 +5,8 @@ import Chart from 'chart.js/auto';
 import { environment } from '../../../environments/environment';
 import { getActivePeople, isPersonActive } from '../../core/utils/people-visibility';
 import { areNamesEquivalent } from '../../core/utils/string-utils';
+import { EspecialistaPanel } from './especialista-panel/especialista-panel';
+import { TemasPadres } from './temas-padres/temas-padres';
 
 interface BlogStat {
   visits: number;
@@ -123,7 +125,7 @@ const SHARE_LABELS: Record<string, string> = {
 
 @Component({
   selector: 'app-analytics',
-  imports: [FormsModule],
+  imports: [FormsModule, EspecialistaPanel, TemasPadres],
   templateUrl: './analytics.html',
   styleUrl: './analytics.scss',
 })
@@ -149,6 +151,15 @@ export class Analytics implements AfterViewInit, OnDestroy {
   readonly selectedTimeRange = signal('30daysAgo');
   readonly customStartDate = signal('');
   readonly customEndDate = signal('');
+
+  /** Rango para los paneles que cargan sus propios datos (especialista, temas de los padres). */
+  readonly rango = computed(() => {
+    const r = this.selectedTimeRange();
+    if (r !== 'custom') return { start: r, end: 'today' };
+    const start = this.customStartDate();
+    const end = this.customEndDate();
+    return start && end ? { start, end } : { start: '30daysAgo', end: 'today' };
+  });
   readonly selectedPersonId = signal('');
 
   readonly sortColumn = signal<BlogSortColumn>('visits');
@@ -410,7 +421,7 @@ export class Analytics implements AfterViewInit, OnDestroy {
 
   private async fetchFirestoreMetadata(): Promise<void> {
     try {
-      const res = await fetch(`${API_BASE}/firestore/blogs`);
+      const res = await fetch(`${API_BASE}/firestore/blogs-resumen`);
       const blogs = (await res.json()) as { id: string; title: string; category?: string; authorName?: string }[];
       const pathToTitle: Record<string, string> = {};
       const pathToCategory: Record<string, string> = {};

@@ -12,6 +12,7 @@ import {
 } from '../../core/services/foro.service';
 import { ForoComposer } from './foro-composer/foro-composer';
 import { haceCuanto, iniciales } from './foro-utils';
+import { trackSearch } from '../../core/utils/tracking';
 
 type Orden = 'recientes' | 'respondidos' | 'sin-respuesta';
 
@@ -97,6 +98,11 @@ export class Foro implements OnInit {
     } catch {
       this.misPublicaciones.set([]);
     }
+  }
+
+  buscar(texto: string): void {
+    this.busqueda.set(texto);
+    trackSearch(texto, 'foro');
   }
 
   toggleCategoria(key: ForoCategoria): void {

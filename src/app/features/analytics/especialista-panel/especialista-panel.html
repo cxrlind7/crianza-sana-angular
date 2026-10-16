@@ -1,0 +1,198 @@
+<div class="esp-panel" [style.--c]="persona()?.color || '#2a78d6'">
+  <p class="panel-note">
+    <i class="fas fa-user-lock me-1"></i>
+    Cada especialista ve solo sus números; no se comparan entre sí.
+  </p>
+
+  <div class="persona-picker" role="tablist" aria-label="Elegir especialista">
+    @for (p of personas(); track p.id) {
+      <button type="button" role="tab" class="persona-chip" [class.active]="seleccion() === p.id" [style.--pc]="p.color" (click)="seleccion.set(p.id)" [attr.aria-selected]="seleccion() === p.id">
+        <img [src]="p.image" alt="" (error)="$any($event.target).src = '/defaultAvatar5.jpg'" />
+        {{ p.name.split(' ')[0] === 'LTS.' ? p.name.split(' ')[1] : p.name.split(' ')[0] }}
+      </button>
+    }
+  </div>
+
+  @if (cargando() && !datos()) {
+    <div class="panel-loading"><div class="spinner-border" role="status"></div></div>
+  } @else if (error()) {
+    <p class="text-danger small">No se pudieron cargar los datos de este especialista.</p>
+  } @else if (datos(); as d) {
+    <div [class.refreshing]="cargando()">
+      <!-- KPIs -->
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+          <div class="kpi">
+            <span class="kpi-label"><i class="fas fa-id-badge"></i> Visitas a su perfil</span>
+            <strong>{{ d.perfil.visitas | number }}</strong>
+            <small>
+              @if (d.perfil.delta !== null) {
+                <span [class]="d.perfil.delta >= 0 ? 'up' : 'down'">{{ d.perfil.delta >= 0 ? '▲' : '▼' }} {{ d.perfil.delta >= 0 ? d.perfil.delta : -d.perfil.delta }}%</span> ·
+              }
+              {{ d.perfil.personas | number }} personas
+            </small>
+          </div>
+        </div>
+        <div class="col-6 col-lg-3">
+          <div class="kpi">
+            <span class="kpi-label"><i class="fab fa-whatsapp"></i> Le escribieron</span>
+            <strong>{{ d.whatsapp.clics | number }}</strong>
+            <small>
+              @if (d.whatsapp.delta !== null) {
+                <span [class]="d.whatsapp.delta >= 0 ? 'up' : 'down'">{{ d.whatsapp.delta >= 0 ? '▲' : '▼' }} {{ d.whatsapp.delta >= 0 ? d.whatsapp.delta : -d.whatsapp.delta }}%</span> ·
+              }
+              clics a su WhatsApp
+            </small>
+          </div>
+        </div>
+        <div class="col-6 col-lg-3">
+          <div class="kpi">
+            <span class="kpi-label"><i class="fas fa-filter"></i> Conversión</span>
+            <strong>{{ d.whatsapp.conversion !== null ? (d.whatsapp.conversion | number: '1.0-1') + '%' : '—' }}</strong>
+            <small>de las visitas terminan en WhatsApp</small>
+          </div>
+        </div>
+        <div class="col-6 col-lg-3">
+          <div class="kpi">
+            <span class="kpi-label"><i class="fas fa-address-card"></i> Tarjeta digital</span>
+            <strong>{{ tarjetaTotal() | number }}</strong>
+            <small>{{ d.tarjeta.tarjetas }} descargas · {{ d.tarjeta.contactos }} contactos · {{ d.tarjeta.visitasQr }} por QR</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4 mb-4">
+        <!-- Embudo -->
+        <div class="col-12 col-lg-5">
+          <div class="card-box h-100">
+            <h5><i class="fas fa-route"></i> Del perfil al WhatsApp</h5>
+            <div class="funnel">
+              <div class="funnel-step" style="width: 100%">
+                <span>{{ d.perfil.visitas | number }}</span> vieron su perfil
+              </div>
+              <div class="funnel-step second" [style.width.%]="d.perfil.visitas ? Math.max(18, (d.whatsapp.clics / d.perfil.visitas) * 100) : 18">
+                <span>{{ d.whatsapp.clics | number }}</span> le escribieron
+              </div>
+            </div>
+            @if (resumen().length) {
+              <ul class="resumen">
+                @for (r of resumen(); track r) {
+                  <li><i class="fas fa-lightbulb"></i> {{ r }}</li>
+                }
+              </ul>
+            }
+          </div>
+        </div>
+        <!-- Tendencia -->
+        <div class="col-12 col-lg-7">
+          <div class="card-box h-100">
+            <h5><i class="fas fa-chart-column"></i> Visitas a su perfil por día</h5>
+            @if (d.diario.length) {
+              <div class="spark" role="img" [attr.aria-label]="'Visitas por día, máximo ' + diarioMax()">
+                @for (dia of d.diario; track dia.date) {
+                  <div class="spark-bar" [style.height.%]="(dia.visitas / diarioMax()) * 100" [title]="fechaCorta(dia.date) + ': ' + dia.visitas + ' visitas'"></div>
+                }
+              </div>
+              <div class="spark-axis">
+                <span>{{ fechaCorta(d.diario[0].date) }}</span>
+                <span>{{ fechaCorta(d.diario[d.diario.length - 1].date) }}</span>
+              </div>
+            } @else {
+              <p class="text-muted small mb-0">Aún sin visitas en este periodo.</p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4 mb-4">
+        <div class="col-12 col-lg-6">
+          <div class="card-box h-100">
+            <h5><i class="fab fa-whatsapp"></i> ¿Desde dónde le escriben?</h5>
+            <app-bar-list [items]="d.whatsapp.porOrigen" [color]="'#25d366'" [showShare]="true" [empty]="d.persona.tieneWhatsapp ? 'Aún sin clics a su WhatsApp en este periodo.' : 'No tiene WhatsApp registrado.'" />
+          </div>
+        </div>
+        <div class="col-12 col-lg-6">
+          <div class="card-box h-100">
+            <h5><i class="fas fa-signs-post"></i> ¿De dónde llegan a su perfil?</h5>
+            <app-bar-list [items]="d.origen" [color]="persona()?.color || '#2a78d6'" [showShare]="true" />
+            <p class="hint">Comparte tu perfil con el botón "Compartir" o tu tarjeta con QR: esas visitas se cuentan aparte.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contenido -->
+      <div class="row g-4 mb-4">
+        <div class="col-12 col-xl-8">
+          <div class="card-box h-100">
+            <h5><i class="fas fa-book-open"></i> Sus blogs</h5>
+            @if (d.blogs.length) {
+              <div class="table-responsive">
+                <table class="table table-sm small mb-0 align-middle">
+                  <thead>
+                    <tr>
+                      <th>Blog</th>
+                      <th class="text-end">Visitas</th>
+                      <th class="text-end" title="Llegaron hasta el final">Leído completo</th>
+                      <th class="text-end">Tiempo prom.</th>
+                      <th class="text-end">Escuchas</th>
+                      <th class="text-end">Compartido</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (b of d.blogs.slice(0, 10); track b.id) {
+                      <tr>
+                        <td class="blog-title"><a [href]="'/blog/' + b.id" target="_blank" rel="noopener">{{ b.title.split('\n')[0] }}</a></td>
+                        <td class="text-end fw-bold">{{ b.visitas }}</td>
+                        <td class="text-end">{{ b.visitas ? b.lecturaCompleta + '%' : '—' }}</td>
+                        <td class="text-end">{{ segundos(b.tiempoPromedio) }}</td>
+                        <td class="text-end">{{ b.escuchas }}</td>
+                        <td class="text-end">{{ b.compartidos }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+              @if (d.blogs.length > 10) {
+                <p class="hint">Mostrando los 10 más leídos de {{ d.blogs.length }}.</p>
+              }
+            } @else {
+              <p class="text-muted small mb-0">Todavía no tiene blogs publicados.</p>
+            }
+          </div>
+        </div>
+        <div class="col-12 col-xl-4">
+          <div class="card-box h-100">
+            <h5><i class="fas fa-circle-play"></i> Sus videos</h5>
+            <app-bar-list
+              [items]="videosBarras()"
+              [color]="persona()?.color || '#2a78d6'"
+              [empty]="'Sin reproducciones en su perfil en este periodo.'"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Ubicación y horario -->
+      <div class="row g-4">
+        <div class="col-12 col-lg-4">
+          <div class="card-box h-100">
+            <h5><i class="fas fa-location-dot"></i> ¿Desde qué ciudades?</h5>
+            <app-bar-list [items]="d.ciudades" [color]="persona()?.color || '#2a78d6'" [showShare]="true" />
+          </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="card-box h-100">
+            <h5><i class="fas fa-calendar-week"></i> ¿Qué días lo visitan?</h5>
+            <app-bar-list [items]="d.horario.porDia" [color]="persona()?.color || '#2a78d6'" />
+          </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="card-box h-100">
+            <h5><i class="fas fa-clock"></i> ¿A qué hora?</h5>
+            <app-bar-list [items]="franjas()" [color]="persona()?.color || '#2a78d6'" [showShare]="true" />
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

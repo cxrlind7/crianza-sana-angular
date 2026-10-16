@@ -231,6 +231,24 @@ export class ApiService {
     }
   }
 
+  /** Blogs sin el texto completo: para listas, tarjetas y la mascota (mucho más ligero). */
+  getBlogList<T = Blog>(): Promise<T[]> {
+    return firstValueFrom(
+      this.http.get<T[]>(`${this.baseUrl}/api/firestore/collection/blogs`, {
+        params: { orderField: 'orden', orderDirection: 'asc', sinTexto: '1' },
+      }),
+    );
+  }
+
+  /** Un solo blog con su texto completo (página del artículo). */
+  async getBlog(id: string): Promise<Blog | null> {
+    try {
+      return await firstValueFrom(this.http.get<Blog>(`${this.baseUrl}/api/firestore/blogs/${id}`));
+    } catch {
+      return null;
+    }
+  }
+
   async getBlogs(): Promise<Blog[]> {
     try {
       return await firstValueFrom(this.http.get<Blog[]>(`${this.baseUrl}/api/firestore/blogs`));
@@ -311,6 +329,17 @@ export class ApiService {
       return true;
     } catch (error) {
       console.error(`❌ Error actualizando blog ${blogId}:`, error);
+      return false;
+    }
+  }
+
+  /** Borra el blog y sus comentarios. */
+  async deleteBlog(blogId: string): Promise<boolean> {
+    try {
+      await firstValueFrom(this.http.delete(`${this.baseUrl}/api/firestore/blogs/${blogId}`));
+      return true;
+    } catch (error) {
+      console.error(`❌ Error eliminando blog ${blogId}:`, error);
       return false;
     }
   }

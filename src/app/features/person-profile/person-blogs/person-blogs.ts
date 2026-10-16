@@ -38,7 +38,7 @@ export class PersonBlogs implements OnInit, AfterViewInit {
 
   async ngOnInit(): Promise<void> {
     try {
-      const data = filterPublished(await this.api.getCollection<Blog>('blogs'));
+      const data = filterPublished(await this.api.getBlogList<Blog>());
       const sorted = [...data].sort((a, b) => {
         const dateA = this.parseTimestamp(a.date as unknown as FirestoreTimestamp | string);
         const dateB = this.parseTimestamp(b.date as unknown as FirestoreTimestamp | string);

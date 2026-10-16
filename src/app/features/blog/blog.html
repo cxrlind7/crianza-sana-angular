@@ -18,6 +18,11 @@
       Nuestro Blog
     </h3>
 
+    <div class="blog-search fade-in delay-1">
+      <i class="fas fa-search"></i>
+      <input type="search" placeholder="Buscar: sueño, berrinches, lenguaje…" [ngModel]="busqueda()" (ngModelChange)="buscar($event)" aria-label="Buscar en el blog" />
+    </div>
+
     <button class="btn-toggle-filters fade-in delay-1" (click)="showFilters.set(!showFilters())">
       <i class="fas fa-sliders-h me-2"></i>
       {{ showFilters() ? 'Ocultar Filtros' : 'Filtrar y Ordenar' }}

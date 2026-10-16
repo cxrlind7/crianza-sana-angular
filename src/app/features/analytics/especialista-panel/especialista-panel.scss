@@ -1,0 +1,227 @@
+// Mismas tarjetas que el resto de analytics (variables --card-bg, --radius-lg, --shadow-sm de la página).
+.panel-note {
+  font-size: 0.82rem;
+  color: var(--dm-text-secondary);
+  margin-bottom: 12px;
+}
+
+.persona-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.persona-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 14px 4px 4px;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background: var(--card-bg, var(--dm-surface));
+  color: var(--dm-text);
+  font-weight: 600;
+  font-size: 0.88rem;
+  box-shadow: var(--shadow-sm, 0 2px 6px rgba(0, 0, 0, 0.06));
+  transition: all 0.2s ease;
+
+  img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: top;
+  }
+
+  &:hover {
+    border-color: var(--pc);
+  }
+
+  &.active {
+    border-color: var(--pc);
+    background: color-mix(in srgb, var(--pc) 14%, var(--dm-surface));
+  }
+}
+
+.panel-loading {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+  color: var(--c);
+}
+
+.refreshing {
+  opacity: 0.55;
+  transition: opacity 0.2s;
+}
+
+.kpi {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 16px 18px;
+  border-radius: var(--radius-lg, 16px);
+  background: var(--card-bg, var(--dm-surface));
+  box-shadow: var(--shadow-sm, 0 2px 6px rgba(0, 0, 0, 0.06));
+  border-top: 4px solid var(--c);
+
+  strong {
+    font-size: 1.7rem;
+    font-weight: 800;
+    color: var(--dm-text);
+    line-height: 1.2;
+  }
+
+  small {
+    font-size: 0.76rem;
+    color: var(--dm-text-secondary);
+  }
+
+  .up {
+    color: #16a34a;
+    font-weight: 700;
+  }
+
+  .down {
+    color: #dc2626;
+    font-weight: 700;
+  }
+}
+
+.kpi-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--dm-text-secondary);
+
+  i {
+    color: var(--c);
+    margin-right: 4px;
+  }
+}
+
+.card-box {
+  padding: 20px;
+  border-radius: var(--radius-lg, 16px);
+  background: var(--card-bg, var(--dm-surface));
+  box-shadow: var(--shadow-sm, 0 2px 6px rgba(0, 0, 0, 0.06));
+
+  h5 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--dm-text);
+    margin-bottom: 16px;
+
+    i {
+      color: var(--c);
+      margin-right: 6px;
+    }
+  }
+}
+
+.hint {
+  margin: 12px 0 0;
+  font-size: 0.76rem;
+  color: var(--dm-text-secondary);
+}
+
+/* Embudo: dos barras, la segunda proporcional a la conversión. */
+.funnel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.funnel-step {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--c);
+  color: #fff;
+  font-size: 0.85rem;
+  text-align: center;
+  white-space: nowrap;
+
+  span {
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin-right: 4px;
+  }
+
+  &.second {
+    background: #25d366;
+    min-width: fit-content;
+  }
+}
+
+.resumen {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  li {
+    display: flex;
+    gap: 8px;
+    font-size: 0.86rem;
+    color: var(--dm-text);
+    line-height: 1.45;
+  }
+
+  i {
+    color: #f59e0b;
+    margin-top: 3px;
+  }
+}
+
+/* Mini gráfica de barras por día (sin Chart.js). */
+.spark {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 160px;
+  padding-top: 8px;
+  border-bottom: 1px solid var(--dm-border);
+}
+
+.spark-bar {
+  flex: 1;
+  min-height: 2px;
+  border-radius: 3px 3px 0 0;
+  background: var(--c);
+  opacity: 0.85;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.spark-axis {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--dm-text-secondary);
+  margin-top: 4px;
+}
+
+.blog-title {
+  max-width: 280px;
+
+  a {
+    display: block;
+    color: var(--dm-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.table {
+  --bs-table-bg: transparent;
+  color: var(--dm-text);
+}
