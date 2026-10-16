@@ -1,0 +1,253 @@
+<div class="cal">
+  <!-- ENCABEZADO -->
+  <div class="cal-toolbar">
+    <div class="cal-nav">
+      <button type="button" class="cal-icon-btn" (click)="move(-1)" title="Mes anterior" aria-label="Mes anterior"><i class="bi bi-chevron-left"></i></button>
+      <h2 class="cal-month">{{ monthLabel() }}</h2>
+      <button type="button" class="cal-icon-btn" (click)="move(1)" title="Mes siguiente" aria-label="Mes siguiente"><i class="bi bi-chevron-right"></i></button>
+      <button type="button" class="cal-today-btn" (click)="goToday()">Hoy</button>
+    </div>
+
+    <div class="cal-toolbar-right">
+      <div class="cal-segment" role="group" aria-label="Vista">
+        <button type="button" [class.active]="view() === 'mes'" (click)="view.set('mes')"><i class="bi bi-grid-3x3-gap me-1"></i>Mes</button>
+        <button type="button" [class.active]="view() === 'agenda'" (click)="view.set('agenda')"><i class="bi bi-list-ul me-1"></i>Agenda</button>
+      </div>
+      <div class="dropdown">
+        <button type="button" class="btn btn-primary" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="bi bi-plus-lg me-1"></i>Programar
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+          @for (k of createKinds; track k) {
+            <li>
+              <button type="button" class="dropdown-item d-flex align-items-center gap-2" (click)="createFromToolbar(k)">
+                <i class="bi {{ kindMeta[k].icon }}" [style.color]="kindMeta[k].color"></i>{{ kindMeta[k].label }}
+              </button>
+            </li>
+          }
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESUMEN + FILTROS -->
+  <div class="cal-summary">
+    <span class="cal-stat"><i class="bi bi-clock-history"></i><strong>{{ summary().programados }}</strong> programados</span>
+    <span class="cal-stat"><i class="bi bi-check2-circle"></i><strong>{{ summary().publicados }}</strong> publicados</span>
+    <span class="cal-stat"><i class="bi bi-stars"></i><strong>{{ summary().efemerides }}</strong> efemérides</span>
+  </div>
+
+  <div class="cal-legend" aria-label="Mostrar u ocultar tipos">
+    @for (k of legendKinds; track k) {
+      <button
+        type="button"
+        class="cal-legend-pill"
+        [class.off]="hiddenKinds().has(k)"
+        [style.--kind]="kindMeta[k].color"
+        (click)="toggleKind(k)"
+        [attr.aria-pressed]="!hiddenKinds().has(k)"
+      >
+        <span class="cal-legend-dot" [class.dashed]="k === 'efemeride'"></span>{{ kindMeta[k].label }}
+      </button>
+    }
+  </div>
+
+  @if (failed().length) {
+    <div class="alert alert-warning small py-2">
+      <i class="bi bi-exclamation-triangle me-1"></i>No se pudieron cargar: {{ failed().join(', ') }}.
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="cal-loading"><div class="spinner-border text-primary" role="status"></div><span>Cargando contenido…</span></div>
+  } @else if (view() === 'mes') {
+    <!-- VISTA MES -->
+    <div class="cal-grid">
+      @for (w of weekdays; track w) {
+        <div class="cal-weekday">{{ w }}</div>
+      }
+      @for (day of days(); track day.key) {
+        <div
+          class="cal-day"
+          [class.out]="!day.inMonth"
+          [class.today]="day.isToday"
+          [class.past]="day.isPast"
+          [class.holiday]="!!day.festivo"
+          (click)="openDay(day, $event)"
+        >
+          <div class="cal-day-head">
+            <span class="cal-day-num">{{ day.date.getDate() }}</span>
+            @if (day.festivo; as f) {
+              <button type="button" class="cal-holiday" (click)="openEntry(f, $event)" [title]="f.title">
+                <i class="bi bi-calendar-heart"></i><span>{{ f.title }}</span>
+              </button>
+            }
+            <button type="button" class="cal-add" (click)="openDay(day, $event)" title="Programar en este día" aria-label="Programar en este día">
+              <i class="bi bi-plus"></i>
+            </button>
+          </div>
+
+          <div class="cal-chips">
+            @for (e of day.entries.slice(0, maxChips); track e.key) {
+              <button
+                type="button"
+                class="cal-chip"
+                [class.ref]="e.status === 'referencia'"
+                [class.scheduled]="e.status === 'programado'"
+                [class.inactive]="e.status === 'inactivo'"
+                [style.--kind]="kindMeta[e.kind].color"
+                (click)="openEntry(e, $event)"
+                [title]="kindMeta[e.kind].label + ': ' + e.title"
+              >
+                <i class="bi {{ e.status === 'programado' ? 'bi-clock' : kindMeta[e.kind].icon }}"></i>
+                <span class="cal-chip-text">
+                  @if (e.time) {
+                    <b>{{ e.time }}</b>
+                  }
+                  {{ e.title }}
+                </span>
+              </button>
+            }
+            @if (day.entries.length > maxChips) {
+              <button type="button" class="cal-more" (click)="openDay(day, $event)">+{{ day.entries.length - maxChips }} más</button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <!-- VISTA AGENDA -->
+    @if (agenda().length === 0) {
+      <div class="cal-empty">
+        <i class="bi bi-calendar2-week"></i>
+        <p>No hay nada en {{ monthLabel() }}.</p>
+      </div>
+    }
+    <div class="cal-agenda">
+      @for (day of agenda(); track day.key) {
+        <div class="cal-agenda-day" [class.today]="day.isToday">
+          <div class="cal-agenda-date">
+            <span class="cal-agenda-num">{{ day.date.getDate() }}</span>
+            <span class="cal-agenda-wd">{{ weekdays[(day.date.getDay() + 6) % 7] }}</span>
+          </div>
+          <div class="cal-agenda-items">
+            @if (day.festivo; as f) {
+              <button type="button" class="cal-agenda-item" [style.--kind]="kindMeta[f.kind].color" (click)="openEntry(f, $event)">
+                <i class="bi {{ kindMeta[f.kind].icon }}"></i>
+                <span class="cal-agenda-title">{{ f.title }}</span>
+                <span class="cal-agenda-kind">{{ kindMeta[f.kind].label }}</span>
+              </button>
+            }
+            @for (e of day.entries; track e.key) {
+              <button
+                type="button"
+                class="cal-agenda-item"
+                [class.ref]="e.status === 'referencia'"
+                [style.--kind]="kindMeta[e.kind].color"
+                (click)="openEntry(e, $event)"
+              >
+                <i class="bi {{ kindMeta[e.kind].icon }}"></i>
+                <span class="cal-agenda-title">
+                  @if (e.time) {
+                    <b>{{ e.time }}</b>
+                  }
+                  {{ e.title }}
+                </span>
+                <span class="cal-agenda-kind">
+                  @if (e.status === 'programado') {
+                    <i class="bi bi-clock me-1"></i>
+                  }
+                  {{ kindMeta[e.kind].label }}
+                </span>
+              </button>
+            }
+            <button type="button" class="cal-agenda-add" (click)="openDay(day, $event)"><i class="bi bi-plus"></i> Programar</button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- VENTANA FLOTANTE -->
+@if (popover(); as pop) {
+  <div class="cal-pop" [style.top.px]="pop.top" [style.left.px]="pop.left" (click)="$event.stopPropagation()" role="dialog">
+    @if (pop.mode === 'entry' && pop.entry; as e) {
+      <div class="cal-pop-band" [style.--kind]="kindMeta[e.kind].color">
+        <span class="cal-pop-kind"><i class="bi {{ kindMeta[e.kind].icon }}"></i>{{ kindMeta[e.kind].label }}</span>
+        <button type="button" class="cal-pop-close" (click)="closePopover()" aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="cal-pop-body">
+        @if (e.image) {
+          <img [src]="e.image" alt="" class="cal-pop-img" loading="lazy" (error)="$any($event.target).style.display = 'none'" />
+        }
+        <h3 class="cal-pop-title">{{ e.title }}</h3>
+        <span class="cal-pop-status" [class]="'cal-pop-status st-' + e.status">
+          <i class="bi {{ e.status === 'programado' ? 'bi-clock' : e.status === 'inactivo' ? 'bi-pause-circle' : e.status === 'referencia' ? 'bi-calendar-event' : 'bi-check-circle' }}"></i>
+          {{ statusLabel(e) }}
+        </span>
+        @if (e.subtitle) {
+          <p class="cal-pop-sub">{{ e.subtitle }}</p>
+        }
+        @if (e.description) {
+          <p class="cal-pop-desc">{{ e.description.length > 220 ? e.description.slice(0, 220) + '…' : e.description }}</p>
+        }
+        @if (e.efemeride?.afines?.length) {
+          <div class="cal-pop-afines">
+            <span>Especialistas afines</span>
+            <div>
+              @for (name of e.efemeride!.afines; track name) {
+                <span class="cal-pop-tag">{{ name }}</span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+      @if (isEditable(e) || (e.link && e.status === 'publicado')) {
+        <div class="cal-pop-actions">
+          @if (e.link && e.status === 'publicado') {
+            <a class="btn btn-outline-secondary btn-sm" [href]="e.link" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right me-1"></i>Ver en el sitio</a>
+          }
+          @if (isEditable(e)) {
+            <button type="button" class="btn btn-primary btn-sm" (click)="requestEdit(e)"><i class="bi bi-pencil me-1"></i>{{ editLabel(e) }}</button>
+          }
+        </div>
+      }
+    } @else if (pop.mode === 'day' && pop.day; as day) {
+      <div class="cal-pop-band day">
+        <span class="cal-pop-kind"><i class="bi bi-calendar3"></i>{{ dayTitle(day) }}</span>
+        <button type="button" class="cal-pop-close" (click)="closePopover()" aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="cal-pop-body">
+        @if (day.festivo || day.entries.length) {
+          <div class="cal-pop-list">
+            @if (day.festivo; as f) {
+              <button type="button" class="cal-pop-row" [style.--kind]="kindMeta[f.kind].color" (click)="openEntry(f, $event)">
+                <i class="bi {{ kindMeta[f.kind].icon }}"></i><span>{{ f.title }}</span>
+              </button>
+            }
+            @for (e of day.entries; track e.key) {
+              <button type="button" class="cal-pop-row" [class.ref]="e.status === 'referencia'" [style.--kind]="kindMeta[e.kind].color" (click)="openEntry(e, $event)">
+                <i class="bi {{ e.status === 'programado' ? 'bi-clock' : kindMeta[e.kind].icon }}"></i>
+                <span>
+                  @if (e.time) {
+                    <b>{{ e.time }}</b>
+                  }
+                  {{ e.title }}
+                </span>
+              </button>
+            }
+          </div>
+        }
+        <p class="cal-pop-label">{{ day.isPast ? 'Publicar con esta fecha' : 'Programar para este día' }}</p>
+        <div class="cal-pop-create">
+          @for (k of createKinds; track k) {
+            <button type="button" class="cal-create-btn" [style.--kind]="kindMeta[k].color" (click)="requestCreate(k, day)">
+              <i class="bi {{ kindMeta[k].icon }}"></i>{{ kindMeta[k].label }}
+            </button>
+          }
+        </div>
+      </div>
+    }
+  </div>
+}

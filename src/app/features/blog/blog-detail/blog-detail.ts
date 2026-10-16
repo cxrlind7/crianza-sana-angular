@@ -5,6 +5,8 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import html2canvas from 'html2canvas';
 import { ApiService, Blog, Comment } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { filterPublished } from '../../../core/utils/schedule';
+import { environment } from '../../../../environments/environment';
 import { getImagePerCategory, DEFAULT_AUTHOR_IMAGE } from '../../../core/utils/blog-author-images';
 import { people } from '../../../core/data/people-data';
 import { parseFlexibleDate } from '../../../core/utils/date-utils';
@@ -92,7 +94,11 @@ export class BlogDetail implements OnInit, OnDestroy {
     if (this.speechSupported) window.speechSynthesis.getVoices();
 
     try {
-      this.blogs.set(await this.api.getCollection<Blog>('blogs'));
+      const blogs = await this.api.getCollection<Blog>('blogs');
+      // Los programados solo los ve el admin (sirve como vista previa antes de publicar).
+      const email = this.authService.currentUser()?.email;
+      const isAdmin = !!email && environment.adminEmails.includes(email);
+      this.blogs.set(isAdmin ? blogs : filterPublished(blogs));
     } catch (error) {
       console.error('❌ Error cargando blogs:', error);
     } finally {

@@ -126,6 +126,7 @@ export interface Gallery {
   id: string;
   name: string;
   date?: string | { seconds?: number; _seconds?: number };
+  publishAt?: string;
   images: GalleryImage[];
   [key: string]: unknown;
 }
@@ -436,6 +437,72 @@ export class ApiService {
     } catch (error) {
       console.error('❌ Error obteniendo las galerías del backend:', error);
       throw error;
+    }
+  }
+
+  async createGallery(data: { name: string; date?: string; publishAt?: string }): Promise<string | null> {
+    try {
+      const response = await firstValueFrom(
+        this.http.post<{ id: string }>(`${this.baseUrl}/api/firestore/galleries`, data),
+      );
+      return response.id;
+    } catch (error) {
+      console.error('❌ Error creando álbum:', error);
+      return null;
+    }
+  }
+
+  async updateGallery(id: string, data: { name?: string; date?: string; publishAt?: string }): Promise<boolean> {
+    try {
+      await firstValueFrom(this.http.put(`${this.baseUrl}/api/firestore/galleries/${id}`, data));
+      return true;
+    } catch (error) {
+      console.error(`❌ Error actualizando álbum ${id}:`, error);
+      return false;
+    }
+  }
+
+  async deleteGallery(id: string): Promise<boolean> {
+    try {
+      await firstValueFrom(this.http.delete(`${this.baseUrl}/api/firestore/galleries/${id}`));
+      return true;
+    } catch (error) {
+      console.error(`❌ Error eliminando álbum ${id}:`, error);
+      return false;
+    }
+  }
+
+  async addGalleryPhoto(galleryId: string, data: { url: string; title?: string }): Promise<string | null> {
+    try {
+      const response = await firstValueFrom(
+        this.http.post<{ id: string }>(`${this.baseUrl}/api/firestore/galleries/${galleryId}/photos`, data),
+      );
+      return response.id;
+    } catch (error) {
+      console.error('❌ Error agregando foto:', error);
+      return null;
+    }
+  }
+
+  async updateGalleryPhoto(galleryId: string, photoId: string, title: string): Promise<boolean> {
+    try {
+      await firstValueFrom(
+        this.http.put(`${this.baseUrl}/api/firestore/galleries/${galleryId}/photos/${photoId}`, { title }),
+      );
+      return true;
+    } catch (error) {
+      console.error(`❌ Error actualizando foto ${photoId}:`, error);
+      return false;
+    }
+  }
+
+  async deleteGalleryPhoto(galleryId: string, photoId: string): Promise<boolean> {
+    try {
+      await firstValueFrom(this.http.delete(`${this.baseUrl}/api/firestore/galleries/${galleryId}/photos/${photoId}`));
+      return true;
+    } catch (error) {
+      console.error(`❌ Error eliminando foto ${photoId}:`, error);
+      return false;
     }
   }
 

@@ -17,9 +17,22 @@ import { AuthService } from '../../core/services/auth.service';
 import { AwsService } from '../../core/services/aws.service';
 import { activePeople } from '../../core/utils/people-visibility';
 import { PersonVideosAdmin } from './person-videos-admin/person-videos-admin';
+import { CalendarCreateKind, CalendarEntry, ContentCalendar } from './content-calendar/content-calendar';
+import { GalleryAdmin, GalleryFocus } from './gallery-admin/gallery-admin';
 import { environment } from '../../../environments/environment';
 import { parseFlexibleDate, toDateInputValue, toSortableTime } from '../../core/utils/date-utils';
-type CollectionKey = 'ad' | 'banner' | 'blogs' | 'campana' | 'eventos' | 'programas' | 'temas' | 'suscriptores' | 'videos';
+type CollectionKey =
+  | 'calendario'
+  | 'ad'
+  | 'banner'
+  | 'blogs'
+  | 'campana'
+  | 'eventos'
+  | 'programas'
+  | 'galerias'
+  | 'temas'
+  | 'suscriptores'
+  | 'videos';
 type ModalType = 'blog' | 'ad' | 'banner' | 'evento' | 'video' | '';
 
 interface CollectionMeta {
@@ -37,12 +50,14 @@ interface TemasData {
 }
 
 const COLLECTIONS: CollectionMeta[] = [
+  { key: 'calendario', label: 'Calendario', icon: '🗓️' },
   { key: 'ad', label: 'Anuncios', icon: '📢' },
   { key: 'banner', label: 'Banners', icon: '🖼️' },
   { key: 'blogs', label: 'Blogs', icon: '✍️' },
   { key: 'campana', label: 'Campañas', icon: '📣' },
   { key: 'eventos', label: 'Eventos', icon: '📅' },
   { key: 'programas', label: 'Programas', icon: '🎬' },
+  { key: 'galerias', label: 'Galerías', icon: '📸' },
   { key: 'videos', label: 'Videos de especialistas', icon: '🎥' },
   { key: 'temas', label: 'Temas', icon: '🎨' },
   { key: 'suscriptores', label: 'Suscriptores', icon: '📧' },
@@ -61,7 +76,7 @@ type ModalData = Record<string, any>;
 
 @Component({
   selector: 'app-configuration',
-  imports: [FormsModule, RouterLink, DatePipe, PersonVideosAdmin],
+  imports: [FormsModule, RouterLink, DatePipe, PersonVideosAdmin, ContentCalendar, GalleryAdmin],
   templateUrl: './configuration.html',
   styleUrl: './configuration.scss',
 })
@@ -79,7 +94,11 @@ export class Configuration {
   readonly collections = COLLECTIONS;
   readonly allPeople = activePeople as { id: number; name: string; image: string }[];
 
-  readonly currentCollection = signal<CollectionKey>('blogs');
+  readonly currentCollection = signal<CollectionKey>('calendario');
+
+  /** Se incrementa al guardar algo para que el calendario se recargue. */
+  readonly calendarRefresh = signal(0);
+  readonly galleryFocus = signal<GalleryFocus | null>(null);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly isSaving = signal(false);
@@ -516,6 +535,7 @@ export class Configuration {
     this.modalType.set(type);
     const data: ModalData = { ...item };
     if (type === 'video') data['date'] = toDateInputValue(data['date']);
+    if (type === 'blog') data['dateInput'] = toDateInputValue(data['date']);
     if (type === 'evento' && !data['active']) data['active'] = 'true';
     if (data['publishAt']) {
       data['publishAt'] = this.formatDateTimeForInput(data['publishAt']);
@@ -745,6 +765,7 @@ export class Configuration {
     }
 
     if (newId) {
+      this.calendarRefresh.update((n) => n + 1);
       alert(`${this.modalTypeLabel()} creado correctamente`);
       this.closeModal();
     } else {
@@ -759,7 +780,12 @@ export class Configuration {
     const id = data['id'];
     let ok = false;
 
-    if (type === 'ad') {
+    if (type === 'blog') {
+      const { dateInput, ...blog } = data;
+      blog['date'] = (parseFlexibleDate(dateInput) ?? parseFlexibleDate(blog['date']) ?? new Date()).toISOString();
+      ok = await this.api.updateBlog(id, blog as Blog);
+      if (ok) this.blogs.update((list) => list.map((b) => (b.id === id ? { ...(blog as Blog) } : b)));
+    } else if (type === 'ad') {
       ok = await this.api.updateAd(id, data);
       if (ok) this.ads.update((list) => list.map((a) => (a.id === id ? { ...(data as Ad) } : a)));
     } else if (type === 'banner') {
@@ -774,10 +800,60 @@ export class Configuration {
     }
 
     if (ok) {
+      this.calendarRefresh.update((n) => n + 1);
       alert(`${this.modalTypeLabel()} actualizado correctamente`);
       this.closeModal();
     } else {
       alert(`Error al actualizar ${this.modalTypeLabel()}`);
+    }
+  }
+
+  // ------------------------------------------------------------------ Calendario
+
+  /** Crear desde un día del calendario: abre el formulario de siempre con la fecha puesta. */
+  onCalendarCreate({ kind, date }: { kind: CalendarCreateKind; date: string }): void {
+    if (kind === 'galeria') {
+      this.galleryFocus.set({ createDate: date, nonce: Date.now() });
+      this.currentCollection.set('galerias');
+      return;
+    }
+    const type: ModalType = kind === 'programa' ? 'video' : kind === 'anuncio' ? 'ad' : kind;
+    this.openCreateModal(type);
+    // Un día futuro queda programado a las 9:00; hoy o un día pasado se publica de inmediato con esa fecha.
+    const isFuture = date > toDateInputValue(new Date());
+    const patch: ModalData = { publishAt: isFuture ? `${date}T09:00` : '' };
+    if (type === 'blog') patch['dateInput'] = date;
+    if (type === 'video') patch['date'] = date;
+    this.modalData.update((d) => ({ ...d, ...patch }));
+  }
+
+  onCalendarEdit(entry: CalendarEntry): void {
+    switch (entry.kind) {
+      case 'blog':
+        this.openEditModal('blog', entry.item);
+        break;
+      case 'programa':
+        this.openEditModal('video', entry.item);
+        break;
+      case 'evento':
+        this.openEditModal('evento', entry.item);
+        break;
+      case 'banner':
+        this.openEditModal('banner', entry.item);
+        break;
+      case 'anuncio':
+        this.openEditModal('ad', entry.item);
+        break;
+      case 'galeria':
+        this.galleryFocus.set({ albumId: entry.item.id, nonce: Date.now() });
+        this.currentCollection.set('galerias');
+        break;
+      case 'campana':
+        this.switchCollection('campana');
+        break;
+      case 'envivo':
+        this.switchCollection('temas');
+        break;
     }
   }
 

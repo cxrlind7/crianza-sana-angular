@@ -2,6 +2,7 @@ import { AfterViewInit, CUSTOM_ELEMENTS_SCHEMA, Component, ElementRef, Input, On
 import { Router } from '@angular/router';
 import type { SwiperOptions } from 'swiper/types';
 import { ApiService, Blog } from '../../../core/services/api.service';
+import { filterPublished } from '../../../core/utils/schedule';
 import { areNamesEquivalent } from '../../../core/utils/string-utils';
 import { parseFlexibleDate } from '../../../core/utils/date-utils';
 
@@ -37,7 +38,7 @@ export class PersonBlogs implements OnInit, AfterViewInit {
 
   async ngOnInit(): Promise<void> {
     try {
-      const data = await this.api.getCollection<Blog>('blogs');
+      const data = filterPublished(await this.api.getCollection<Blog>('blogs'));
       const sorted = [...data].sort((a, b) => {
         const dateA = this.parseTimestamp(a.date as unknown as FirestoreTimestamp | string);
         const dateB = this.parseTimestamp(b.date as unknown as FirestoreTimestamp | string);
