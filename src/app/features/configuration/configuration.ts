@@ -21,6 +21,7 @@ import { CalendarCreateKind, CalendarEntry, ContentCalendar } from './content-ca
 import { GalleryAdmin, GalleryFocus } from './gallery-admin/gallery-admin';
 import { ForoAdmin } from './foro-admin/foro-admin';
 import { EspecialistasAdmin } from './especialistas-admin/especialistas-admin';
+import { ConfigTutorial, TutorialHost } from './tutorial/config-tutorial';
 import { ForoService } from '../../core/services/foro.service';
 import { environment } from '../../../environments/environment';
 import { parseFlexibleDate, toDateInputValue, toSortableTime } from '../../core/utils/date-utils';
@@ -83,7 +84,7 @@ type ModalData = Record<string, any>;
 
 @Component({
   selector: 'app-configuration',
-  imports: [FormsModule, RouterLink, DatePipe, PersonVideosAdmin, ContentCalendar, GalleryAdmin, ForoAdmin, EspecialistasAdmin],
+  imports: [FormsModule, RouterLink, DatePipe, PersonVideosAdmin, ContentCalendar, GalleryAdmin, ForoAdmin, EspecialistasAdmin, ConfigTutorial],
   templateUrl: './configuration.html',
   styleUrl: './configuration.scss',
 })
@@ -109,6 +110,13 @@ export class Configuration {
   /** Se incrementa al guardar algo para que el calendario se recargue. */
   readonly calendarRefresh = signal(0);
   readonly galleryFocus = signal<GalleryFocus | null>(null);
+  /** Lo que el tutorial puede hacer en la página para preparar cada paso (nunca guarda). */
+  readonly tutorialHost: TutorialHost = {
+    irA: (seccion) => this.switchCollection(seccion),
+    abrirFormulario: (tipo) => this.openCreateModal(tipo),
+    cerrarFormulario: () => this.closeModal(),
+  };
+
   /** Mensajes del foro esperando aprobación (contador del menú). */
   readonly foroPendientes = signal(0);
   readonly loading = signal(false);
