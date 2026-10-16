@@ -19,6 +19,46 @@ const analyticsDataClient = credentials
       },
     }
 
+/*
+ * GA4 limita las consultas simultáneas por propiedad (error RESOURCE_EXHAUSTED: "Exhausted concurrent
+ * requests quota"). El panel de analytics dispara decenas a la vez, así que todas pasan por esta fila:
+ * máximo MAX_SIMULTANEAS corriendo, y si Google aún pide bajar el ritmo, se reintenta con espera.
+ */
+const MAX_SIMULTANEAS = 6
+let corriendo = 0
+const enEspera = []
+
+function turno() {
+  if (corriendo < MAX_SIMULTANEAS) {
+    corriendo++
+    return Promise.resolve()
+  }
+  return new Promise((resolve) => enEspera.push(resolve))
+}
+
+function liberar() {
+  const siguiente = enEspera.shift()
+  if (siguiente) siguiente()
+  else corriendo--
+}
+
+const esCuotaSimultanea = (error) => error?.code === 8 || /RESOURCE_EXHAUSTED|concurrent requests/i.test(error?.message || '')
+
+const runReportOriginal = analyticsDataClient.runReport.bind(analyticsDataClient)
+analyticsDataClient.runReport = async (...args) => {
+  for (let intento = 0; ; intento++) {
+    await turno()
+    try {
+      return await runReportOriginal(...args)
+    } catch (error) {
+      if (!esCuotaSimultanea(error) || intento >= 3) throw error
+    } finally {
+      liberar()
+    }
+    await new Promise((r) => setTimeout(r, 400 * (intento + 1)))
+  }
+}
+
 const PROPERTY_ID = '483239794'
 
 export async function getBlogPageViews(startDate = '30daysAgo', endDate = 'today') {
