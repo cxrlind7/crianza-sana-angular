@@ -1,6 +1,6 @@
-import { Component, OnDestroy, signal } from '@angular/core';
+import { Component, OnDestroy, computed, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { isPersonActive } from '../../../core/utils/people-visibility';
+import { getActivePeople } from '../../../core/utils/people-visibility';
 
 interface TeamMember {
   id: number;
@@ -10,16 +10,7 @@ interface TeamMember {
   color: string;
 }
 
-const TEAM: TeamMember[] = ([
-  { id: 2, name: 'Carina', src: '/CarinaNoviembre1.jpeg', specialty: 'Terapéuta cognitivo conductual', color: '#FF4DA3' },
-  { id: 4, name: 'Patricia', src: '/PatyNoviembre1.jpeg', specialty: 'Odontopediatra', color: '#E70885' },
-  { id: 6, name: 'Luis', src: '/LuisNoviembre1.jpeg', specialty: 'Psicólogo Infanto-Juvenil', color: '#1A9FAD' },
-  { id: 3, name: 'Andrea', src: '/AndreaNoviembre1.jpeg', specialty: 'Lic. en Nutrición', color: '#7ABB4B' },
-  { id: 1, name: 'Karen', src: '/KarenNoviembre1.jpeg', specialty: 'Lic. en Fisioterapia', color: '#8F0072' },
-  { id: 5, name: 'Miriam', src: '/MiriamNoviembre1.jpeg', specialty: 'Pediatra - Cardióloga pediatra', color: '#1e40af' },
-  { id: 8, name: 'Roberto', src: '/RobertoNoviembre1.jpeg', specialty: 'Lic. en Derecho', color: '#112548' },
-  { id: 9, name: 'Ana Laura', src: '/AnaLauNoviembre1.jpeg', specialty: 'Terapeuta de la Comunicación Humana', color: '#00a6c7' },
-] satisfies TeamMember[]).filter((m) => isPersonActive(m.id));
+
 
 const ROTATIONS = [3, -2, 4, -3, 2, -4, 3, -2];
 
@@ -40,11 +31,21 @@ export function columnasParejas(total: number, maximo: number): number {
   styleUrl: './title.scss',
 })
 export class Title implements OnDestroy {
-  readonly team = TEAM;
-  readonly columnas = signal({
-    lg: columnasParejas(TEAM.length, 5),
-    md: columnasParejas(TEAM.length, 3),
-    sm: columnasParejas(TEAM.length, 3),
+  /** Los que se muestran hoy y tienen foto para el inicio (se elige en Configuración → Especialistas). */
+  readonly team = computed<TeamMember[]>(() =>
+    getActivePeople()
+      .filter((p) => p.inicio?.mostrar && p.inicio.foto)
+      .map((p) => ({
+        id: p.id,
+        name: p.inicio!.nombreCorto || p.name.split(' ')[0],
+        src: p.inicio!.foto,
+        specialty: p.inicio!.especialidad || p.title,
+        color: p.color,
+      })),
+  );
+  readonly columnas = computed(() => {
+    const n = this.team().length;
+    return { lg: columnasParejas(n, 5), md: columnasParejas(n, 3), sm: columnasParejas(n, 3) };
   });
 
   readonly activeIndex = signal(0);
@@ -94,7 +95,7 @@ export class Title implements OnDestroy {
   private startInterval(): void {
     if (this.intervalId) clearInterval(this.intervalId);
     this.intervalId = setInterval(() => {
-      this.activeIndex.set((this.activeIndex() + 1) % TEAM.length);
+      this.activeIndex.set((this.activeIndex() + 1) % Math.max(1, this.team().length));
     }, 2000);
   }
 

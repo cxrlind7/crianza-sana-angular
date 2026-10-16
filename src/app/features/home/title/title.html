@@ -3,7 +3,7 @@
     <h1 class="inserted-title">#ReeducarParaFormar</h1>
     <!-- Filas parejas para cualquier cantidad (5 → 3 + 2, 7 → 4 + 3…): nadie queda solo ni destaca. -->
     <div class="team-grid" [style.--cols]="columnas().lg" [style.--cols-md]="columnas().md" [style.--cols-sm]="columnas().sm">
-      @for (member of team; track member.id; let index = $index) {
+      @for (member of team(); track member.id; let index = $index) {
         <a
           [routerLink]="['/person', member.id]"
           class="polaroid-card"

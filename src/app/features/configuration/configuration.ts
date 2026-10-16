@@ -15,16 +15,18 @@ import {
 } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { AwsService } from '../../core/services/aws.service';
-import { activePeople } from '../../core/utils/people-visibility';
+import { getActivePeople } from '../../core/utils/people-visibility';
 import { PersonVideosAdmin } from './person-videos-admin/person-videos-admin';
 import { CalendarCreateKind, CalendarEntry, ContentCalendar } from './content-calendar/content-calendar';
 import { GalleryAdmin, GalleryFocus } from './gallery-admin/gallery-admin';
 import { ForoAdmin } from './foro-admin/foro-admin';
+import { EspecialistasAdmin } from './especialistas-admin/especialistas-admin';
 import { ForoService } from '../../core/services/foro.service';
 import { environment } from '../../../environments/environment';
 import { parseFlexibleDate, toDateInputValue, toSortableTime } from '../../core/utils/date-utils';
 type CollectionKey =
   | 'calendario'
+  | 'especialistas'
   | 'ad'
   | 'banner'
   | 'blogs'
@@ -54,6 +56,7 @@ interface TemasData {
 
 const COLLECTIONS: CollectionMeta[] = [
   { key: 'calendario', label: 'Calendario', icon: '🗓️' },
+  { key: 'especialistas', label: 'Especialistas', icon: '🩺' },
   { key: 'ad', label: 'Anuncios', icon: '📢' },
   { key: 'banner', label: 'Banners', icon: '🖼️' },
   { key: 'blogs', label: 'Blogs', icon: '✍️' },
@@ -80,7 +83,7 @@ type ModalData = Record<string, any>;
 
 @Component({
   selector: 'app-configuration',
-  imports: [FormsModule, RouterLink, DatePipe, PersonVideosAdmin, ContentCalendar, GalleryAdmin, ForoAdmin],
+  imports: [FormsModule, RouterLink, DatePipe, PersonVideosAdmin, ContentCalendar, GalleryAdmin, ForoAdmin, EspecialistasAdmin],
   templateUrl: './configuration.html',
   styleUrl: './configuration.scss',
 })
@@ -97,7 +100,9 @@ export class Configuration {
 
   readonly currentUser = this.authService.currentUser;
   readonly collections = COLLECTIONS;
-  readonly allPeople = activePeople as { id: number; name: string; image: string }[];
+  get allPeople(): { id: number; name: string; image: string }[] {
+    return getActivePeople();
+  }
 
   readonly currentCollection = signal<CollectionKey>('calendario');
 

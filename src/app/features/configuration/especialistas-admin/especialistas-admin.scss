@@ -1,0 +1,286 @@
+// Mismo acento violeta que el resto del panel de Configuración.
+$accent: #7c3aed;
+
+/* ------------------------------------------------ Lista */
+.esp-filtros {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--dm-surface-2);
+  border: 1px solid var(--dm-border);
+
+  button {
+    border: none;
+    border-radius: 9px;
+    padding: 0.35rem 0.8rem;
+    background: transparent;
+    color: var(--dm-text-secondary);
+    font-size: 0.85rem;
+    font-weight: 600;
+
+    &.active {
+      background: var(--dm-surface);
+      color: $accent;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+  }
+}
+
+.esp-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 10px;
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  border: 1px solid var(--dm-border);
+  border-left: 4px solid var(--c);
+  background: var(--dm-surface);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+  &.apagado .esp-foto {
+    filter: grayscale(0.8);
+    opacity: 0.6;
+  }
+
+  // Oculto o fuera de fechas: los lugares son donde aparecería, no donde aparece hoy.
+  &.apagado .esp-lugares {
+    opacity: 0.45;
+  }
+}
+
+.esp-foto {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: top;
+  border: 2px solid var(--c);
+  flex-shrink: 0;
+}
+
+.esp-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  strong {
+    color: var(--dm-text);
+  }
+}
+
+.esp-title {
+  font-size: 0.86rem;
+  color: var(--dm-text-secondary);
+}
+
+.esp-vig {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: color-mix(in srgb, #d97706 75%, var(--dm-text));
+}
+
+.esp-estado {
+  padding: 1px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+
+  &.ok {
+    background: color-mix(in srgb, #10b981 15%, var(--dm-surface));
+    color: color-mix(in srgb, #059669 75%, var(--dm-text));
+  }
+
+  &.soon {
+    background: color-mix(in srgb, #f59e0b 16%, var(--dm-surface));
+    color: color-mix(in srgb, #b45309 75%, var(--dm-text));
+  }
+
+  &.off {
+    background: var(--dm-surface-2);
+    color: var(--dm-text-secondary);
+  }
+}
+
+.esp-tipo {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--dm-text-secondary);
+
+  &.temporal {
+    color: color-mix(in srgb, #{$accent} 75%, var(--dm-text));
+  }
+}
+
+.esp-lugares {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+
+  span {
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: color-mix(in srgb, #{$accent} 10%, var(--dm-surface));
+    color: color-mix(in srgb, #{$accent} 70%, var(--dm-text));
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+}
+
+.esp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+/* ------------------------------------------------ Formulario */
+.esp-hero {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: 14px;
+  background: linear-gradient(120deg, color-mix(in srgb, var(--c) 18%, var(--dm-surface)), var(--dm-surface));
+  border: 1px solid var(--dm-border);
+
+  img,
+  .esp-hero-ph {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: top;
+    border: 3px solid var(--c);
+  }
+
+  .esp-hero-ph {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.6rem;
+    color: var(--c);
+  }
+
+  h5 {
+    color: var(--dm-text);
+  }
+}
+
+.esp-section {
+  margin-bottom: 1rem;
+  padding: 1.1rem 1.25rem;
+  border-radius: 14px;
+  border: 1px solid var(--dm-border);
+  background: var(--dm-surface);
+
+  h6 {
+    font-weight: 700;
+    color: var(--dm-text);
+    margin-bottom: 0.9rem;
+
+    > i {
+      color: $accent;
+      margin-right: 6px;
+    }
+  }
+}
+
+.tipo-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  height: 100%;
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--dm-border);
+  background: var(--dm-surface);
+  color: var(--dm-text);
+  text-align: left;
+  transition: all 0.15s ease;
+
+  i {
+    color: $accent;
+    font-size: 1.2rem;
+  }
+
+  small {
+    color: var(--dm-text-secondary);
+  }
+
+  &:hover {
+    border-color: #a78bfa;
+  }
+
+  // Fondo claro también en modo oscuro (como el selector de tipo de video).
+  &.active {
+    border-color: $accent;
+    background: #ede9fe;
+    color: #4c1d95;
+    box-shadow: 0 0 0 1px $accent;
+
+    small {
+      color: #5b21b6;
+    }
+  }
+}
+
+.form-check-input:checked {
+  background-color: $accent;
+  border-color: $accent;
+}
+
+.polaroid-preview {
+  flex-shrink: 0;
+  width: 96px;
+  aspect-ratio: 4 / 5;
+  padding: 5px 5px 14px;
+  background: #fff;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+  transform: rotate(-2deg);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.thumb {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.list-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  margin-bottom: 8px;
+  border-radius: 12px;
+  background: var(--dm-surface-2);
+}
+
+@media (max-width: 576px) {
+  .esp-card {
+    flex-wrap: wrap;
+  }
+
+  .esp-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}

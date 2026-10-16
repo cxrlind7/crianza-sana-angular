@@ -22,6 +22,7 @@ import {
 } from './utils/getAnalyticsData.js'
 import compression from 'compression'
 import { registerForoRoutes, esComentarioVisible } from './utils/foro.js'
+import { registerEspecialistasRoutes } from './utils/especialistas.js'
 // --- CONFIGURACIÓN DE RUTAS Y DIRECTORIOS ---
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -226,6 +227,7 @@ app.use('/api', (req, res, next) => {
 })
 
 registerForoRoutes(app, { getDb: () => db, admin, adminEmails: ADMIN_EMAILS })
+registerEspecialistasRoutes(app, { getDb: () => db, admin })
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 

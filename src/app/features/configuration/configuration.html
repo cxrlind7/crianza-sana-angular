@@ -529,6 +529,11 @@
             <app-gallery-admin [focus]="galleryFocus()" />
           }
 
+          <!-- ESPECIALISTAS Y COLABORADORES -->
+          @else if (currentCollection() === 'especialistas') {
+            <app-especialistas-admin />
+          }
+
           <!-- FORO DE PADRES (carga sus propios datos) -->
           @else if (currentCollection() === 'foro') {
             <app-foro-admin (pendientes)="foroPendientes.set($event)" />

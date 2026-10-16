@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import Chart from 'chart.js/auto';
 import { environment } from '../../../environments/environment';
-import { activePeople, isPersonActive } from '../../core/utils/people-visibility';
+import { getActivePeople, isPersonActive } from '../../core/utils/people-visibility';
 import { areNamesEquivalent } from '../../core/utils/string-utils';
 
 interface BlogStat {
@@ -167,7 +167,7 @@ export class Analytics implements AfterViewInit, OnDestroy {
   readonly personViews = signal<PersonViewRow[]>([]);
   readonly locationsData = signal<LocationRow[]>([]);
 
-  readonly filteredPeopleList = (activePeople as { id: number; name: string; color?: string }[]).filter(
+  readonly filteredPeopleList = (getActivePeople() as { id: number; name: string; color?: string }[]).filter(
     (p) => !p.name.toLowerCase().includes('martha elena'),
   );
 

@@ -21,6 +21,9 @@
               <h6 class="text-uppercase letter-spacing-2 mb-3" [style.color]="person.color">
                 {{ person.title }}
               </h6>
+              @if (person['tipo'] === 'temporal') {
+                <span class="badge-colaboracion mb-3" [style.--person-color]="person.color"><i class="fas fa-star"></i> Colaboración especial</span>
+              }
               <h1 class="display-5 fw-bold text-dark mb-4">{{ person.name }}</h1>
 
               <div class="bio-text lead text-muted mb-4" [innerHTML]="person.detalle"></div>

@@ -3,7 +3,7 @@ import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService, Gallery, GalleryImage } from '../../../core/services/api.service';
 import { AwsService } from '../../../core/services/aws.service';
-import { activePeople } from '../../../core/utils/people-visibility';
+import { getActivePeople } from '../../../core/utils/people-visibility';
 import { parseFlexibleDate, toDateInputValue, toSortableTime } from '../../../core/utils/date-utils';
 
 /** Pedido desde el calendario: abrir un álbum o crear uno con fecha. */
@@ -43,7 +43,9 @@ export class GalleryAdmin {
 
   readonly focus = input<GalleryFocus | null>(null);
 
-  readonly people = [GENERAL, ...(activePeople as { id: number; name: string }[]).map((p) => p.name)];
+  get people(): string[] {
+    return [GENERAL, ...getActivePeople().map((p) => p.name)];
+  }
 
   readonly albums = signal<Gallery[]>([]);
   readonly loading = signal(true);

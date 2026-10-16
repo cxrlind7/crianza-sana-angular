@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { ApiService, Programa } from '../../../core/services/api.service';
-import { people } from '../../../core/data/people-data';
+import { findPerson } from '../../../core/utils/people-visibility';
 
 interface PresenterItem {
   name: string;
@@ -55,7 +55,7 @@ export class UpcomingProgram implements OnInit, OnDestroy {
     const participantes = this.programa()?.participantes;
     if (!participantes) return [];
     return participantes
-      .map((id: number) => people.find((person) => person.id === id))
+      .map((id: number) => findPerson(id) as PresenterItem | undefined)
       .filter((p): p is PresenterItem => Boolean(p));
   });
 
