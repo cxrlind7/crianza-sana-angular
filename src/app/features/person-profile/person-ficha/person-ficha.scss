@@ -1,0 +1,240 @@
+.person-ficha-section {
+  padding: 40px 0;
+}
+
+.letter-spacing-2 {
+  letter-spacing: 2px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* Mismas tarjetas que Preguntas Frecuentes: superficie, radio 24 y sombra suave. */
+.ficha-card,
+.card-panel {
+  background: var(--dm-surface);
+  border-radius: 24px;
+  padding: 30px;
+  box-shadow:
+    0 20px 40px rgba(50, 50, 93, 0.08),
+    0 10px 20px rgba(0, 0, 0, 0.05);
+}
+
+.ficha-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ficha-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--dm-border);
+
+  &:first-child {
+    padding-top: 0;
+  }
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+}
+
+.ficha-icon {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--person-color);
+  background: color-mix(in srgb, var(--person-color) 12%, transparent);
+  font-size: 1.05rem;
+}
+
+.ficha-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ficha-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--dm-text-secondary);
+  margin-bottom: 2px;
+}
+
+.ficha-value {
+  color: var(--dm-text);
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.ficha-link {
+  color: var(--person-color);
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.ficha-sublist {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--dm-text);
+}
+
+/* Vista previa de la tarjeta: mismo esquema que el PNG que se descarga. */
+.card-preview {
+  position: relative;
+  display: block;
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--dm-border);
+  background: #ffffff;
+  text-align: center;
+  padding: 0 16px 20px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  &:hover,
+  &:focus-visible {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+    border-color: var(--person-color);
+  }
+
+  &:hover .card-preview-badge {
+    background: var(--person-color);
+    color: #ffffff;
+  }
+}
+
+/* Indicador de que la tarjeta se puede tocar; siempre visible porque en celular no hay hover. */
+.card-preview-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 6px 14px;
+  border-radius: 30px;
+  background: color-mix(in srgb, var(--person-color) 12%, #ffffff);
+  color: var(--person-color);
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+
+  i {
+    animation: qrNudge 2.4s ease-in-out infinite;
+  }
+}
+
+@keyframes qrNudge {
+  0%,
+  70%,
+  100% {
+    transform: scale(1);
+  }
+  80% {
+    transform: scale(1.25);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-preview-badge i {
+    animation: none;
+  }
+}
+
+.card-preview-band {
+  display: block;
+  height: 70px;
+  margin: 0 -16px;
+  background: linear-gradient(90deg, var(--person-color), color-mix(in srgb, var(--person-color) 55%, #ffffff));
+}
+
+.card-preview-photo {
+  width: 86px;
+  height: 86px;
+  margin-top: -43px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: top;
+  border: 3px solid var(--person-color);
+  box-shadow: 0 0 0 4px #ffffff;
+}
+
+.card-preview-name {
+  display: block;
+  margin-top: 10px;
+  color: #1f2937;
+  font-size: 1.05rem;
+}
+
+.card-preview-title {
+  display: block;
+  color: var(--person-color);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* Botones en el lenguaje de .social-btn-link del perfil. */
+.btn-ficha {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 30px;
+  border: 2px solid var(--person-color);
+  background: var(--dm-surface);
+  color: var(--person-color);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  &:hover:not(:disabled) {
+    background: var(--person-color);
+    color: #ffffff;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: wait;
+  }
+}
+
+.btn-ficha-primary {
+  background: var(--person-color);
+  color: #ffffff;
+}
+
+.ficha-feedback {
+  color: var(--person-color);
+  font-weight: 600;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 576px) {
+  .ficha-card,
+  .card-panel {
+    padding: 22px;
+  }
+}

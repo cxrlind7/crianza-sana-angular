@@ -118,6 +118,7 @@ const SHARE_LABELS: Record<string, string> = {
   instagram_story_share_api: 'Blog: historia de Instagram',
   instagram_story_download: 'Blog: imagen para historia',
   video_corto: 'Video corto: copiar enlace',
+  perfil: 'Perfil de especialista',
 };
 
 @Component({

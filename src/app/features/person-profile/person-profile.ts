@@ -13,6 +13,8 @@ import { PersonBlogs } from './person-blogs/person-blogs';
 import { PersonYoutube } from './person-youtube/person-youtube';
 import { PersonShortVideos } from './person-short-videos/person-short-videos';
 import { VideoModal } from '../../shared/video-modal/video-modal';
+import { PersonFicha } from './person-ficha/person-ficha';
+import { PersonFichaData } from '../../core/utils/person-card';
 
 interface PersonRecord {
   id: number;
@@ -38,6 +40,7 @@ interface PersonRecord {
   } | null;
   youtubeVideos?: { id: string; title: string }[];
   youtubeChannelUrl?: string;
+  ficha?: PersonFichaData;
   [key: string]: unknown;
 }
 
@@ -53,6 +56,7 @@ interface PersonRecord {
     PersonYoutube,
     PersonShortVideos,
     VideoModal,
+    PersonFicha,
   ],
   templateUrl: './person-profile.html',
   styleUrl: './person-profile.scss',

@@ -453,6 +453,7 @@ function classifySource(source, medium, channel) {
   if (/youtube/.test(s)) return 'YouTube'
   if (/spotify/.test(s)) return 'Spotify'
   if (/compartido/.test(s)) return 'Enlace compartido'
+  if (/^(qr|tarjeta)$/.test(String(source).toLowerCase())) return 'Código QR / tarjeta digital'
   if (/google/.test(s)) return medium === 'cpc' ? 'Google (anuncios)' : 'Google'
   if (/bing|yahoo|duckduckgo|ecosia/.test(s)) return 'Otros buscadores'
   if (/chatgpt|openai|perplexity|claude|gemini|copilot/.test(s)) return 'Asistentes de IA'

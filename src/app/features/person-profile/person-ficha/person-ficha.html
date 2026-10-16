@@ -1,0 +1,80 @@
+@let p = person();
+<div class="person-ficha-section" [style.--person-color]="p.color">
+  <div class="text-center mb-5">
+    <h6 class="text-uppercase letter-spacing-2 text-muted mb-2">Ficha Técnica</h6>
+    <h2 class="display-6 fw-bold text-dark">Información de Consulta</h2>
+  </div>
+
+  <div class="row g-4 align-items-stretch">
+    <div class="col-lg-7">
+      <div class="ficha-card h-100">
+        <ul class="ficha-list">
+          @for (row of rows(); track row.label) {
+            <li class="ficha-row">
+              <span class="ficha-icon"><i [class]="row.icon"></i></span>
+              <div class="ficha-text">
+                <span class="ficha-label">{{ row.label }}</span>
+                @if (isList(row.value)) {
+                  <ul class="ficha-sublist">
+                    @for (item of row.value; track $index) {
+                      <li>{{ item }}</li>
+                    }
+                  </ul>
+                } @else if (row.link) {
+                  <a class="ficha-value ficha-link" [href]="row.link" target="_blank" rel="noopener" [attr.data-track-label]="'Ficha: ' + p.name">
+                    {{ row.value }}
+                  </a>
+                } @else {
+                  <span class="ficha-value">{{ row.value }}</span>
+                }
+              </div>
+            </li>
+          }
+        </ul>
+      </div>
+    </div>
+
+    <div class="col-lg-5">
+      <div class="card-panel h-100">
+        <button type="button" class="card-preview" (click)="openQr()" [attr.aria-label]="'Ver tarjeta digital y código QR de ' + p.name">
+          <span class="card-preview-band"></span>
+          <img [src]="p.image" alt="" class="card-preview-photo" (error)="$any($event.target).src = '/defaultAvatar5.jpg'" />
+          <strong class="card-preview-name">{{ p.name }}</strong>
+          <span class="card-preview-title">{{ rows()[0].value }}</span>
+          <span class="card-preview-badge"><i class="fas fa-qrcode"></i> Toca para ver el QR</span>
+        </button>
+
+        <h5 class="fw-bold mt-4 mb-1">Tarjeta digital</h5>
+        <p class="text-muted small mb-3">Toca la tarjeta para mostrar el código QR, o guárdala y mándala por WhatsApp.</p>
+
+        <div class="d-grid gap-2">
+          <button type="button" class="btn-ficha btn-ficha-primary" (click)="downloadCard()" [disabled]="generating()">
+            @if (generating()) {
+              <span class="spinner-border spinner-border-sm"></span> Generando…
+            } @else {
+              <i class="fas fa-download"></i> Descargar tarjeta
+            }
+          </button>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn-ficha flex-fill" (click)="saveContact()"><i class="fas fa-address-book"></i> Guardar contacto</button>
+            <button type="button" class="btn-ficha flex-fill" (click)="share()"><i class="fas fa-share-alt"></i> Compartir</button>
+          </div>
+        </div>
+        @if (feedback() && !qrOpen()) {
+          <p class="ficha-feedback small mt-2 mb-0">{{ feedback() }}</p>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+@if (qrOpen()) {
+  <app-card-qr-modal
+    [person]="p"
+    [generating]="generating()"
+    [feedback]="feedback()"
+    (closed)="qrOpen.set(false)"
+    (download)="downloadCard()"
+    (share)="share()"
+  />
+}
