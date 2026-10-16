@@ -3,7 +3,7 @@ import { Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import html2canvas from 'html2canvas';
-import { ApiService, Blog, Comment } from '../../../core/services/api.service';
+import { ApiService, Blog, Comment, comentarioError } from '../../../core/services/api.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { filterPublished } from '../../../core/utils/schedule';
 import { environment } from '../../../../environments/environment';
@@ -45,6 +45,10 @@ export class BlogDetail implements OnInit, OnDestroy {
 
   readonly blogs = signal<Blog[]>([]);
   readonly comments = signal<Comment[]>([]);
+  /** Aviso bajo el campo de comentario (en revisión, sin sesión, etc.). */
+  readonly comentarioAviso = signal<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
+  /** Para el anti-spam: el servidor rechaza comentarios enviados al instante. */
+  private readonly abiertoEn = Date.now();
   readonly newComment = signal('');
   readonly activeMenu = signal<number | null>(null);
   readonly showToast = signal(false);
@@ -301,32 +305,27 @@ export class BlogDetail implements OnInit, OnDestroy {
   async addNewComment(): Promise<void> {
     const text = this.newComment().trim();
     if (!text) return;
-    const user = this.authUser();
-
+    this.comentarioAviso.set(null);
     try {
-      const newCommentData = {
-        userId: user ? user.uid : 'guest_' + Date.now(),
-        userName: user ? user.displayName || 'Usuario Invitado' : 'Usuario Invitado',
-        commentText: text,
-        image: user ? user.photoURL : null,
-        createdAt: new Date().toISOString(),
-      };
-      const commentId = await this.api.addComment(this.id, newCommentData);
-      this.comments.update((list) => [...list, { ...newCommentData, id: commentId }]);
+      const { estado, comentario } = await this.api.comentar({ tipo: 'blog', id: this.id }, text, Date.now() - this.abiertoEn);
+      if (estado === 'aprobado' && comentario) this.comments.update((list) => [...list, comentario]);
       this.newComment.set('');
+      this.comentarioAviso.set({
+        tipo: 'ok',
+        texto: estado === 'aprobado' ? 'Comentario publicado.' : '¡Gracias! Tu comentario se publicará en cuanto el equipo lo revise.',
+      });
     } catch (error) {
-      console.error('❌ Error al agregar comentario:', error);
+      this.comentarioAviso.set({ tipo: 'error', texto: comentarioError(error) });
     }
   }
 
   async deleteComment(comment: Comment, idx: number): Promise<void> {
     const user = this.authUser();
-    const blog = this.blog();
-    if (!user || !blog || user.uid !== comment['userId']) return;
+    if (!user || user.uid !== comment['userId']) return;
     if (!confirm('¿Estás seguro de que deseas eliminar este comentario?')) return;
 
     try {
-      await this.api.deleteComment(blog.id, comment.id);
+      await this.api.borrarComentario(`blogs/${this.id}/comments/${comment.id}`);
       this.comments.update((list) => list.filter((_, i) => i !== idx));
       this.activeMenu.set(null);
     } catch (error) {

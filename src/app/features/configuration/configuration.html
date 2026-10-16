@@ -26,6 +26,9 @@
           <button class="cfg-nav-item" [class.active]="currentCollection() === col.key" (click)="switchCollection(col.key)">
             <span class="cfg-nav-icon">{{ col.icon }}</span>
             <span class="cfg-nav-label">{{ col.label }}</span>
+            @if (col.key === 'foro' && foroPendientes() > 0) {
+              <span class="cfg-nav-badge" [title]="foroPendientes() + ' por aprobar'">{{ foroPendientes() }}</span>
+            }
             @if (currentCollection() === col.key) {
               <span class="cfg-nav-dot"></span>
             }
@@ -524,6 +527,11 @@
           <!-- GALERÍAS (carga sus propios datos) -->
           @else if (currentCollection() === 'galerias') {
             <app-gallery-admin [focus]="galleryFocus()" />
+          }
+
+          <!-- FORO DE PADRES (carga sus propios datos) -->
+          @else if (currentCollection() === 'foro') {
+            <app-foro-admin (pendientes)="foroPendientes.set($event)" />
           }
 
           <!-- VIDEOS DE ESPECIALISTAS (carga sus propios datos) -->

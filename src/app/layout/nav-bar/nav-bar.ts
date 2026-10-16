@@ -29,6 +29,7 @@ export class NavBar implements OnInit {
     { name: '¿Quiénes somos?', path: '/about' },
     { name: 'Blog', path: '/blog' },
     { name: 'Galería', path: '/gallery' },
+    { name: 'Foro', path: '/foro' },
   ];
 
   ngOnInit(): void {

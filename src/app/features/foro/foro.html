@@ -1,0 +1,148 @@
+<div class="foro-page">
+  <div class="container foro-container">
+    <!-- PORTADA -->
+    <header class="foro-hero fade-in">
+      <div class="foro-hero-text">
+        <span class="foro-eyebrow"><i class="fas fa-users"></i> Comunidad Crianza Sana</span>
+        <h1>Foro para padres</h1>
+        <p>Un espacio seguro para compartir dudas y experiencias de crianza. Cada mensaje se revisa antes de publicarse.</p>
+        <div class="foro-hero-actions">
+          <button type="button" class="btn-foro btn-foro-primary" (click)="abrirComposer()"><i class="fas fa-plus"></i> Hacer una pregunta</button>
+          <div class="foro-stats">
+            <span><strong>{{ hilos().length }}</strong> {{ hilos().length === 1 ? 'conversación' : 'conversaciones' }}</span>
+            <span><strong>{{ totalRespuestas() }}</strong> {{ totalRespuestas() === 1 ? 'respuesta' : 'respuestas' }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="foro-hero-art" aria-hidden="true">
+        <span class="bubble b1"><i class="fas fa-comment-dots"></i></span>
+        <span class="bubble b2"><i class="fas fa-heart"></i></span>
+        <span class="bubble b3"><i class="fas fa-baby"></i></span>
+      </div>
+    </header>
+
+    <div class="foro-layout">
+      <main class="foro-main">
+        @if (mostrarComposer()) {
+          <div id="foro-composer" class="mb-4 fade-in">
+            <app-foro-composer modo="hilo" (enviado)="onEnviado()" (cancelar)="mostrarComposer.set(false)" />
+          </div>
+        }
+
+        <!-- FILTROS -->
+        <div class="foro-tools">
+          <div class="foro-search">
+            <i class="fas fa-search"></i>
+            <input type="search" placeholder="Buscar en el foro…" [ngModel]="busqueda()" (ngModelChange)="busqueda.set($event)" aria-label="Buscar en el foro" />
+          </div>
+          <select class="foro-sort" [ngModel]="orden()" (ngModelChange)="orden.set($event)" aria-label="Ordenar">
+            <option value="recientes">Más recientes</option>
+            <option value="respondidos">Más respondidas</option>
+            <option value="sin-respuesta">Sin respuesta</option>
+          </select>
+        </div>
+
+        <div class="foro-cats">
+          <button type="button" class="foro-cat" [class.active]="!categoria()" (click)="categoria.set(null)">Todos</button>
+          @for (c of categorias; track c.key) {
+            <button type="button" class="foro-cat" [class.active]="categoria() === c.key" [style.--cat]="c.color" (click)="toggleCategoria(c.key)">
+              <i [class]="c.icon"></i> {{ c.label }}
+              @if (conteoPorCategoria().get(c.key); as n) {
+                <span class="foro-cat-count">{{ n }}</span>
+              }
+            </button>
+          }
+        </div>
+
+        <!-- LISTA -->
+        @if (cargando()) {
+          @for (s of [1, 2, 3]; track s) {
+            <div class="hilo-card skeleton"></div>
+          }
+        } @else if (error()) {
+          <div class="foro-empty">
+            <i class="fas fa-wifi"></i>
+            <p>No pudimos cargar el foro. Revisa tu conexión e intenta de nuevo.</p>
+          </div>
+        } @else if (visibles().length === 0) {
+          <div class="foro-empty">
+            <i class="fas fa-comments"></i>
+            <p>{{ hilos().length ? 'No hay conversaciones con esos filtros.' : 'Todavía no hay conversaciones. ¡Haz la primera pregunta!' }}</p>
+          </div>
+        } @else {
+          @for (h of visibles(); track h.id) {
+            <a class="hilo-card fade-in" [routerLink]="['/foro', h.id]" [class.fijado]="h.fijado">
+              <div class="hilo-top">
+                <span class="cat-badge" [style.--cat]="categoriaMeta(h.categoria).color">
+                  <i [class]="categoriaMeta(h.categoria).icon"></i> {{ categoriaMeta(h.categoria).label }}
+                </span>
+                @if (h.fijado) {
+                  <span class="hilo-flag"><i class="fas fa-thumbtack"></i> Fijado</span>
+                }
+                @if (h.respondidoPorEquipo) {
+                  <span class="hilo-flag equipo"><i class="fas fa-user-md"></i> Respondió el equipo</span>
+                }
+              </div>
+              <h2 class="hilo-title">{{ h.titulo }}</h2>
+              <p class="hilo-excerpt">{{ extracto(h.cuerpo) }}</p>
+              <div class="hilo-meta">
+                <span class="hilo-author">
+                  @if (h.autor.foto) {
+                    <img class="foro-avatar sm" [class.equipo]="h.autor.rol === 'equipo'" [src]="h.autor.foto" alt="" />
+                  } @else {
+                    <span class="foro-avatar sm">{{ iniciales(h.autor.nombre) }}</span>
+                  }
+                  {{ h.autor.nombre }}
+                </span>
+                <span><i class="far fa-clock"></i> {{ haceCuanto(h.ultimaActividad) }}</span>
+                <span class="hilo-replies"><i class="far fa-comment"></i> {{ h.respuestas }} {{ h.respuestas === 1 ? 'respuesta' : 'respuestas' }}</span>
+              </div>
+            </a>
+          }
+        }
+      </main>
+
+      <!-- LATERAL -->
+      <aside class="foro-aside">
+        @if (user() && misPublicaciones().length) {
+          <section class="aside-card">
+            <h3><i class="fas fa-inbox"></i> Mis publicaciones</h3>
+            @if (enRevision().length === 0) {
+              <p class="aside-muted">Todo lo que enviaste ya está publicado.</p>
+            }
+            <ul class="mis-list">
+              @for (p of misPublicaciones().slice(0, 6); track p.id) {
+                <li>
+                  <span class="estado-dot" [class]="'estado-dot ' + p.estado"></span>
+                  <div>
+                    <span class="mis-title">{{ p.tipo === 'hilo' ? p.titulo : 'Respuesta en: ' + p.titulo }}</span>
+                    <span class="mis-estado" [class]="'mis-estado ' + p.estado">{{ estadoLabel(p) }}</span>
+                    @if (p.estado === 'rechazado' && p.motivo) {
+                      <span class="mis-motivo">{{ p.motivo }}</span>
+                    }
+                  </div>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+
+        <section class="aside-card">
+          <h3><i class="fas fa-shield-alt"></i> Normas del foro</h3>
+          <ul class="normas">
+            <li><i class="fas fa-heart"></i> Trata a todos con respeto y empatía.</li>
+            <li><i class="fas fa-user-secret"></i> No compartas nombres completos, fotos ni datos de menores.</li>
+            <li><i class="fas fa-ban"></i> Nada de publicidad, venta ni enlaces sospechosos.</li>
+            <li><i class="fas fa-check-double"></i> Cada mensaje se revisa antes de publicarse.</li>
+          </ul>
+        </section>
+
+        <section class="aside-card aside-alert">
+          <h3><i class="fas fa-stethoscope"></i> Importante</h3>
+          <p>Las experiencias de otros padres no sustituyen una consulta profesional. Si es una urgencia, acude a tu pediatra o al servicio de urgencias.</p>
+          <a class="btn-foro w-100" routerLink="/about"><i class="fas fa-user-md"></i> Conoce a los especialistas</a>
+        </section>
+      </aside>
+    </div>
+  </div>
+</div>

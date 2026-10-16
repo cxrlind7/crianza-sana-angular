@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { getAuthErrorMessage, isValidEmail } from '../../core/utils/auth-errors';
 
@@ -13,11 +13,18 @@ import { getAuthErrorMessage, isValidEmail } from '../../core/utils/auth-errors'
 export class Login {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+
+  /** Página a la que se regresa al entrar (p. ej. el foro). Solo rutas internas. */
+  private readonly returnUrl = (() => {
+    const url = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/';
+    return url.startsWith('/') && !url.startsWith('//') ? url : '/';
+  })();
 
   name = '';
   email = '';
   password = '';
-  readonly isSignup = signal(false);
+  readonly isSignup = signal(this.route.snapshot.queryParamMap.has('registro'));
   readonly showPassword = signal(false);
   readonly errorMessage = signal('');
   readonly isSubmitting = signal(false);
@@ -51,7 +58,7 @@ export class Login {
     try {
       await this.authService.register(this.email.trim(), this.password, this.name.trim());
       alert('✅ Registro exitoso. Revisa tu correo para verificar tu cuenta.');
-      this.router.navigate(['/']);
+      this.router.navigateByUrl(this.returnUrl);
     } catch (error) {
       console.error(error);
       this.errorMessage.set(getAuthErrorMessage(error, 'register'));
@@ -74,7 +81,7 @@ export class Login {
     this.isSubmitting.set(true);
     try {
       await this.authService.login(this.email.trim(), this.password);
-      this.router.navigate(['/']);
+      this.router.navigateByUrl(this.returnUrl);
     } catch (error) {
       console.error(error);
       this.errorMessage.set(getAuthErrorMessage(error, 'login'));

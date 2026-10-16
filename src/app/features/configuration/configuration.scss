@@ -123,6 +123,19 @@
   flex-shrink: 0;
 }
 
+.cfg-nav-badge {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #f59e0b;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
 .cfg-sidebar-footer {
   margin-top: auto;
   padding-top: 0.75rem;

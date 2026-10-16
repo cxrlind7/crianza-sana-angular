@@ -1,15 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import {
-  collection,
-  getDocs,
-  query,
-  doc,
-  addDoc,
-  deleteDoc,
-  serverTimestamp,
-} from 'firebase/firestore';
+import { collection, getDocs, query } from 'firebase/firestore';
 import { environment } from '../../../environments/environment';
 import { filterPublished } from '../utils/schedule';
 import { db } from '../firebase/firebase-app';
@@ -129,6 +121,19 @@ export interface Gallery {
   publishAt?: string;
   images: GalleryImage[];
   [key: string]: unknown;
+}
+
+export interface ComentarioDestino {
+  tipo: 'blog' | 'programa' | 'foto';
+  id: string;
+  imagenId?: string;
+}
+
+/** Mensaje del servidor al comentar (sesión, verificación, límites…) o uno genérico. */
+export function comentarioError(error: unknown): string {
+  const e = error as { status?: number; error?: { error?: string } };
+  if (e?.status === 401) return 'Inicia sesión para comentar.';
+  return e?.error?.error || 'No se pudo enviar tu comentario. Intenta de nuevo.';
 }
 
 export interface Subscriber {
@@ -419,14 +424,29 @@ export class ApiService {
     }
   }
 
-  async addComment(blogId: string, commentData: Record<string, unknown>): Promise<string> {
-    const commentsRef = collection(doc(db, 'blogs', blogId), 'comments');
-    const docRef = await addDoc(commentsRef, { ...commentData, createdAt: serverTimestamp() });
-    return docRef.id;
+  /**
+   * Publica un comentario en un blog, un programa o una foto. Pasa por el servidor, que pide
+   * cuenta verificada, aplica el anti-spam y lo deja en revisión (el admin lo publica al instante).
+   */
+  async comentar(
+    destino: ComentarioDestino,
+    texto: string,
+    tiempoMs: number,
+  ): Promise<{ estado: 'pendiente' | 'aprobado'; comentario: Comment | null }> {
+    const res = await firstValueFrom(
+      this.http.post<{ estado: 'pendiente' | 'aprobado'; comentario?: Comment }>(`${this.baseUrl}/api/foro/comentarios`, {
+        ...destino,
+        texto,
+        tiempoMs,
+        sitioWeb: '',
+      }),
+    );
+    return { estado: res.estado, comentario: res.comentario ?? null };
   }
 
-  async deleteComment(blogId: string, commentId: string): Promise<void> {
-    await deleteDoc(doc(db, 'blogs', blogId, 'comments', commentId));
+  /** Borra un comentario propio (ruta completa en Firestore, p. ej. blogs/ID/comments/ID). */
+  async borrarComentario(ruta: string): Promise<void> {
+    await firstValueFrom(this.http.post(`${this.baseUrl}/api/foro/comentarios/borrar`, { ruta }));
   }
 
   async getGalleries(): Promise<Gallery[]> {
@@ -519,20 +539,6 @@ export class ApiService {
     }
   }
 
-  async addImageComment(
-    galeriaId: string,
-    imageId: string,
-    commentData: Record<string, unknown>,
-  ): Promise<string> {
-    const commentsRef = collection(doc(db, 'galerias', galeriaId, 'fotos', imageId), 'comments');
-    const docRef = await addDoc(commentsRef, { ...commentData, createdAt: serverTimestamp() });
-    return docRef.id;
-  }
-
-  async deleteCommentGaleria(galeriaId: string, imageId: string, commentId: string): Promise<void> {
-    await deleteDoc(doc(db, 'galerias', galeriaId, 'fotos', imageId, 'comments', commentId));
-  }
-
   async getCommentsVideo(videoId: string): Promise<Comment[]> {
     try {
       return await firstValueFrom(
@@ -542,16 +548,6 @@ export class ApiService {
       console.error(`❌ Error obteniendo comentarios del video ${videoId}:`, error);
       throw error;
     }
-  }
-
-  async addCommentVideo(videoId: string, commentData: Record<string, unknown>): Promise<string> {
-    const commentsRef = collection(doc(db, 'programas', videoId), 'comments');
-    const docRef = await addDoc(commentsRef, { ...commentData, createdAt: serverTimestamp() });
-    return docRef.id;
-  }
-
-  async deleteCommentVideo(videoId: string, commentId: string): Promise<void> {
-    await deleteDoc(doc(db, 'programas', videoId, 'comments', commentId));
   }
 
   async getAllAds(): Promise<Ad[]> {
