@@ -29,7 +29,7 @@
       </div>
 
       <ul class="specialist-list">
-        @for (person of people; track person.id) {
+        @for (person of people(); track person.id) {
           <li class="specialist-item">
             <div class="avatar-container">
               <img [src]="person.image" [alt]="person.name" class="avatar" [style.borderColor]="person.color" />

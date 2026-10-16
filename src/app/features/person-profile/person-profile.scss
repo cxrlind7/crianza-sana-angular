@@ -275,3 +275,17 @@
     font-size: 1.25rem;
   }
 }
+
+/* Colaboradores temporales (Configuración → Especialistas → Temporal). */
+.badge-colaboracion {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 30px;
+  background: color-mix(in srgb, var(--person-color) 14%, var(--dm-surface));
+  color: color-mix(in srgb, var(--person-color) 75%, var(--dm-text));
+  font-size: 0.8rem;
+  font-weight: 700;
+}

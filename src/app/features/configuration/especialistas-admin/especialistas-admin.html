@@ -1,0 +1,335 @@
+@if (mensaje(); as m) {
+  <div class="alert alert-{{ m.tipo }} small d-flex justify-content-between align-items-center">
+    <span>{{ m.texto }}</span>
+    <button type="button" class="btn-close btn-sm" (click)="mensaje.set(null)" aria-label="Cerrar"></button>
+  </div>
+}
+
+@if (form(); as f) {
+  <!-- ============================== FORMULARIO ============================== -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <button type="button" class="btn btn-outline-secondary btn-sm" (click)="cancelar()"><i class="bi bi-arrow-left me-1"></i>Volver a la lista</button>
+    <div class="d-flex gap-2">
+      @if (f.id !== null) {
+        <a class="btn btn-outline-secondary btn-sm" [href]="'/person/' + f.id" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right me-1"></i>Ver perfil</a>
+      }
+      <button type="button" class="btn btn-primary btn-sm" (click)="guardar()" [disabled]="guardando() || !!subiendo()">
+        @if (guardando()) {
+          <span class="spinner-border spinner-border-sm me-1"></span>
+        }
+        <i class="bi bi-check-lg me-1"></i>{{ f.id === null ? 'Dar de alta' : 'Guardar cambios' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="esp-hero" [style.--c]="f.color">
+    @if (f.image) {
+      <img [src]="f.image" alt="" (error)="$any($event.target).src = '/defaultAvatar5.jpg'" />
+    } @else {
+      <span class="esp-hero-ph"><i class="bi bi-person"></i></span>
+    }
+    <div>
+      <h5 class="mb-0 fw-bold">{{ f.name || 'Nuevo colaborador' }}</h5>
+      <span class="text-muted small">{{ f.title || 'Especialidad' }}</span>
+    </div>
+  </div>
+
+  <!-- Colaboración -->
+  <section class="esp-section">
+    <h6><i class="bi bi-people"></i> Colaboración</h6>
+    <div class="row g-2 mb-3">
+      <div class="col-md-6">
+        <button type="button" class="tipo-option w-100" [class.active]="f.tipo === 'permanente'" (click)="set('tipo', 'permanente')">
+          <i class="bi bi-infinity"></i><strong>Permanente</strong><small>Parte del equipo de forma continua.</small>
+        </button>
+      </div>
+      <div class="col-md-6">
+        <button type="button" class="tipo-option w-100" [class.active]="f.tipo === 'temporal'" (click)="set('tipo', 'temporal')">
+          <i class="bi bi-hourglass-split"></i><strong>Temporal</strong><small>Colaboración o patrocinio por un periodo; aparece y desaparece solo.</small>
+        </button>
+      </div>
+    </div>
+    @if (f.tipo === 'temporal') {
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold" for="vig-ini">Se muestra desde</label>
+          <input id="vig-ini" type="date" class="form-control" [ngModel]="f.vigenciaInicio" (ngModelChange)="set('vigenciaInicio', $event)" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold" for="vig-fin">Hasta (inclusive)</label>
+          <input id="vig-fin" type="date" class="form-control" [ngModel]="f.vigenciaFin" (ngModelChange)="set('vigenciaFin', $event)" [min]="f.vigenciaInicio" />
+        </div>
+        <small class="text-muted">Fuera de estas fechas no aparece en el sitio (su perfil, blogs y estadísticas se conservan).</small>
+      </div>
+    }
+    <div class="d-flex flex-wrap gap-4">
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="sw-active" [ngModel]="f.active" (ngModelChange)="set('active', $event)" />
+        <label class="form-check-label" for="sw-active">Visible en el sitio</label>
+      </div>
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="sw-nosotros" [ngModel]="f.enNosotros" (ngModelChange)="set('enNosotros', $event)" />
+        <label class="form-check-label" for="sw-nosotros">Aparece en "¿Quiénes somos?"</label>
+      </div>
+    </div>
+  </section>
+
+  <!-- Datos principales -->
+  <section class="esp-section">
+    <h6><i class="bi bi-person-vcard"></i> Datos principales</h6>
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label fw-semibold" for="esp-name">Nombre completo *</label>
+        <input id="esp-name" class="form-control" [ngModel]="f.name" (ngModelChange)="set('name', $event)" placeholder="Ej. Lic. Ana López Pérez" />
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold" for="esp-title">Especialidad *</label>
+        <input id="esp-title" class="form-control" [ngModel]="f.title" (ngModelChange)="set('title', $event)" placeholder="Ej. Psicóloga infantil" />
+      </div>
+      <div class="col-md-9">
+        <label class="form-label fw-semibold" for="esp-detalle">Presentación corta</label>
+        <textarea id="esp-detalle" class="form-control" rows="2" [ngModel]="f.detalle" (ngModelChange)="set('detalle', $event)" placeholder="Aparece junto a su foto en el perfil."></textarea>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold" for="esp-color">Color</label>
+        <input id="esp-color" type="color" class="form-control form-control-color w-100" [ngModel]="f.color" (ngModelChange)="set('color', $event)" />
+      </div>
+      <div class="col-12">
+        <label class="form-label fw-semibold" for="esp-image">Foto de perfil</label>
+        <div class="d-flex gap-2 flex-wrap">
+          <input id="esp-image" class="form-control flex-grow-1 w-auto" [ngModel]="f.image" (ngModelChange)="set('image', $event)" placeholder="https://… o sube una imagen" />
+          <input type="file" accept="image/*" class="form-control w-auto" (change)="subir($event, 'image')" [disabled]="!!subiendo()" aria-label="Subir foto de perfil" />
+        </div>
+        @if (subiendo() === 'image') {
+          <small class="text-muted">Subiendo…</small>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Contacto -->
+  <section class="esp-section">
+    <h6><i class="bi bi-chat-dots"></i> Contacto y redes</h6>
+    <div class="row g-3">
+      @for (r of redes; track r.key) {
+        <div class="col-md-6">
+          <label class="form-label fw-semibold" [for]="'red-' + r.key"><i class="bi {{ r.bi }} me-1"></i>{{ r.label }}</label>
+          <input
+            [id]="'red-' + r.key"
+            class="form-control"
+            [ngModel]="f.redes[r.key]"
+            (ngModelChange)="set('redes.' + r.key, $event)"
+            [placeholder]="r.key === 'whatsapp' ? '10 dígitos, ej. 6181234567' : 'https://…'"
+            [attr.inputmode]="r.key === 'whatsapp' ? 'tel' : null"
+          />
+        </div>
+      }
+      <div class="col-12">
+        <label class="form-label fw-semibold" for="esp-mapa"><i class="bi bi-geo-alt me-1"></i>Ubicación (enlace de Google Maps)</label>
+        <input id="esp-mapa" class="form-control" [ngModel]="f.mapa" (ngModelChange)="set('mapa', $event)" placeholder="https://maps.app.goo.gl/…" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Inicio -->
+  <section class="esp-section">
+    <h6><i class="bi bi-house-heart"></i> En el inicio</h6>
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="form-check form-switch mb-2">
+          <input class="form-check-input" type="checkbox" role="switch" id="sw-inicio" [ngModel]="f.inicio.mostrar" (ngModelChange)="set('inicio.mostrar', $event)" />
+          <label class="form-check-label fw-semibold" for="sw-inicio">Foto en "#ReeducarParaFormar"</label>
+        </div>
+        @if (f.inicio.mostrar) {
+          <div class="d-flex gap-3">
+            <div class="polaroid-preview">
+              @if (f.inicio.foto) {
+                <img [src]="f.inicio.foto" alt="" />
+              }
+            </div>
+            <div class="flex-grow-1 d-flex flex-column gap-2">
+              <input class="form-control form-control-sm" [ngModel]="f.inicio.nombreCorto" (ngModelChange)="set('inicio.nombreCorto', $event)" placeholder="Nombre corto (ej. Ana)" aria-label="Nombre corto" />
+              <input class="form-control form-control-sm" [ngModel]="f.inicio.especialidad" (ngModelChange)="set('inicio.especialidad', $event)" placeholder="Especialidad corta" aria-label="Especialidad corta" />
+              <input type="file" accept="image/*" class="form-control form-control-sm" (change)="subir($event, 'inicio.foto')" [disabled]="!!subiendo()" aria-label="Subir foto del inicio" />
+              <small class="text-muted">Foto vertical (4:5), de preferencia con el mismo fondo que las demás.</small>
+            </div>
+          </div>
+        }
+      </div>
+      <div class="col-lg-6">
+        <div class="form-check form-switch mb-2">
+          <input class="form-check-input" type="checkbox" role="switch" id="sw-serv" [ngModel]="f.servicioInicio.mostrar" (ngModelChange)="set('servicioInicio.mostrar', $event)" />
+          <label class="form-check-label fw-semibold" for="sw-serv">Tarjeta en "Servicios"</label>
+        </div>
+        @if (f.servicioInicio.mostrar) {
+          <div class="d-flex flex-column gap-2">
+            <input class="form-control form-control-sm" [ngModel]="f.servicioInicio.titulo" (ngModelChange)="set('servicioInicio.titulo', $event)" placeholder="Servicio (ej. Psicología)" aria-label="Título del servicio" />
+            <textarea class="form-control form-control-sm" rows="2" [ngModel]="f.servicioInicio.descripcion" (ngModelChange)="set('servicioInicio.descripcion', $event)" placeholder="Descripción breve" aria-label="Descripción del servicio"></textarea>
+            <div class="d-flex gap-2 align-items-center">
+              @if (f.servicioInicio.imagen) {
+                <img [src]="f.servicioInicio.imagen" alt="" class="thumb" />
+              }
+              <input type="file" accept="image/*" class="form-control form-control-sm" (change)="subir($event, 'servicioInicio.imagen')" [disabled]="!!subiendo()" aria-label="Subir imagen del servicio" />
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Ficha técnica -->
+  <section class="esp-section">
+    <h6><i class="bi bi-clipboard2-pulse"></i> Ficha técnica <small class="text-muted fw-normal">(solo se muestran los datos llenos)</small></h6>
+    <div class="row g-3">
+      <div class="col-md-4"><label class="form-label fw-semibold" for="fi-ced">Cédula profesional</label><input id="fi-ced" class="form-control" [ngModel]="f.ficha.cedula" (ngModelChange)="set('ficha.cedula', $event)" /></div>
+      <div class="col-md-4"><label class="form-label fw-semibold" for="fi-exp">Experiencia</label><input id="fi-exp" class="form-control" [ngModel]="f.ficha.experiencia" (ngModelChange)="set('ficha.experiencia', $event)" placeholder="Ej. 12 años" /></div>
+      <div class="col-md-4"><label class="form-label fw-semibold" for="fi-mod">Modalidad</label><input id="fi-mod" class="form-control" [ngModel]="f.ficha.modalidad" (ngModelChange)="set('ficha.modalidad', $event)" placeholder="Presencial y en línea" /></div>
+      <div class="col-md-6"><label class="form-label fw-semibold" for="fi-at">Atiende a</label><input id="fi-at" class="form-control" [ngModel]="f.ficha.atiende" (ngModelChange)="set('ficha.atiende', $event)" placeholder="Ej. Niñas y niños de 2 a 12 años" /></div>
+      <div class="col-md-6"><label class="form-label fw-semibold" for="fi-hor">Horario</label><input id="fi-hor" class="form-control" [ngModel]="f.ficha.horario" (ngModelChange)="set('ficha.horario', $event)" /></div>
+      <div class="col-md-6"><label class="form-label fw-semibold" for="fi-dir">Dirección</label><input id="fi-dir" class="form-control" [ngModel]="f.ficha.direccion" (ngModelChange)="set('ficha.direccion', $event)" /></div>
+      <div class="col-md-6"><label class="form-label fw-semibold" for="fi-for">Formación (una por renglón)</label><textarea id="fi-for" class="form-control" rows="2" [ngModel]="f.ficha.formacion" (ngModelChange)="set('ficha.formacion', $event)"></textarea></div>
+    </div>
+  </section>
+
+  <!-- Perfil -->
+  <section class="esp-section">
+    <h6><i class="bi bi-journal-text"></i> Perfil</h6>
+    <div class="row g-3">
+      <div class="col-12"><label class="form-label fw-semibold" for="pf-desc">Descripción</label><textarea id="pf-desc" class="form-control" rows="3" [ngModel]="f.description" (ngModelChange)="set('description', $event)"></textarea></div>
+      <div class="col-md-6"><label class="form-label fw-semibold" for="pf-mis">Misión</label><textarea id="pf-mis" class="form-control" rows="3" [ngModel]="f.mision" (ngModelChange)="set('mision', $event)"></textarea></div>
+      <div class="col-md-6"><label class="form-label fw-semibold" for="pf-vis">Visión</label><textarea id="pf-vis" class="form-control" rows="3" [ngModel]="f.vision" (ngModelChange)="set('vision', $event)"></textarea></div>
+    </div>
+  </section>
+
+  <!-- Servicios -->
+  <section class="esp-section">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h6 class="mb-0"><i class="bi bi-grid"></i> Servicios del perfil</h6>
+      <button type="button" class="btn btn-outline-primary btn-sm" (click)="agregar('servicios')"><i class="bi bi-plus-lg me-1"></i>Agregar</button>
+    </div>
+    @for (s of f.servicios; track $index; let i = $index) {
+      <div class="list-row">
+        @if (s.image) {
+          <img [src]="s.image" alt="" class="thumb" />
+        }
+        <div class="flex-grow-1 d-flex flex-column gap-2">
+          <input class="form-control form-control-sm" [ngModel]="s.titulo" (ngModelChange)="set('servicios.' + i + '.titulo', $event)" placeholder="Título" aria-label="Título del servicio" />
+          <textarea class="form-control form-control-sm" rows="2" [ngModel]="s.descripcion" (ngModelChange)="set('servicios.' + i + '.descripcion', $event)" placeholder="Descripción" aria-label="Descripción del servicio"></textarea>
+          <input type="file" accept="image/*" class="form-control form-control-sm" (change)="subir($event, 'servicios.' + i + '.image')" [disabled]="!!subiendo()" aria-label="Imagen del servicio" />
+        </div>
+        <button type="button" class="btn btn-outline-danger btn-sm" (click)="quitar('servicios', i)" title="Quitar" aria-label="Quitar servicio"><i class="bi bi-trash"></i></button>
+      </div>
+    } @empty {
+      <p class="text-muted small mb-0">Sin servicios.</p>
+    }
+  </section>
+
+  <!-- Preguntas frecuentes -->
+  <section class="esp-section">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h6 class="mb-0"><i class="bi bi-question-circle"></i> Preguntas frecuentes</h6>
+      <button type="button" class="btn btn-outline-primary btn-sm" (click)="agregar('preguntasFrecuentes')"><i class="bi bi-plus-lg me-1"></i>Agregar</button>
+    </div>
+    @for (q of f.preguntasFrecuentes; track $index; let i = $index) {
+      <div class="list-row">
+        <div class="flex-grow-1 d-flex flex-column gap-2">
+          <input class="form-control form-control-sm" [ngModel]="q.pregunta" (ngModelChange)="set('preguntasFrecuentes.' + i + '.pregunta', $event)" placeholder="Pregunta" aria-label="Pregunta" />
+          <textarea class="form-control form-control-sm" rows="2" [ngModel]="q.respuesta" (ngModelChange)="set('preguntasFrecuentes.' + i + '.respuesta', $event)" placeholder="Respuesta" aria-label="Respuesta"></textarea>
+        </div>
+        <button type="button" class="btn btn-outline-danger btn-sm" (click)="quitar('preguntasFrecuentes', i)" title="Quitar" aria-label="Quitar pregunta"><i class="bi bi-trash"></i></button>
+      </div>
+    } @empty {
+      <p class="text-muted small mb-0">Sin preguntas.</p>
+    }
+  </section>
+
+  <!-- Archivos -->
+  <section class="esp-section">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h6 class="mb-0"><i class="bi bi-file-earmark-pdf"></i> Material descargable</h6>
+      <button type="button" class="btn btn-outline-primary btn-sm" (click)="agregar('files')"><i class="bi bi-plus-lg me-1"></i>Agregar</button>
+    </div>
+    @for (a of f.files; track $index; let i = $index) {
+      <div class="list-row">
+        <div class="flex-grow-1 d-flex flex-column gap-2">
+          <input class="form-control form-control-sm" [ngModel]="a.name" (ngModelChange)="set('files.' + i + '.name', $event)" placeholder="Nombre (ej. Guía de sueño.pdf)" aria-label="Nombre del archivo" />
+          <div class="d-flex gap-2">
+            <input class="form-control form-control-sm" [ngModel]="a.url" (ngModelChange)="set('files.' + i + '.url', $event)" placeholder="https://…" aria-label="URL del archivo" />
+            <input type="file" accept="application/pdf" class="form-control form-control-sm w-auto" (change)="subir($event, 'files.' + i + '.url')" [disabled]="!!subiendo()" aria-label="Subir PDF" />
+          </div>
+        </div>
+        <button type="button" class="btn btn-outline-danger btn-sm" (click)="quitar('files', i)" title="Quitar" aria-label="Quitar archivo"><i class="bi bi-trash"></i></button>
+      </div>
+    } @empty {
+      <p class="text-muted small mb-0">Sin archivos.</p>
+    }
+  </section>
+
+  <div class="d-flex flex-wrap justify-content-between gap-2 mt-3">
+    @if (f.id !== null) {
+      <button type="button" class="btn btn-link text-danger btn-sm" (click)="eliminarActual()"><i class="bi bi-trash me-1"></i>Eliminar por completo</button>
+    } @else {
+      <span></span>
+    }
+    <div class="d-flex gap-2">
+      <button type="button" class="btn btn-secondary" (click)="cancelar()">Cancelar</button>
+      <button type="button" class="btn btn-primary" (click)="guardar()" [disabled]="guardando() || !!subiendo()">
+        <i class="bi bi-check-lg me-1"></i>{{ f.id === null ? 'Dar de alta' : 'Guardar cambios' }}
+      </button>
+    </div>
+  </div>
+} @else {
+  <!-- ============================== LISTA ============================== -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <p class="text-muted mb-0">
+      {{ conteo().visibles }} visibles hoy · {{ conteo().temporales }} temporales. El orden de esta lista es el orden en el sitio.
+    </p>
+    <button type="button" class="btn btn-primary" (click)="nuevo()"><i class="bi bi-person-plus me-1"></i>Nuevo colaborador</button>
+  </div>
+
+  <div class="esp-filtros mb-3">
+    <button type="button" [class.active]="filtro() === 'todos'" (click)="filtro.set('todos')">Todos</button>
+    <button type="button" [class.active]="filtro() === 'visible'" (click)="filtro.set('visible')">Visibles</button>
+    <button type="button" [class.active]="filtro() === 'temporal'" (click)="filtro.set('temporal')">Temporales</button>
+    <button type="button" [class.active]="filtro() === 'oculto'" (click)="filtro.set('oculto')">Ocultos o vencidos</button>
+  </div>
+
+  @for (p of filtrados(); track p.id; let first = $first, last = $last) {
+    <div class="esp-card" [class.apagado]="estado(p).clase !== 'ok'" [style.--c]="p.color">
+      <img [src]="p.image" alt="" class="esp-foto" (error)="$any($event.target).src = '/defaultAvatar5.jpg'" />
+      <div class="esp-info">
+        <div class="d-flex flex-wrap align-items-center gap-2">
+          <strong>{{ p.name }}</strong>
+          <span class="esp-estado {{ estado(p).clase }}">{{ estado(p).label }}</span>
+          <span class="esp-tipo" [class.temporal]="p.tipo === 'temporal'">
+            <i class="bi {{ p.tipo === 'temporal' ? 'bi-hourglass-split' : 'bi-infinity' }}"></i>
+            {{ p.tipo === 'temporal' ? 'Temporal' : 'Permanente' }}
+          </span>
+        </div>
+        <span class="esp-title">{{ p.title }}</span>
+        @if (vigenciaTexto(p); as v) {
+          <span class="esp-vig"><i class="bi bi-calendar-range me-1"></i>{{ v }}</span>
+        }
+        <div class="esp-lugares">
+          @for (l of dondeAparece(p); track l) {
+            <span>{{ l }}</span>
+          }
+        </div>
+      </div>
+      <div class="esp-actions">
+        @if (filtro() === 'todos') {
+          <div class="btn-group btn-group-sm">
+            <button type="button" class="btn btn-outline-secondary" (click)="mover(p, -1)" [disabled]="first || guardando()" title="Subir" aria-label="Subir"><i class="bi bi-arrow-up"></i></button>
+            <button type="button" class="btn btn-outline-secondary" (click)="mover(p, 1)" [disabled]="last || guardando()" title="Bajar" aria-label="Bajar"><i class="bi bi-arrow-down"></i></button>
+          </div>
+        }
+        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="alternarVisible(p)" [disabled]="guardando()">
+          <i class="bi {{ p.active === false ? 'bi-eye' : 'bi-eye-slash' }} me-1"></i>{{ p.active === false ? 'Mostrar' : 'Ocultar' }}
+        </button>
+        <button type="button" class="btn btn-primary btn-sm" (click)="editar(p)"><i class="bi bi-pencil me-1"></i>Editar</button>
+      </div>
+    </div>
+  } @empty {
+    <div class="text-center text-muted py-5"><i class="bi bi-people display-5 d-block mb-2"></i>Nadie en este filtro.</div>
+  }
+}

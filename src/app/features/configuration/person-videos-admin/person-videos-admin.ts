@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ApiService, ShortVideo, ShortVideoType } from '../../../core/services/api.service';
 import { AwsService } from '../../../core/services/aws.service';
-import { activePeople } from '../../../core/utils/people-visibility';
+import { getActivePeople } from '../../../core/utils/people-visibility';
 import { captureVideoPoster } from '../../../core/utils/video-poster';
 
 interface VideoTypeMeta {
@@ -51,7 +51,9 @@ export class PersonVideosAdmin {
   private readonly api = inject(ApiService);
   private readonly aws = inject(AwsService);
 
-  readonly people = activePeople as { id: number; name: string; image: string; color?: string }[];
+  get people(): { id: number; name: string; image: string; color?: string }[] {
+    return getActivePeople();
+  }
   readonly types = VIDEO_TYPES;
 
   readonly selectedPersonId = signal<number | null>(null);

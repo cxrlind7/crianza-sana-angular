@@ -8,7 +8,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { filterPublished } from '../../../core/utils/schedule';
 import { environment } from '../../../../environments/environment';
 import { getImagePerCategory, DEFAULT_AUTHOR_IMAGE } from '../../../core/utils/blog-author-images';
-import { people } from '../../../core/data/people-data';
+import { allPeople } from '../../../core/utils/people-visibility';
 import { parseFlexibleDate } from '../../../core/utils/date-utils';
 import { SpeechSegment, buildSpeechSegments, findSegmentAtPoint } from '../../../core/utils/speech-segments';
 import { withShareUtm } from '../../../core/utils/tracking';
@@ -426,7 +426,7 @@ export class BlogDetail implements OnInit, OnDestroy {
 
     if (blog.authorName) {
       const authorName = blog.authorName.toLowerCase().trim();
-      const specialist = (people as { name: string; color?: string }[]).find(
+      const specialist = allPeople().find(
         (p) => p.name.toLowerCase().trim() === authorName,
       );
       if (specialist?.color) return specialist.color;

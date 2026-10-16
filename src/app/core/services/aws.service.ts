@@ -17,6 +17,7 @@ const FOLDER_LABELS: Record<string, string> = {
   banner: 'banners',
   evento: 'eventos',
   gallery: 'galeria',
+  especialista: 'especialistas',
   avatar: 'avatares',
   uploads: 'archivos',
 };

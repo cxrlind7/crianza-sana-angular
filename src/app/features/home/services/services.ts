@@ -1,8 +1,7 @@
 import { AfterViewInit, CUSTOM_ELEMENTS_SCHEMA, Component, ElementRef, ViewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { SwiperOptions } from 'swiper/types';
-import { people } from '../../../core/data/people-data';
-import { isPersonActive } from '../../../core/utils/people-visibility';
+import { findPerson, getActivePeople } from '../../../core/utils/people-visibility';
 
 interface Servicio {
   personId: number;
@@ -24,62 +23,16 @@ export class Services implements AfterViewInit {
   // WhatsApp general (Carina / D-Kids) si un especialista no tiene número registrado.
   private readonly fallbackPhoneNumber = '526181448790';
 
-  readonly servicios: Servicio[] = ([
-    {
-      personId: 9,
-      title: 'Terapia de lenguaje',
-      description: 'Terapia de lenguaje para retrasos, trastornos del habla y comunicación.',
-      image: '/trlenguaje.jpg',
-    },
-    {
-      personId: 3,
-      title: 'Nutrición',
-      description:
-        'Facilitar cambios de hábitos con soluciones personalizadas para un peso saludable y control de enfermedades.',
-      image: '/Nutricion1.png',
-    },
-    {
-      personId: 2,
-      title: 'Terapia cognitivo-conductual',
-      description:
-        'Brindar atención cognitiva, personal, social y emocional a los niños y niñas en la primera etapa de su infancia.',
-      image: '/CarinaInfo.png',
-    },
-    {
-      personId: 6,
-      title: 'Psicología',
-      description:
-        'Psicoterapia para niños y adolescentes con el objetivo de potencializar su desarrollo. Asesoría en crianza para padres.',
-      image: '/ServicioPsicologia.jpg',
-    },
-    {
-      personId: 4,
-      title: 'Odontopediatría',
-      description:
-        'Orientada a la prevención, curación y mantenimiento de la salud oral de bebés, niños y adolescentes.',
-      image: '/Odontopediatria1.png',
-    },
-    {
-      personId: 5,
-      title: 'Pediatría y Cardiología',
-      description: 'Control de niño sano y enfermo, lactancia, vacunas, cardiopatías.',
-      image: '/CardiologiaPediatra.png',
-    },
-    {
-      personId: 1,
-      title: 'Fisioterapia',
-      description:
-        'Comprometidos con el bienestar de nuestros pacientes, brindando atención segura y de calidad para mejorar su salud.',
-      image: '/Fisioterapia1.jpeg',
-    },
-    {
-      personId: 8,
-      title: 'Derecho',
-      description:
-        'Servicios jurídicos y asesoría especializada con compromiso ético, responsable y justo, garantizando confianza.',
-      image: '/Derecho1.jpeg',
-    },
-  ] satisfies Servicio[]).filter((s) => isPersonActive(s.personId));
+  /** Una tarjeta por especialista visible con "servicio en el inicio" (Configuración → Especialistas). */
+  readonly servicios: Servicio[] = getActivePeople()
+    .filter((p) => p.servicioInicio?.mostrar && p.servicioInicio.titulo)
+    .sort((a, b) => (a.servicioInicio!.orden ?? 99) - (b.servicioInicio!.orden ?? 99))
+    .map((p) => ({
+      personId: p.id,
+      title: p.servicioInicio!.titulo,
+      description: p.servicioInicio!.descripcion,
+      image: p.servicioInicio!.imagen || p.image,
+    }));
 
   ngAfterViewInit(): void {
     const swiperEl = this.swiperContainer?.nativeElement as (HTMLElement & { initialize: () => void }) | undefined;
@@ -116,9 +69,7 @@ export class Services implements AfterViewInit {
   }
 
   private getSpecialistPhone(personId: number): string | null {
-    const person = (people as { id: number; socials?: { iconClass: string; link: string }[] }[]).find(
-      (p) => p.id === personId,
-    );
+    const person = findPerson(personId);
     const whatsapp = person?.socials?.find((s) => s.iconClass.includes('whatsapp'));
     return whatsapp?.link.match(/wa\.me\/(\d+)/)?.[1] ?? null;
   }

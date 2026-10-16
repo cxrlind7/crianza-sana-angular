@@ -40,6 +40,10 @@
   justify-content: center;
   align-items: flex-start;
   gap: 2.5rem var(--gap);
+  // Nunca más ancho que las columnas calculadas: en pantallas grandes las tarjetas llegan a su
+  // tamaño máximo y, sin este tope, cabrían más por fila (6 → 4 + 2 en vez de 3 + 3).
+  max-width: calc(var(--cols-actual) * 18rem + (var(--cols-actual) - 1) * var(--gap));
+  margin: 0 auto;
 }
 
 .team-grid > .polaroid-card {

@@ -9,7 +9,8 @@ Lista viva de lo que falta. Al terminar algo, se borra de aquí.
 - [x] 3. Videos en perfiles: "Conociendo a…", su espacio/negocio y clips educativos (`ea87d5d`)
 - [x] 4. Perfil tipo Doctoralia + ficha técnica / tarjeta digital descargable
   - [ ] Pedir a cada especialista: cédula profesional, formación, años de experiencia, a quién atiende, modalidad (presencial / en línea) y horario. Se capturan en `ficha` de `core/data/people-data.ts`.
-- [ ] 5. Colaboradores temporales o permanentes (patrocinio): pasar especialistas a Firestore para darlos de alta desde Configuración
+- [x] 5. Colaboradores temporales o permanentes: especialistas en Firestore (`especialistas`), alta/edición/vigencia en Configuración → Especialistas
+  - [ ] Completar la ficha técnica de cada especialista desde Configuración (cédula, formación, experiencia, modalidad, horario).
 - [x] 6. Calendario unificado en Configuración: efemérides, días festivos y programar blogs, eventos, programas y galerías
 - [x] 7. Foro / sección para padres con revisión antes de publicar (ver `docs/FORO.md`)
   - [ ] Publicar `firestore.rules` en Firebase (las reglas actuales vencieron el 23/02/2026).
