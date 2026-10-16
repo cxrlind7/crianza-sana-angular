@@ -1,0 +1,149 @@
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <p class="text-muted mb-0">Revisa lo que envían los padres antes de que aparezca en el <a href="/foro" target="_blank" rel="noopener">foro</a> y los comentarios de blogs, programas y galería.</p>
+  <button type="button" class="btn btn-outline-secondary btn-sm" (click)="cargar()" [disabled]="cargando()"><i class="bi bi-arrow-clockwise me-1"></i>Actualizar</button>
+</div>
+
+<div class="foro-tabs mb-3" role="tablist">
+  <button type="button" role="tab" [class.active]="pestana() === 'pendiente'" (click)="cambiar('pendiente')">
+    <i class="bi bi-hourglass-split"></i> Por aprobar
+    @if (datos()?.totalPendientes) {
+      <span class="tab-count warn">{{ datos()!.totalPendientes }}</span>
+    }
+  </button>
+  <button type="button" role="tab" [class.active]="pestana() === 'reportados'" (click)="cambiar('reportados')">
+    <i class="bi bi-flag"></i> Reportados
+    @if (datos()?.reportados?.length) {
+      <span class="tab-count danger">{{ datos()!.reportados.length }}</span>
+    }
+  </button>
+  <button type="button" role="tab" [class.active]="pestana() === 'aprobado'" (click)="cambiar('aprobado')"><i class="bi bi-check2-circle"></i> Publicados</button>
+  <button type="button" role="tab" [class.active]="pestana() === 'rechazado'" (click)="cambiar('rechazado')"><i class="bi bi-x-circle"></i> Rechazados</button>
+  <button type="button" role="tab" [class.active]="pestana() === 'bloqueados'" (click)="cambiar('bloqueados')">
+    <i class="bi bi-person-slash"></i> Cuentas bloqueadas
+    @if (datos()?.bloqueados?.length) {
+      <span class="tab-count">{{ datos()!.bloqueados.length }}</span>
+    }
+  </button>
+</div>
+
+@if (mensaje(); as m) {
+  <div class="alert alert-{{ m.tipo }} small d-flex justify-content-between align-items-center">
+    <span>{{ m.texto }}</span>
+    <button type="button" class="btn-close btn-sm" (click)="mensaje.set(null)" aria-label="Cerrar"></button>
+  </div>
+}
+
+@if (cargando() && !datos()) {
+  <div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
+} @else if (pestana() === 'bloqueados') {
+  @if (!datos()?.bloqueados?.length) {
+    <div class="foro-empty"><i class="bi bi-emoji-smile"></i><p>No hay cuentas bloqueadas.</p></div>
+  }
+  @for (b of datos()?.bloqueados ?? []; track b.uid) {
+    <div class="mod-card d-flex justify-content-between align-items-center">
+      <div>
+        <strong>{{ b.nombre }}</strong>
+        <div class="small text-muted">{{ b.email }}</div>
+      </div>
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="bloquear(b.uid, b.nombre, false)"><i class="bi bi-unlock me-1"></i>Desbloquear</button>
+    </div>
+  }
+} @else {
+  @if (items().length === 0) {
+    <div class="foro-empty">
+      <i class="bi {{ pestana() === 'pendiente' ? 'bi-inbox' : 'bi-emoji-smile' }}"></i>
+      <p>{{ pestana() === 'pendiente' ? '¡Al día! No hay nada por aprobar.' : pestana() === 'reportados' ? 'No hay mensajes reportados.' : 'No hay nada aquí todavía.' }}</p>
+    </div>
+  }
+
+  @for (item of items(); track item.tipo + item.id) {
+    <div class="mod-card" [class.busy]="ocupado() === item.id">
+      <div class="mod-head">
+        <span class="mod-type" [class.reply]="item.tipo === 'respuesta'" [class.comment]="item.tipo === 'comentario'">
+          <i class="bi {{ item.tipo === 'hilo' ? 'bi-question-circle' : item.tipo === 'respuesta' ? 'bi-reply' : 'bi-chat-left-text' }}"></i>
+          {{ tipoLabel(item) }}
+        </span>
+        @if (item.tipo === 'hilo' && item.categoria) {
+          <span class="mod-cat" [style.--cat]="categoriaMeta(item.categoria).color">{{ categoriaMeta(item.categoria).label }}</span>
+        }
+        @for (a of item.alertas ?? []; track a) {
+          <span class="mod-alert"><i class="bi bi-exclamation-triangle"></i> {{ a }}</span>
+        }
+        @if (item.reportes) {
+          <span class="mod-alert danger"><i class="bi bi-flag-fill"></i> {{ item.reportes }} {{ item.reportes === 1 ? 'reporte' : 'reportes' }}</span>
+        }
+        @if (item.fijado) {
+          <span class="mod-pill"><i class="bi bi-pin-angle-fill"></i> Fijada</span>
+        }
+        @if (item.cerrado) {
+          <span class="mod-pill"><i class="bi bi-lock-fill"></i> Cerrada</span>
+        }
+        <span class="mod-date">{{ fecha(item.creadoEn) }}</span>
+      </div>
+
+      @if (item.tipo !== 'hilo') {
+        <p class="mod-context">En: <a [href]="enlace(item)" target="_blank" rel="noopener">{{ item.hiloTitulo }}</a></p>
+      } @else {
+        <h5 class="mod-title">{{ item.titulo }}</h5>
+      }
+      <p class="mod-body">{{ item.cuerpo }}</p>
+
+      <div class="mod-author">
+        <i class="bi bi-person-circle"></i>
+        <strong>{{ item.autor.nombre }}</strong>
+        @if (item.autor.anonimo) {
+          <span class="text-muted">(publicó como anónimo)</span>
+        }
+        <span class="text-muted">· {{ item.autor.email }}</span>
+      </div>
+
+      @if (item.estado === 'rechazado' && item.motivo) {
+        <p class="mod-motivo"><i class="bi bi-info-circle"></i> Motivo: {{ item.motivo }}</p>
+      }
+
+      @if (rechazando() === item.id) {
+        <div class="mod-reject">
+          <label class="form-label small fw-semibold" [for]="'motivo-' + item.id">Motivo (lo verá la persona)</label>
+          <select class="form-select form-select-sm mb-2" [id]="'motivo-' + item.id" [(ngModel)]="motivo">
+            @for (m of motivos; track m) {
+              <option [value]="m">{{ m }}</option>
+            }
+          </select>
+          <div class="d-flex gap-2 justify-content-end">
+            <button type="button" class="btn btn-secondary btn-sm" (click)="rechazando.set(null)">Cancelar</button>
+            <button type="button" class="btn btn-danger btn-sm" (click)="accion(item, 'rechazar', motivo)"><i class="bi bi-x-lg me-1"></i>Rechazar</button>
+          </div>
+        </div>
+      } @else {
+        <div class="mod-actions">
+          @if (item.estado !== 'aprobado') {
+            <button type="button" class="btn btn-success btn-sm" (click)="accion(item, 'aprobar')"><i class="bi bi-check-lg me-1"></i>Aprobar</button>
+          }
+          @if (item.estado === 'pendiente') {
+            <button type="button" class="btn btn-outline-danger btn-sm" (click)="abrirRechazo(item)"><i class="bi bi-x-lg me-1"></i>Rechazar</button>
+          }
+          @if (pestana() === 'reportados') {
+            <button type="button" class="btn btn-outline-secondary btn-sm" (click)="accion(item, 'descartar-reportes')"><i class="bi bi-check2 me-1"></i>Está bien, descartar reportes</button>
+            <button type="button" class="btn btn-outline-danger btn-sm" (click)="accion(item, 'rechazar', 'Retirado tras reportes de la comunidad')"><i class="bi bi-eye-slash me-1"></i>Retirar del foro</button>
+          }
+          @if (item.estado === 'aprobado' && item.tipo === 'hilo') {
+            <button type="button" class="btn btn-outline-primary btn-sm" (click)="accion(item, item.fijado ? 'desfijar' : 'fijar')">
+              <i class="bi bi-pin-angle me-1"></i>{{ item.fijado ? 'Desfijar' : 'Fijar' }}
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm" (click)="accion(item, item.cerrado ? 'abrir' : 'cerrar')">
+              <i class="bi {{ item.cerrado ? 'bi-unlock' : 'bi-lock' }} me-1"></i>{{ item.cerrado ? 'Abrir' : 'Cerrar' }}
+            </button>
+          }
+          @if (item.estado === 'aprobado') {
+            <a class="btn btn-outline-secondary btn-sm" [href]="enlace(item)" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right me-1"></i>Ver</a>
+          }
+          <span class="flex-grow-1"></span>
+          @if (item.autor.rol !== 'equipo') {
+            <button type="button" class="btn btn-link btn-sm text-secondary" (click)="bloquear(item.autor.uid, item.autor.nombre, true)"><i class="bi bi-person-slash me-1"></i>Bloquear autor</button>
+          }
+          <button type="button" class="btn btn-outline-danger btn-sm" (click)="accion(item, 'eliminar')" title="Eliminar"><i class="bi bi-trash"></i></button>
+        </div>
+      }
+    </div>
+  }
+}

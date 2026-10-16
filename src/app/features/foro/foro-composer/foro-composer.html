@@ -1,0 +1,130 @@
+@if (!user()) {
+  <!-- Visitante sin cuenta -->
+  <div class="composer-card composer-gate">
+    <span class="gate-icon"><i class="fas fa-user-friends"></i></span>
+    <div>
+      <h4>{{ modo() === 'hilo' ? '¿Tienes una duda de crianza?' : '¿Quieres responder?' }}</h4>
+      <p>Para cuidar a la comunidad, solo las cuentas registradas pueden publicar. Crear tu cuenta es gratis y toma un minuto.</p>
+      <div class="gate-actions">
+        <a class="btn-foro btn-foro-primary" routerLink="/login" [queryParams]="{ returnUrl: returnUrl(), registro: 1 }">
+          <i class="fas fa-user-plus"></i> Crear cuenta
+        </a>
+        <a class="btn-foro" routerLink="/login" [queryParams]="{ returnUrl: returnUrl() }"><i class="fas fa-sign-in-alt"></i> Iniciar sesión</a>
+      </div>
+    </div>
+  </div>
+} @else if (!verificado()) {
+  <!-- Con cuenta, sin verificar el correo -->
+  <div class="composer-card composer-gate">
+    <span class="gate-icon warn"><i class="fas fa-envelope-open-text"></i></span>
+    <div>
+      <h4>Verifica tu correo para publicar</h4>
+      <p>Te enviamos un enlace a <strong>{{ user()!.email }}</strong>. Ábrelo y después pulsa "Ya verifiqué".</p>
+      <div class="gate-actions">
+        <button type="button" class="btn-foro btn-foro-primary" (click)="yaVerifique()"><i class="fas fa-check"></i> Ya verifiqué</button>
+        <button type="button" class="btn-foro" (click)="reenviarVerificacion()"><i class="fas fa-redo"></i> Reenviar correo</button>
+      </div>
+      @if (aviso()) {
+        <p class="composer-note mt-2 mb-0">{{ aviso() }}</p>
+      }
+    </div>
+  </div>
+} @else if (resultado(); as estado) {
+  <!-- Enviado -->
+  <div class="composer-card composer-done">
+    <span class="gate-icon ok"><i [class]="estado === 'aprobado' ? 'fas fa-check' : 'fas fa-hourglass-half'"></i></span>
+    <div>
+      @if (estado === 'aprobado') {
+        <h4>¡Publicado!</h4>
+        <p>Ya es visible en el foro.</p>
+      } @else {
+        <h4>¡Gracias! Tu {{ modo() === 'hilo' ? 'pregunta' : 'respuesta' }} está en revisión</h4>
+        <p>El equipo revisa cada mensaje antes de publicarlo para mantener el foro seguro. Puedes ver su estado en "Mis publicaciones".</p>
+      }
+      <button type="button" class="btn-foro" (click)="otraVez()"><i class="fas fa-pen"></i> Escribir otra</button>
+    </div>
+  </div>
+} @else {
+  <!-- Formulario -->
+  <form class="composer-card" (ngSubmit)="enviar()" (focusin)="empezar()" autocomplete="off">
+    @if (modo() === 'hilo') {
+      <h4 class="composer-title"><i class="fas fa-question-circle"></i> Haz tu pregunta</h4>
+
+      <label class="composer-label">Tema</label>
+      <div class="cat-picker">
+        @for (c of categorias; track c.key) {
+          <button type="button" class="cat-chip" [class.active]="categoria() === c.key" [style.--cat]="c.color" (click)="categoria.set(c.key); empezar()">
+            <i [class]="c.icon"></i> {{ c.label }}
+          </button>
+        }
+      </div>
+
+      <label class="composer-label" for="foro-titulo">Título</label>
+      <input
+        id="foro-titulo"
+        name="titulo"
+        class="form-control composer-input"
+        [ngModel]="titulo()"
+        (ngModelChange)="titulo.set($event)"
+        maxlength="140"
+        placeholder="Ej. ¿Cómo logran que su bebé duerma toda la noche?"
+      />
+    }
+
+    <label class="composer-label" for="foro-cuerpo-{{ modo() }}">{{ modo() === 'hilo' ? 'Cuéntanos más' : 'Tu respuesta' }}</label>
+    <textarea
+      id="foro-cuerpo-{{ modo() }}"
+      name="cuerpo"
+      class="form-control composer-input"
+      [rows]="modo() === 'hilo' ? 5 : 3"
+      [ngModel]="cuerpo()"
+      (ngModelChange)="cuerpo.set($event)"
+      [maxlength]="maxCuerpo()"
+      [placeholder]="modo() === 'hilo' ? 'Edad de tu hijo o hija, qué has intentado, qué te preocupa…' : 'Comparte tu experiencia con respeto…'"
+    ></textarea>
+    <div class="composer-counter">{{ cuerpo().length }} / {{ maxCuerpo() }}</div>
+
+    <!-- Trampa para bots: invisible para las personas -->
+    <div class="hp-field" aria-hidden="true">
+      <label for="sitio-web-{{ modo() }}">Sitio web</label>
+      <input id="sitio-web-{{ modo() }}" name="sitioWeb" type="text" tabindex="-1" autocomplete="off" [(ngModel)]="sitioWeb" />
+    </div>
+
+    @if (!esEquipo()) {
+      <label class="composer-check">
+        <input type="checkbox" name="anonimo" [ngModel]="anonimo()" (ngModelChange)="anonimo.set($event)" />
+        <span>Publicar como <strong>"Mamá o papá anónimo"</strong> (no se mostrará tu nombre)</span>
+      </label>
+    }
+    <label class="composer-check">
+      <input type="checkbox" name="normas" [ngModel]="aceptaNormas()" (ngModelChange)="aceptaNormas.set($event)" />
+      <span>Acepto las normas del foro: respeto, nada de publicidad y no compartir datos personales de menores.</span>
+    </label>
+
+    @if (error()) {
+      <div class="composer-error"><i class="fas fa-exclamation-circle"></i> {{ error() }}</div>
+    }
+
+    <div class="composer-actions">
+      <span class="composer-note">
+        @if (esEquipo()) {
+          <i class="fas fa-shield-alt"></i> Publicas como Equipo Crianza Sana (sin revisión).
+        } @else {
+          <i class="fas fa-shield-alt"></i> Se publica después de que el equipo lo revise.
+        }
+      </span>
+      <div class="d-flex gap-2">
+        @if (modo() === 'hilo') {
+          <button type="button" class="btn-foro" (click)="cancelar.emit()">Cancelar</button>
+        }
+        <button type="submit" class="btn-foro btn-foro-primary" [disabled]="!listo() || enviando()">
+          @if (enviando()) {
+            <span class="spinner-border spinner-border-sm"></span> Enviando…
+          } @else {
+            <i class="fas fa-paper-plane"></i> {{ modo() === 'hilo' ? 'Enviar pregunta' : 'Responder' }}
+          }
+        </button>
+      </div>
+    </div>
+  </form>
+}

@@ -47,6 +47,14 @@ export const routes: Routes = [
     loadComponent: () => import('./features/blog/blog-detail/blog-detail').then((m) => m.BlogDetail),
   },
   {
+    path: 'foro',
+    loadComponent: () => import('./features/foro/foro').then((m) => m.Foro),
+  },
+  {
+    path: 'foro/:id',
+    loadComponent: () => import('./features/foro/foro-hilo/foro-hilo').then((m) => m.ForoHiloPage),
+  },
+  {
     path: 'login',
     loadComponent: () => import('./features/login/login').then((m) => m.Login),
   },

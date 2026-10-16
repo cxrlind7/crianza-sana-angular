@@ -216,6 +216,15 @@
                 }
               </div>
 
+              @if (comentarioAviso(); as aviso) {
+                <p class="comment-aviso" [class.error]="aviso.tipo === 'error'" role="status">
+                  <i [class]="aviso.tipo === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-check-circle'"></i>
+                  {{ aviso.texto }}
+                  @if (aviso.tipo === 'error' && !currentUser()) {
+                    <a href="/login" class="ms-1">Iniciar sesión o crear cuenta</a>
+                  }
+                </p>
+              }
               <div class="comment-input-wrapper light-border-top">
                 <img [src]="currentUser()?.photoURL || defaultAvatar" class="input-avatar" alt="Tu avatar" />
                 <div class="input-box">

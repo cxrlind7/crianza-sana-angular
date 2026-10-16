@@ -1,0 +1,215 @@
+// Mismo acento violeta que el resto del panel de Configuración.
+$accent: #7c3aed;
+
+.foro-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--dm-surface-2);
+  border: 1px solid var(--dm-border);
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: none;
+    border-radius: 10px;
+    padding: 0.45rem 0.85rem;
+    background: transparent;
+    color: var(--dm-text-secondary);
+    font-size: 0.86rem;
+    font-weight: 600;
+    transition: all 0.15s ease;
+
+    &:hover {
+      color: var(--dm-text);
+    }
+
+    &.active {
+      background: var(--dm-surface);
+      color: $accent;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+  }
+}
+
+.tab-count {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--dm-border);
+  color: var(--dm-text);
+  font-size: 0.72rem;
+  line-height: 20px;
+  text-align: center;
+
+  &.warn {
+    background: #f59e0b;
+    color: #fff;
+  }
+
+  &.danger {
+    background: #dc2626;
+    color: #fff;
+  }
+}
+
+.mod-card {
+  margin-bottom: 12px;
+  padding: 1.1rem 1.25rem;
+  border-radius: 14px;
+  border: 1px solid var(--dm-border);
+  background: var(--dm-surface);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: opacity 0.2s ease;
+
+  &.busy {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+}
+
+.mod-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.mod-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #{$accent} 14%, var(--dm-surface));
+  color: color-mix(in srgb, #{$accent} 75%, var(--dm-text));
+  font-size: 0.75rem;
+  font-weight: 700;
+
+  &.reply {
+    background: color-mix(in srgb, #0891b2 14%, var(--dm-surface));
+    color: color-mix(in srgb, #0891b2 75%, var(--dm-text));
+  }
+
+  &.comment {
+    background: color-mix(in srgb, #db2777 14%, var(--dm-surface));
+    color: color-mix(in srgb, #db2777 75%, var(--dm-text));
+  }
+}
+
+.mod-cat {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cat) 14%, var(--dm-surface));
+  color: color-mix(in srgb, var(--cat) 70%, var(--dm-text));
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.mod-alert {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #f59e0b 16%, var(--dm-surface));
+  color: color-mix(in srgb, #b45309 70%, var(--dm-text));
+  font-size: 0.74rem;
+  font-weight: 600;
+
+  &.danger {
+    background: color-mix(in srgb, #dc2626 14%, var(--dm-surface));
+    color: color-mix(in srgb, #dc2626 75%, var(--dm-text));
+  }
+}
+
+.mod-pill {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--dm-text-secondary);
+}
+
+.mod-date {
+  margin-left: auto;
+  font-size: 0.78rem;
+  color: var(--dm-text-secondary);
+}
+
+.mod-title {
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: var(--dm-text);
+  margin-bottom: 6px;
+}
+
+.mod-context {
+  font-size: 0.85rem;
+  color: var(--dm-text-secondary);
+  margin-bottom: 6px;
+}
+
+.mod-body {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 0.75rem 0.9rem;
+  border-radius: 10px;
+  background: var(--dm-surface-2);
+  color: var(--dm-text);
+  font-size: 0.92rem;
+  line-height: 1.55;
+  margin-bottom: 10px;
+}
+
+.mod-author {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--dm-text);
+  margin-bottom: 10px;
+
+  i {
+    color: $accent;
+  }
+}
+
+.mod-motivo {
+  font-size: 0.84rem;
+  color: color-mix(in srgb, #dc2626 75%, var(--dm-text));
+  margin-bottom: 10px;
+}
+
+.mod-reject {
+  padding: 0.8rem;
+  border-radius: 10px;
+  border: 1px dashed color-mix(in srgb, #dc2626 50%, transparent);
+}
+
+.mod-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.foro-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--dm-text-secondary);
+
+  i {
+    font-size: 2.4rem;
+    color: $accent;
+  }
+
+  p {
+    margin: 0.5rem 0 0;
+  }
+}

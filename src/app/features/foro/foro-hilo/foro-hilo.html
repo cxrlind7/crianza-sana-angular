@@ -1,0 +1,108 @@
+<div class="foro-page">
+  <div class="container hilo-container">
+    <a routerLink="/foro" class="btn-foro btn-volver"><i class="fas fa-arrow-left"></i> Volver al foro</a>
+
+    @if (cargando()) {
+      <div class="post-card skeleton"></div>
+    } @else if (noExiste() || !hilo()) {
+      <div class="post-card text-center py-5">
+        <i class="fas fa-search empty-icon"></i>
+        <h1 class="post-title">Esta conversación no está disponible</h1>
+        <p class="text-muted">Puede que siga en revisión o que se haya retirado.</p>
+        <a routerLink="/foro" class="btn-foro btn-foro-primary">Ir al foro</a>
+      </div>
+    } @else {
+      @let h = hilo()!;
+      @let cat = categoriaMeta(h.categoria);
+      <!-- PREGUNTA -->
+      <article class="post-card pregunta fade-in" [style.--cat]="cat.color">
+        <div class="post-top">
+          <span class="cat-badge" [style.--cat]="cat.color"><i [class]="cat.icon"></i> {{ cat.label }}</span>
+          @if (h.fijado) {
+            <span class="flag"><i class="fas fa-thumbtack"></i> Fijado</span>
+          }
+          @if (h.cerrado) {
+            <span class="flag cerrado"><i class="fas fa-lock"></i> Cerrado</span>
+          }
+        </div>
+        <h1 class="post-title">{{ h.titulo }}</h1>
+        <div class="post-author">
+          @if (h.autor.foto) {
+            <img class="foro-avatar" [class.equipo]="h.autor.rol === 'equipo'" [src]="h.autor.foto" alt="" />
+          } @else {
+            <span class="foro-avatar">{{ iniciales(h.autor.nombre) }}</span>
+          }
+          <div>
+            <strong>{{ h.autor.nombre }}</strong>
+            @if (h.autor.rol === 'equipo') {
+              <span class="badge-equipo ms-1"><i class="fas fa-check-circle"></i> Equipo</span>
+            }
+            <span class="post-date">{{ haceCuanto(h.creadoEn) }}</span>
+          </div>
+        </div>
+        <p class="post-body">{{ h.cuerpo }}</p>
+        <div class="post-actions">
+          <button type="button" class="link-btn" (click)="compartir()"><i class="fas fa-share-alt"></i> Compartir</button>
+          @if (h.autor.rol !== 'equipo') {
+            <button type="button" class="link-btn muted" (click)="reportar('hilo', h.id)" [disabled]="reportados().has(h.id)">
+              <i class="far fa-flag"></i> {{ reportados().has(h.id) ? 'Reportado' : 'Reportar' }}
+            </button>
+          }
+        </div>
+      </article>
+
+      @if (aviso()) {
+        <div class="hilo-aviso"><i class="fas fa-info-circle"></i> {{ aviso() }}</div>
+      }
+
+      <!-- RESPUESTAS -->
+      <h2 class="respuestas-title">
+        {{ respuestas().length }} {{ respuestas().length === 1 ? 'respuesta' : 'respuestas' }}
+      </h2>
+
+      @if (respuestas().length === 0) {
+        <p class="sin-respuestas">Aún nadie responde. Si tienes una experiencia parecida, ¡compártela!</p>
+      }
+
+      @for (r of respuestas(); track r.id) {
+        <article class="post-card respuesta fade-in" [class.equipo]="r.autor.rol === 'equipo'">
+          <div class="post-author">
+            @if (r.autor.foto) {
+              <img class="foro-avatar" [class.equipo]="r.autor.rol === 'equipo'" [src]="r.autor.foto" alt="" />
+            } @else {
+              <span class="foro-avatar">{{ iniciales(r.autor.nombre) }}</span>
+            }
+            <div>
+              <strong>{{ r.autor.nombre }}</strong>
+              @if (r.autor.rol === 'equipo') {
+                <span class="badge-equipo ms-1"><i class="fas fa-check-circle"></i> Equipo</span>
+              }
+              <span class="post-date">{{ haceCuanto(r.creadoEn) }}</span>
+            </div>
+          </div>
+          <p class="post-body">{{ r.cuerpo }}</p>
+          @if (r.autor.rol !== 'equipo') {
+            <div class="post-actions">
+              <button type="button" class="link-btn muted" (click)="reportar('respuesta', r.id)" [disabled]="reportados().has(r.id)">
+                <i class="far fa-flag"></i> {{ reportados().has(r.id) ? 'Reportado' : 'Reportar' }}
+              </button>
+            </div>
+          }
+        </article>
+      }
+
+      <!-- RESPONDER -->
+      <div class="responder">
+        @if (h.cerrado) {
+          <p class="sin-respuestas"><i class="fas fa-lock"></i> Esta conversación está cerrada y ya no recibe respuestas.</p>
+        } @else {
+          <app-foro-composer modo="respuesta" [hiloId]="h.id" />
+        }
+      </div>
+
+      <p class="disclaimer">
+        <i class="fas fa-stethoscope"></i> Las experiencias compartidas no sustituyen una consulta profesional. Si es una urgencia, acude a tu pediatra.
+      </p>
+    }
+  </div>
+</div>

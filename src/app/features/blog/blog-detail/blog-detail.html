@@ -100,6 +100,15 @@
           Comentarios <span class="comments-count">({{ comments().length }})</span>
         </h3>
 
+        @if (comentarioAviso(); as aviso) {
+          <p class="comment-aviso" [class.error]="aviso.tipo === 'error'" role="status">
+            <i [class]="aviso.tipo === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-check-circle'"></i>
+            {{ aviso.texto }}
+            @if (aviso.tipo === 'error' && !authUser()) {
+              <a href="/login" class="ms-1">Iniciar sesión o crear cuenta</a>
+            }
+          </p>
+        }
         <div class="comment-input-wrapper">
           <img [src]="authUser()?.photoURL || defaultAvatar" alt="Tu avatar" class="current-user-avatar" />
           <div class="input-group-modern">

@@ -21,6 +21,7 @@ import {
   getSiteEvents,
 } from './utils/getAnalyticsData.js'
 import compression from 'compression'
+import { registerForoRoutes, esComentarioVisible } from './utils/foro.js'
 // --- CONFIGURACIÓN DE RUTAS Y DIRECTORIOS ---
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -212,14 +213,19 @@ const requireAdmin = async (req, res, next) => {
   }
 }
 
-// Todas las escrituras de la API son de administración, excepto suscribirse.
+// Todas las escrituras de la API son de administración, excepto suscribirse y participar en el
+// foro (esas rutas piden su propia sesión de usuario en utils/foro.js).
 app.use('/api', (req, res, next) => {
   const isWrite = req.method !== 'GET' && req.method !== 'HEAD' && req.method !== 'OPTIONS'
-  const isPublicWrite = req.method === 'POST' && req.path === '/subscribers'
+  const isForoAdmin = req.path.startsWith('/foro/admin')
+  const isForoUser = req.path.startsWith('/foro/') && !isForoAdmin
+  const isPublicWrite = (req.method === 'POST' && req.path === '/subscribers') || isForoUser
   const isAdminRead = req.method === 'GET' && req.path === '/subscribers'
-  if ((isWrite && !isPublicWrite) || isAdminRead) return requireAdmin(req, res, next)
+  if ((isWrite && !isPublicWrite) || isAdminRead || isForoAdmin) return requireAdmin(req, res, next)
   next()
 })
+
+registerForoRoutes(app, { getDb: () => db, admin, adminEmails: ADMIN_EMAILS })
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
@@ -627,7 +633,7 @@ app.get('/api/firestore/blogs/:id/comments', async (req, res) => {
   const { id } = req.params
   try {
     const snapshot = await db.collection(`blogs/${id}/comments`).get()
-    const comments = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+    const comments = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })).filter(esComentarioVisible)
     res.json(comments)
   } catch (error) {
     console.error(`Error Firestore Blog Comments ${id}:`, error)
@@ -763,7 +769,7 @@ app.get('/api/firestore/galleries/:galeriaId/images/:imageId/comments', async (r
       .collection(`galerias/${galeriaId}/fotos/${imageId}/comments`)
       .orderBy('createdAt', 'desc')
       .get()
-    const comments = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+    const comments = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })).filter(esComentarioVisible)
     res.json(comments)
   } catch (error) {
     console.error(`Error Firestore Image Comments ${imageId}:`, error)
@@ -776,7 +782,7 @@ app.get('/api/firestore/videos/:id/comments', async (req, res) => {
   const { id } = req.params
   try {
     const snapshot = await db.collection(`programas/${id}/comments`).get()
-    const comments = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+    const comments = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })).filter(esComentarioVisible)
     res.json(comments)
   } catch (error) {
     console.error(`Error Firestore Video Comments ${id}:`, error)

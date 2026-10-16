@@ -1,0 +1,32 @@
+rules_version = '2';
+
+// Reglas recomendadas para el proyecto crianzasana-c33aa.
+//
+// El sitio lee y escribe TODO a través del servidor (server.js con Admin SDK), que no pasa por
+// estas reglas; desde el navegador no hace falta acceso directo. Los comentarios de blogs,
+// programas y fotos también van por el servidor (POST /api/foro/comentarios) con moderación.
+//
+// OJO: este archivo NO se publica solo. Para aplicarlo: Firebase Console → Firestore → Reglas,
+// o `firebase deploy --only firestore:rules`. Las reglas publicadas hoy vencieron el 23/02/2026
+// y ya niegan todo; publicar este archivo deja eso explícito y sin fecha de vencimiento.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Foro para padres: solo el servidor. Así nadie puede saltarse la moderación
+    // escribiendo directo en la base (por ejemplo, marcando su mensaje como aprobado).
+    match /foroHilos/{id} {
+      allow read, write: if false;
+    }
+    match /foroRespuestas/{id} {
+      allow read, write: if false;
+    }
+    match /foroUsuarios/{uid} {
+      allow read, write: if false;
+    }
+
+    // Todo lo demás (blogs, comentarios, galerías, programas, suscriptores…) solo vía servidor.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,108 @@
+// Piezas comunes del foro. Cada componente las incluye con @use '../foro-shared'.
+$foro-primary: #7c3aed;
+$foro-gradient: linear-gradient(135deg, #7c3aed, #db2777);
+
+/* Botones en píldora, mismo lenguaje que .btn-back / .social-btn-link del sitio. */
+.btn-foro {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 30px;
+  border: 2px solid transparent;
+  background: var(--dm-surface);
+  color: var(--dm-text);
+  font-weight: 600;
+  font-size: 0.92rem;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
+    color: var(--dm-text);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.btn-foro-primary {
+  background: $foro-gradient;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    color: #fff;
+  }
+}
+
+.foro-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: color-mix(in srgb, #{$foro-primary} 14%, var(--dm-surface));
+  color: $foro-primary;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+
+  &.equipo {
+    object-fit: contain;
+    padding: 4px;
+    background: #fff;
+    border: 2px solid $foro-primary;
+  }
+}
+
+.badge-equipo {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: $foro-gradient;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.cat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 11px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cat) 14%, var(--dm-surface));
+  color: color-mix(in srgb, var(--cat) 70%, var(--dm-text));
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.fade-in {
+  animation: foroFadeIn 0.5s ease-out both;
+}
+
+@keyframes foroFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-in {
+    animation: none;
+  }
+}

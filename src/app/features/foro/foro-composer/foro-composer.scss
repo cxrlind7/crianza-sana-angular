@@ -1,0 +1,214 @@
+@use '../foro-shared' as *;
+
+.composer-card {
+  background: var(--dm-surface);
+  border-radius: 24px;
+  padding: 28px;
+  box-shadow:
+    0 20px 40px rgba(50, 50, 93, 0.08),
+    0 10px 20px rgba(0, 0, 0, 0.05);
+}
+
+.composer-gate,
+.composer-done {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+
+  h4 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--dm-text);
+    margin-bottom: 6px;
+  }
+
+  p {
+    color: var(--dm-text-secondary);
+    margin-bottom: 14px;
+  }
+}
+
+.gate-icon {
+  flex-shrink: 0;
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  color: #fff;
+  background: $foro-gradient;
+
+  &.warn {
+    background: linear-gradient(135deg, #f59e0b, #f97316);
+  }
+
+  &.ok {
+    background: linear-gradient(135deg, #10b981, #059669);
+  }
+}
+
+.gate-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.composer-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--dm-text);
+  margin-bottom: 18px;
+
+  i {
+    color: $foro-primary;
+    margin-right: 6px;
+  }
+}
+
+.composer-label {
+  display: block;
+  margin: 14px 0 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--dm-text-secondary);
+}
+
+.cat-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1.5px solid var(--dm-border);
+  background: var(--dm-surface);
+  color: var(--dm-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+
+  i {
+    color: var(--cat);
+  }
+
+  &:hover {
+    border-color: var(--cat);
+  }
+
+  &.active {
+    background: var(--cat);
+    border-color: var(--cat);
+    color: #fff;
+
+    i {
+      color: #fff;
+    }
+  }
+}
+
+.composer-input {
+  border-radius: 14px;
+  padding: 12px 16px;
+  border: 1.5px solid var(--dm-border);
+  background: var(--dm-surface);
+  color: var(--dm-text);
+
+  &:focus {
+    border-color: $foro-primary;
+    box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.12);
+  }
+}
+
+textarea.composer-input {
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.composer-counter {
+  text-align: right;
+  font-size: 0.75rem;
+  color: var(--dm-text-secondary);
+  margin-top: 4px;
+}
+
+// Fuera de la vista pero presente para los bots (no display:none, que algunos detectan).
+.hp-field {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.composer-check {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-top: 12px;
+  font-size: 0.88rem;
+  color: var(--dm-text);
+  cursor: pointer;
+
+  input {
+    margin-top: 4px;
+    accent-color: $foro-primary;
+    flex-shrink: 0;
+  }
+}
+
+.composer-error {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, #dc2626 12%, var(--dm-surface));
+  color: color-mix(in srgb, #dc2626 75%, var(--dm-text));
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.composer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.composer-note {
+  font-size: 0.8rem;
+  color: var(--dm-text-secondary);
+
+  i {
+    color: $foro-primary;
+    margin-right: 4px;
+  }
+}
+
+@media (max-width: 576px) {
+  .composer-card {
+    padding: 20px;
+  }
+
+  .composer-gate,
+  .composer-done {
+    flex-direction: column;
+  }
+
+  .composer-actions > div {
+    width: 100%;
+
+    .btn-foro {
+      flex: 1;
+    }
+  }
+}

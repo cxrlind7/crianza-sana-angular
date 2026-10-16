@@ -19,6 +19,8 @@ import { activePeople } from '../../core/utils/people-visibility';
 import { PersonVideosAdmin } from './person-videos-admin/person-videos-admin';
 import { CalendarCreateKind, CalendarEntry, ContentCalendar } from './content-calendar/content-calendar';
 import { GalleryAdmin, GalleryFocus } from './gallery-admin/gallery-admin';
+import { ForoAdmin } from './foro-admin/foro-admin';
+import { ForoService } from '../../core/services/foro.service';
 import { environment } from '../../../environments/environment';
 import { parseFlexibleDate, toDateInputValue, toSortableTime } from '../../core/utils/date-utils';
 type CollectionKey =
@@ -30,6 +32,7 @@ type CollectionKey =
   | 'eventos'
   | 'programas'
   | 'galerias'
+  | 'foro'
   | 'temas'
   | 'suscriptores'
   | 'videos';
@@ -60,6 +63,7 @@ const COLLECTIONS: CollectionMeta[] = [
   { key: 'galerias', label: 'Galerías', icon: '📸' },
   { key: 'videos', label: 'Videos de especialistas', icon: '🎥' },
   { key: 'temas', label: 'Temas', icon: '🎨' },
+  { key: 'foro', label: 'Foro y comentarios', icon: '💬' },
   { key: 'suscriptores', label: 'Suscriptores', icon: '📧' },
 ];
 
@@ -76,7 +80,7 @@ type ModalData = Record<string, any>;
 
 @Component({
   selector: 'app-configuration',
-  imports: [FormsModule, RouterLink, DatePipe, PersonVideosAdmin, ContentCalendar, GalleryAdmin],
+  imports: [FormsModule, RouterLink, DatePipe, PersonVideosAdmin, ContentCalendar, GalleryAdmin, ForoAdmin],
   templateUrl: './configuration.html',
   styleUrl: './configuration.scss',
 })
@@ -84,6 +88,7 @@ export class Configuration {
   private readonly api = inject(ApiService);
   private readonly authService = inject(AuthService);
   private readonly aws = inject(AwsService);
+  private readonly foroService = inject(ForoService);
 
   readonly isUploadingImage = signal(false);
   readonly uploadError = signal<string | null>(null);
@@ -99,6 +104,8 @@ export class Configuration {
   /** Se incrementa al guardar algo para que el calendario se recargue. */
   readonly calendarRefresh = signal(0);
   readonly galleryFocus = signal<GalleryFocus | null>(null);
+  /** Mensajes del foro esperando aprobación (contador del menú). */
+  readonly foroPendientes = signal(0);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly isSaving = signal(false);
@@ -182,7 +189,10 @@ export class Configuration {
     effect(() => {
       if (this.isAdmin() && !loaded) {
         loaded = true;
-        untracked(() => this.loadCollection(this.currentCollection()));
+        untracked(() => {
+          this.loadCollection(this.currentCollection());
+          this.foroService.pendientesTotal().then((n) => this.foroPendientes.set(n));
+        });
       }
     });
   }

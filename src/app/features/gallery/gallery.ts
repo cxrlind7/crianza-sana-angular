@@ -1,7 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ApiService, Comment, Gallery as GalleryAlbum, GalleryImage } from '../../core/services/api.service';
+import { ApiService, Comment, Gallery as GalleryAlbum, GalleryImage, comentarioError } from '../../core/services/api.service';
 import { filterPublished } from '../../core/utils/schedule';
 import { AuthService } from '../../core/services/auth.service';
 import { parseFlexibleDate, toSortableTime } from '../../core/utils/date-utils';
@@ -46,6 +46,10 @@ export class Gallery implements OnInit {
   readonly selectedImageIndex = signal(0);
   readonly newComment = signal('');
   readonly comments = signal<Comment[]>([]);
+  /** Aviso bajo el campo de comentario (en revisión, sin sesión, etc.). */
+  readonly comentarioAviso = signal<{ tipo: 'ok' | 'error'; texto: string } | null>(null);
+  /** Para el anti-spam: el servidor rechaza comentarios enviados al instante. */
+  private readonly abiertoEn = Date.now();
   readonly activeMenu = signal<number | null>(null);
 
   getPersonName(albumName: string | undefined): string | null {
@@ -233,44 +237,33 @@ export class Gallery implements OnInit {
   async addNewComment(): Promise<void> {
     const text = this.newComment().trim();
     if (!text) return;
-    const user = this.currentUser();
-
-    const commentData = {
-      userId: user ? user.uid : 'guest_' + Date.now(),
-      userName: user ? user.displayName || 'Usuario Invitado' : 'Usuario Invitado',
-      commentText: text,
-      image: user ? user.photoURL || DEFAULT_AVATAR : DEFAULT_AVATAR,
-      createdAt: new Date().toISOString(),
-    };
-
     const album = this.selectedAlbum();
     const image = this.currentImage();
     if (!album || !image) return;
-
+    this.comentarioAviso.set(null);
     try {
-      const commentId = await this.api.addImageComment(album.id, image.id, commentData);
-      this.comments.update((list) => [...list, { ...commentData, id: commentId }]);
+      const { estado, comentario } = await this.api.comentar({ tipo: 'foto', id: album.id, imagenId: image.id }, text, Date.now() - this.abiertoEn);
+      if (estado === 'aprobado' && comentario) this.comments.update((list) => [...list, comentario]);
       this.newComment.set('');
+      this.comentarioAviso.set({
+        tipo: 'ok',
+        texto: estado === 'aprobado' ? 'Comentario publicado.' : '¡Gracias! Tu comentario se publicará en cuanto el equipo lo revise.',
+      });
     } catch (error) {
-      console.error('❌ Error al agregar comentario:', error);
-      alert('Error al publicar el comentario');
+      this.comentarioAviso.set({ tipo: 'error', texto: comentarioError(error) });
     }
   }
 
   async deleteComment(comment: Comment, idx: number): Promise<void> {
     const user = this.currentUser();
-    if (!user || user.uid !== comment['userId']) {
-      alert('No tienes permiso para eliminar este comentario.');
-      return;
-    }
-    if (!confirm('¿Estás seguro de que deseas eliminar este comentario?')) return;
-
+    if (!user || user.uid !== comment['userId']) return;
     const album = this.selectedAlbum();
     const image = this.currentImage();
     if (!album || !image) return;
+    if (!confirm('¿Estás seguro de que deseas eliminar este comentario?')) return;
 
     try {
-      await this.api.deleteCommentGaleria(album.id, image.id, comment.id);
+      await this.api.borrarComentario(`galerias/${album.id}/fotos/${image.id}/comments/${comment.id}`);
       this.comments.update((list) => list.filter((_, i) => i !== idx));
       this.activeMenu.set(null);
     } catch (error) {
