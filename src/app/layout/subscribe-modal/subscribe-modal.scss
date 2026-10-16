@@ -54,10 +54,9 @@
   justify-content: center;
   width: 64px;
   height: 64px;
-  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  background: color-mix(in srgb, var(--brand-red) 12%, var(--dm-surface));
   border-radius: 50%;
   font-size: 2rem;
-  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.35);
 }
 
 .subscribe-title {
@@ -120,24 +119,18 @@
   justify-content: center;
   width: 100%;
   padding: 0.8rem 1.5rem;
-  background: linear-gradient(135deg, #7c3aed, #a855f7);
+  background: var(--brand-red);
   color: #fff;
   border: none;
   border-radius: 12px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition:
-    opacity 0.2s,
-    transform 0.2s,
-    box-shadow 0.2s;
-  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.35);
+  transition: background-color 0.2s;
   margin-bottom: 0.75rem;
 }
 .subscribe-btn:hover:not(:disabled) {
-  opacity: 0.92;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.45);
+  background: var(--brand-red-dark);
 }
 .subscribe-btn:disabled {
   opacity: 0.65;

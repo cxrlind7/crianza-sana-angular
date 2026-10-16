@@ -50,10 +50,7 @@
   font-weight: 700;
   letter-spacing: 2px;
   text-transform: uppercase;
-  background: $foro-gradient;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: $foro-primary;
 
   i {
     color: $foro-primary;
@@ -95,7 +92,7 @@
   justify-content: center;
   border-radius: 50%;
   color: #fff;
-  box-shadow: 0 12px 28px rgba(124, 58, 237, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
   animation: flotar 6s ease-in-out infinite;
 
   &.b1 {
@@ -113,7 +110,7 @@
     top: 0;
     right: 10px;
     font-size: 1.4rem;
-    background: linear-gradient(135deg, #f472b6, #fb7185);
+    background: var(--brand-green);
     animation-delay: -2s;
   }
 
@@ -123,7 +120,7 @@
     bottom: 0;
     right: 40px;
     font-size: 1.6rem;
-    background: linear-gradient(135deg, #38bdf8, #6366f1);
+    background: var(--brand-blue);
     animation-delay: -4s;
   }
 }
@@ -272,7 +269,7 @@
 
   &.fijado {
     border-color: color-mix(in srgb, #{$foro-primary} 35%, transparent);
-    background: linear-gradient(135deg, color-mix(in srgb, #{$foro-primary} 6%, var(--dm-surface)), var(--dm-surface));
+    background: color-mix(in srgb, #{$foro-primary} 5%, var(--dm-surface));
   }
 
   &.skeleton {

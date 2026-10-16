@@ -56,23 +56,19 @@
 }
 
 .btn-whatsapp {
-  background: linear-gradient(45deg, #25d366, #128c7e);
-  box-shadow: 0 10px 20px rgba(37, 211, 102, 0.25);
+  background: var(--whatsapp);
+  box-shadow: none;
 }
 .btn-whatsapp:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 15px 30px rgba(37, 211, 102, 0.4);
-  filter: brightness(1.05);
+  background: var(--whatsapp-dark);
 }
 
 .btn-phone {
-  background: linear-gradient(45deg, #3498db, #2980b9);
-  box-shadow: 0 10px 20px rgba(52, 152, 219, 0.25);
+  background: var(--brand-blue);
+  box-shadow: none;
 }
 .btn-phone:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 15px 30px rgba(52, 152, 219, 0.4);
-  filter: brightness(1.05);
+  background: var(--brand-blue-dark);
 }
 
 .icon-btn {

@@ -90,9 +90,11 @@
   border-radius: 30px;
   background-color: var(--dm-surface);
   margin: 0;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
   text-decoration: none;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   border: 2px solid transparent;
   cursor: pointer;
   color: var(--dm-text-secondary);
@@ -119,8 +121,6 @@
 .social-btn-link:hover {
   background-color: var(--hover-color);
   color: #ffffff !important;
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
   border-color: var(--hover-color);
 }
 
@@ -190,13 +190,12 @@
   font-weight: 600;
   font-size: 0.95rem;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: background-color 0.2s ease;
 }
 
 .btn-intro-video:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  background-color: color-mix(in srgb, var(--person-color) 85%, #000);
+  border-color: color-mix(in srgb, var(--person-color) 85%, #000);
 }
 
 .btn-intro-icon {

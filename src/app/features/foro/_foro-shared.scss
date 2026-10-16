@@ -1,6 +1,7 @@
 // Piezas comunes del foro. Cada componente las incluye con @use '../foro-shared'.
-$foro-primary: #7c3aed;
-$foro-gradient: linear-gradient(135deg, #7c3aed, #db2777);
+// Rojo del logo, en estilo mate (sin degradados ni resplandores).
+$foro-primary: #ed1c24;
+$foro-gradient: var(--brand-red);
 
 /* Botones en píldora, mismo lenguaje que .btn-back / .social-btn-link del sitio. */
 .btn-foro {
@@ -17,12 +18,11 @@ $foro-gradient: linear-gradient(135deg, #7c3aed, #db2777);
   font-size: 0.92rem;
   text-decoration: none;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.2s ease;
 
   &:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
+    background: var(--dm-surface-2);
     color: var(--dm-text);
   }
 
@@ -33,10 +33,11 @@ $foro-gradient: linear-gradient(135deg, #7c3aed, #db2777);
 }
 
 .btn-foro-primary {
-  background: $foro-gradient;
+  background: var(--brand-red);
   color: #fff;
 
   &:hover:not(:disabled) {
+    background: var(--brand-red-dark);
     color: #fff;
   }
 }

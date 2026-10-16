@@ -184,17 +184,15 @@
   padding: 10px 22px;
   border: none;
   border-radius: 30px;
-  background-color: #7c3aed;
+  background-color: var(--brand-red);
   color: white;
   font-weight: 700;
   font-size: 0.95rem;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease;
 }
 .listen-btn:hover {
-  background-color: #6d28d9;
-  transform: translateY(-2px);
+  background-color: var(--brand-red-dark);
 }
 .listen-btn.active {
   background-color: #4c1d95;
@@ -482,7 +480,6 @@
   color: #4c1d95;
   line-height: 1.75;
   quotes: none;
-  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.08);
 }
 .blog-content-typography blockquote::before {
   content: '\201C';
