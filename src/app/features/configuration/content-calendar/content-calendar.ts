@@ -89,6 +89,18 @@ function stripHtml(html: unknown): string {
     .trim();
 }
 
+/** "7:00 PM", "19:00" o "7 pm" → "19:00" (la hora del programa en vivo se escribe a mano en Temas). */
+export function hora24(value: unknown): string {
+  const m = /^\s*(\d{1,2})(?::(\d{2}))?\s*([ap])?\.?\s*m?\.?/i.exec(String(value ?? ''));
+  if (!m) return '';
+  let h = Number(m[1]);
+  const min = m[2] ?? '00';
+  const sufijo = m[3]?.toLowerCase();
+  if (sufijo === 'p' && h < 12) h += 12;
+  if (sufijo === 'a' && h === 12) h = 0;
+  return h > 23 ? '' : `${pad(h)}:${min}`;
+}
+
 function hasTime(value: unknown): boolean {
   return typeof value === 'string' && /T\d{2}:\d{2}/.test(value);
 }
@@ -319,7 +331,9 @@ export class ContentCalendar {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private fromCampana(c: any): CalendarEntry | null {
-    const date = parseFlexibleDate(c.finalDate);
+    // La fecha de fin se captura como DD-MM-YYYY (así la lee el servidor), no MM-DD.
+    const dmy = /^(\d{1,2})-(\d{1,2})-(\d{4})$/.exec(String(c.finalDate ?? '').trim());
+    const date = dmy ? new Date(+dmy[3], +dmy[2] - 1, +dmy[1]) : parseFlexibleDate(c.finalDate);
     if (!date) return null;
     return {
       key: `campana-${c.id}`,
@@ -338,7 +352,7 @@ export class ContentCalendar {
   private fromEnVivo(p: any): CalendarEntry | null {
     const date = parseFlexibleDate(p.evento?.fecha);
     if (!date) return null;
-    const time = /^\d{1,2}:\d{2}/.test(p.evento?.hora ?? '') ? p.evento.hora.slice(0, 5) : '';
+    const time = hora24(p.evento?.hora);
     return {
       key: `envivo-${p.id}`,
       kind: 'envivo',

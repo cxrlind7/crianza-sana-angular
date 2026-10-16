@@ -175,7 +175,7 @@ export class QuizCrianza implements OnInit {
 
   readonly whatsappLink = computed(() => {
     const result = this.finalResult();
-    if (!result) return '#';
+    if (!result?.contactPhone) return '#';
     const message = `Hola, realicé el test de Crianza Sana y me gustaría agendar una cita para el área de ${result.name}.`;
     return `https://wa.me/${result.contactPhone}?text=${encodeURIComponent(message)}`;
   });

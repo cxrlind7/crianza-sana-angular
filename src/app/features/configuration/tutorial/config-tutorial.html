@@ -1,0 +1,100 @@
+<!-- Botón para abrir el tutorial (va en el encabezado de Configuración) -->
+<button type="button" class="tut-launcher" (click)="abrirMenu()" aria-haspopup="dialog">
+  <i class="bi bi-mortarboard"></i>
+  <span>Tutorial</span>
+</button>
+
+@if (invitacion() && !recorrido()) {
+  <div class="tut-invite" role="status">
+    <i class="bi bi-stars"></i>
+    <div>
+      <strong>¿Primera vez aquí?</strong>
+      <span>Te mostramos en 1 minuto dónde está cada cosa.</span>
+    </div>
+    <button type="button" class="tut-btn tut-btn-primary" (click)="iniciar(recorridos[0])">Empezar</button>
+    <button type="button" class="tut-x" (click)="cerrarInvitacion()" aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
+  </div>
+}
+
+<!-- Menú de recorridos -->
+@if (menuAbierto()) {
+  <div class="tut-backdrop" (click)="menuAbierto.set(false)"></div>
+  <div class="tut-menu" role="dialog" aria-modal="true" aria-label="Tutorial de Configuración">
+    <div class="tut-menu-head">
+      <div>
+        <h3><i class="bi bi-mortarboard me-2"></i>Tutorial</h3>
+        <p>Elige qué quieres aprender. Cada recorrido te lleva paso a paso por la pantalla real; nada se guarda.</p>
+      </div>
+      <button type="button" class="tut-x" (click)="menuAbierto.set(false)" aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="tut-progress">
+      <span>{{ progreso() }}</span>
+      <div class="tut-progress-bar"><div [style.width.%]="(completados().size / recorridos.length) * 100"></div></div>
+    </div>
+    <ul class="tut-list">
+      @for (r of recorridos; track r.id) {
+        <li>
+          <button type="button" class="tut-item" [class.hecho]="completados().has(r.id)" (click)="iniciar(r)">
+            <span class="tut-item-icon"><i class="bi {{ r.icono }}"></i></span>
+            <span class="tut-item-text">
+              <strong>{{ r.titulo }}</strong>
+              <small>{{ r.descripcion }}</small>
+            </span>
+            <span class="tut-item-meta">
+              @if (completados().has(r.id)) {
+                <i class="bi bi-check-circle-fill"></i>
+              } @else {
+                {{ r.minutos }} min
+              }
+            </span>
+          </button>
+        </li>
+      }
+    </ul>
+  </div>
+}
+
+<!-- Recorrido en curso -->
+@if (recorrido(); as r) {
+  @if (caja(); as c) {
+    <div class="tut-spot" [style.top.px]="c.top" [style.left.px]="c.left" [style.width.px]="c.width" [style.height.px]="c.height"></div>
+  } @else {
+    <div class="tut-dim"></div>
+  }
+
+  @if (paso(); as p) {
+    <div
+      class="tut-card"
+      [class.centro]="posicion().centro"
+      [style.top.px]="posicion().top"
+      [style.left.px]="posicion().left"
+      [style.width.px]="posicion().ancho"
+      role="dialog"
+      aria-live="polite"
+      [attr.aria-label]="p.titulo"
+    >
+      <div class="tut-card-head">
+        <span class="tut-tour"><i class="bi {{ r.icono }} me-1"></i>{{ r.titulo }}</span>
+        <button type="button" class="tut-x" (click)="salir()" aria-label="Salir del tutorial"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <h4>{{ p.titulo }}</h4>
+      <p>{{ p.texto }}</p>
+      <div class="tut-card-foot">
+        <div class="tut-dots" aria-hidden="true">
+          @for (x of r.pasos; track $index) {
+            <span [class.on]="$index === indice()"></span>
+          }
+        </div>
+        <div class="tut-actions">
+          @if (indice() > 0) {
+            <button type="button" class="tut-btn" (click)="anterior()" [disabled]="preparando()">Anterior</button>
+          }
+          <button type="button" class="tut-btn tut-btn-primary" (click)="siguiente()" [disabled]="preparando()">
+            {{ indice() === total() - 1 ? 'Terminar' : 'Siguiente' }}
+          </button>
+        </div>
+      </div>
+      <small class="tut-hint">Paso {{ indice() + 1 }} de {{ total() }} · flechas ← → o Esc</small>
+    </div>
+  }
+}

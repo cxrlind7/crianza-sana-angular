@@ -28,4 +28,5 @@ Lista viva de lo que falta. Al terminar algo, se borra de aquí.
 - **Imágenes del bucket S3 viejo rotas** (`csdkids-images.s3.us-east-2.amazonaws.com` responde 403): fotos de galerías antiguas, avatares por defecto, servicios de Ana Laura y foto de Martha Elena. Hay que copiarlas a R2 y actualizar las URLs.
 - **Programación del lado del servidor**: lo programado se oculta en el front, pero la API pública sí lo devuelve (alguien técnico podría ver un blog antes de su fecha).
 - **Comentarios con muchos documentos**: la moderación lee todos los comentarios (`collectionGroup`) y filtra en memoria. Si crecen mucho, crear un índice de grupo sobre `estado`.
+- **Quiz: contactos por tema** (revisar contenido): "Terapia Cognitivo-Conductual" manda a Luis aunque la especialista TCC es Carina, y "Psicología Infantil" manda a Saraid Chávez, que no está en Especialistas. Los datos están en `quiz-crianza.ts` (CATEGORIES).
 - **Presupuestos del build**: el bundle inicial (1.58 MB) y `gallery.scss` / `programs.scss` pasan el límite configurado.
