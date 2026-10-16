@@ -70,9 +70,8 @@ swiper-slide {
 
 .custom-prev-arrow:hover,
 .custom-next-arrow:hover {
-  background-color: #d63384;
+  background-color: var(--brand-red);
   color: #ffffff;
-  box-shadow: 0 6px 15px rgba(214, 51, 132, 0.3);
 }
 
 .custom-prev-arrow.swiper-button-disabled,
@@ -195,22 +194,18 @@ swiper-slide {
   display: flex;
   align-items: center;
   gap: 8px;
-  background-color: #25d366;
+  background-color: var(--whatsapp);
   color: white;
   text-decoration: none;
   padding: 8px 16px;
   border-radius: 20px;
   font-weight: 600;
   font-size: 0.9rem;
-  transition:
-    background-color 0.2s ease,
-    transform 0.1s ease;
-  box-shadow: 0 2px 5px rgba(37, 211, 102, 0.2);
+  transition: background-color 0.2s ease;
 }
 
 .whatsapp-btn:hover {
-  background-color: #128c7e;
-  transform: translateY(-2px);
+  background-color: var(--whatsapp-dark);
 }
 
 .whatsapp-btn i {

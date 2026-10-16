@@ -48,19 +48,18 @@
 }
 
 .btn-cta {
-  background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+  background: var(--brand-red);
   color: white !important;
   border: none;
   height: 3rem;
   position: relative;
   overflow: hidden;
-  transition: all 0.3s ease;
+  box-shadow: none !important;
+  transition: background-color 0.2s ease;
 }
 
 .btn-cta:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 20px rgba(108, 92, 231, 0.3) !important;
-  background: linear-gradient(135deg, #5f4dd0, #9188f0);
+  background: var(--brand-red-dark);
 }
 
 .btn-icon-wrapper {

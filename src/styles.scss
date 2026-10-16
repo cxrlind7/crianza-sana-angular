@@ -219,3 +219,18 @@ a,
     text-decoration: underline;
   }
 }
+
+/*
+ * Colores del logo para botones. Estilo mate (como el botón "Programas" del menú):
+ * color sólido, un tono más oscuro al pasar el mouse, sin degradados ni sombras de color.
+ */
+:root {
+  --brand-red: #ed1c24;
+  --brand-red-dark: #c41219;
+  --brand-green: #78c850;
+  --brand-blue: #2f9fd8;
+  --brand-blue-dark: #2384b6;
+  --whatsapp: #25d366;
+  --whatsapp-dark: #1da851;
+}
+

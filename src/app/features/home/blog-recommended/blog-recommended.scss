@@ -46,7 +46,6 @@
 .pagination-dot.active {
   background-color: var(--accent-color);
   transform: scale(1.25);
-  box-shadow: 0 2px 6px rgba(214, 51, 132, 0.4);
 }
 
 .pagination-dot:not(.active):hover {
@@ -123,7 +122,7 @@
 
 .read-more-btn {
   display: inline-block;
-  background-color: var(--accent-color);
+  background-color: var(--brand-red);
   color: white;
   text-decoration: none;
   padding: 14px 36px;
@@ -131,14 +130,12 @@
   font-weight: 600;
   font-size: 0.95rem;
   letter-spacing: 0.5px;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(214, 51, 132, 0.3);
+  transition: background-color 0.2s ease;
 }
 
 .read-more-btn:hover {
-  background-color: #c22a75;
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(214, 51, 132, 0.4);
+  background-color: var(--brand-red-dark);
+  color: white;
 }
 
 .banner-card {

@@ -39,10 +39,10 @@
     margin-left: 28px;
   }
 
-  // Respuesta del equipo: destacada con el degradado del foro.
+  // Respuesta del equipo: destacada con un fondo suave del color del foro.
   &.equipo {
     border: 1.5px solid color-mix(in srgb, #{$foro-primary} 35%, transparent);
-    background: linear-gradient(135deg, color-mix(in srgb, #{$foro-primary} 6%, var(--dm-surface)), var(--dm-surface));
+    background: color-mix(in srgb, #{$foro-primary} 5%, var(--dm-surface));
   }
 
   &.skeleton {
