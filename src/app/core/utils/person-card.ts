@@ -33,6 +33,15 @@ export interface CardPerson {
 /** Siempre el dominio público, para que el QR funcione aunque se genere en local. */
 export const SITE_URL = 'https://crianzasanabydkids.mx';
 
+/**
+ * Carga la librería del QR solo cuando hace falta. Es CommonJS: en el build de producción sus
+ * funciones llegan dentro de `default` (en desarrollo no), así que se aceptan las dos formas.
+ */
+export async function loadQRCode(): Promise<typeof import('qrcode')> {
+  const mod = (await import('qrcode')) as typeof import('qrcode') & { default?: typeof import('qrcode') };
+  return mod.default && typeof mod.default.toDataURL === 'function' ? mod.default : mod;
+}
+
 export function profileUrl(person: Pick<CardPerson, 'id'>): string {
   return `${SITE_URL}/person/${person.id}`;
 }
@@ -143,7 +152,7 @@ function hexToRgba(hex: string, alpha: number): string {
 }
 
 export async function drawBusinessCard(person: CardPerson): Promise<Blob> {
-  const QRCode = await import('qrcode');
+  const QRCode = await loadQRCode();
   const font = getComputedStyle(document.body).fontFamily || 'sans-serif';
   const color = person.color || '#7c3aed';
 
