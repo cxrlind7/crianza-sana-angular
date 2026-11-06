@@ -842,14 +842,23 @@
                   <input type="text" class="form-control mb-2" [ngModel]="modalData()['url']" (ngModelChange)="updateModalField('url', $event)" placeholder="https://... (.mp4) o https://www.youtube.com/embed/..." />
                   <input type="file" accept="video/mp4,video/webm,video/quicktime" class="form-control form-control-sm" (change)="onImageFileSelected($event, 'url')" [disabled]="isUploadingImage()" />
                   <small class="text-muted d-block">Pega la URL o sube el archivo .mp4 (se guarda en el almacenamiento del sitio).</small>
-                  @if (isUploadingImage()) { <small class="text-muted">Subiendo archivo... no cierres esta ventana.</small> }
+                  @if (uploadingField() === 'url') {
+                    <div class="progress mt-2" style="height: 18px" role="progressbar" [attr.aria-valuenow]="uploadProgress()" aria-valuemin="0" aria-valuemax="100">
+                      <div class="progress-bar progress-bar-striped progress-bar-animated" [style.width.%]="uploadProgress()">{{ uploadProgress() }}%</div>
+                    </div>
+                    <small class="text-muted">Subiendo video... no cierres esta ventana.</small>
+                  }
                   @if (uploadError()) { <small class="text-danger d-block">{{ uploadError() }}</small> }
                 </div>
                 <div class="mb-3">
                   <label class="form-label">Thumbnail URL</label>
                   <input type="text" class="form-control mb-2" [ngModel]="modalData()['thumbnail']" (ngModelChange)="updateModalField('thumbnail', $event)" placeholder="https://..." />
                   <input type="file" accept="image/*" class="form-control form-control-sm" (change)="onImageFileSelected($event, 'thumbnail')" [disabled]="isUploadingImage()" />
-                  @if (isUploadingImage()) { <small class="text-muted">Subiendo imagen...</small> }
+                  @if (uploadingField() === 'thumbnail') {
+                    <div class="progress mt-2" style="height: 18px" role="progressbar" [attr.aria-valuenow]="uploadProgress()" aria-valuemin="0" aria-valuemax="100">
+                      <div class="progress-bar" [style.width.%]="uploadProgress()">{{ uploadProgress() }}%</div>
+                    </div>
+                  }
                   @if (uploadError()) { <small class="text-danger d-block">{{ uploadError() }}</small> }
                   @if (modalData()['thumbnail']) {
                     <div class="mt-2 text-center"><img [src]="modalData()['thumbnail']" class="img-fluid rounded border" style="max-height: 140px" alt="thumbnail" /></div>

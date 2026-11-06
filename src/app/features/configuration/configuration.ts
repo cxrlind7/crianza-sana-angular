@@ -96,6 +96,8 @@ export class Configuration {
 
   readonly isUploadingImage = signal(false);
   readonly uploadError = signal<string | null>(null);
+  readonly uploadProgress = signal(0);
+  readonly uploadingField = signal<string | null>(null);
 
   @ViewChild('richEditor') richEditorRef?: ElementRef<HTMLDivElement>;
 
@@ -601,9 +603,11 @@ export class Configuration {
     if (!file) return;
 
     this.isUploadingImage.set(true);
+    this.uploadingField.set(field);
+    this.uploadProgress.set(0);
     this.uploadError.set(null);
     try {
-      const publicUrl = await this.aws.uploadFile(file, this.modalType() || 'uploads');
+      const publicUrl = await this.aws.uploadFileWithProgress(file, this.modalType() || 'uploads', (pct) => this.uploadProgress.set(pct));
       if (publicUrl) {
         this.updateModalField(field, publicUrl);
       } else {
@@ -611,6 +615,7 @@ export class Configuration {
       }
     } finally {
       this.isUploadingImage.set(false);
+      this.uploadingField.set(null);
       input.value = '';
     }
   }
