@@ -58,7 +58,7 @@ export const EFEMERIDES: EfemerideDef[] = [
 
   // ---------------- Marzo
   { rule: { month: 3, day: 3 }, title: 'Día Mundial de la Audición', area: 'Lenguaje y aprendizaje', note: 'La audición como base del lenguaje; tamiz auditivo.', afines: ['Ana Laura', 'Miriam'] },
-  { rule: { month: 3, day: 8 }, title: 'Día Internacional de la Mujer', area: 'Familia y crianza', note: 'Maternidad, corresponsabilidad y carga mental en la crianza.', afines: ['Roberto', 'Luis'] },
+  { rule: { month: 3, day: 8 }, title: 'Día Internacional de la Mujer', area: 'Familia y crianza', note: 'Maternidad, corresponsabilidad y carga mental en la crianza.', afines: ['Luis'] },
   { rule: { month: 3, weekday: 1, n: 3 }, title: 'Natalicio de Benito Juárez', area: 'Día festivo', official: true, note: 'Descanso obligatorio (tercer lunes de marzo).' },
   { rule: { month: 3, day: 21 }, title: 'Día Mundial del Síndrome de Down', area: 'Desarrollo y neurodiversidad', note: 'Inclusión, estimulación temprana y terapias.', afines: ['Carina', 'Ana Laura'] },
 
@@ -67,19 +67,19 @@ export const EFEMERIDES: EfemerideDef[] = [
   { rule: { month: 4, day: 7 }, title: 'Día Mundial de la Salud', area: 'Pediatría y salud', note: 'Salud infantil: chequeos, vacunas y prevención.', afines: ['Miriam'] },
   { rule: { month: 4, day: 15 }, title: 'Día Mundial del Arte', area: 'Psicología y salud emocional', note: 'El arte como lenguaje para expresar emociones.', afines: ['Carina'] },
   { rule: { month: 4, day: 23 }, title: 'Día Internacional del Libro', area: 'Lenguaje y aprendizaje', note: 'Lectura en voz alta, gusto por leer y procesos lectores.', afines: ['Ana Laura', 'Carina'] },
-  { rule: { month: 4, day: 30 }, title: 'Día del Niño y la Niña', area: 'Familia y crianza', note: 'Fecha fuerte para eventos, juego y derechos de la infancia.', afines: ['Carina', 'Luis', 'Roberto'] },
+  { rule: { month: 4, day: 30 }, title: 'Día del Niño y la Niña', area: 'Familia y crianza', note: 'Fecha fuerte para eventos, juego y derechos de la infancia.', afines: ['Carina', 'Luis'] },
 
   // ---------------- Mayo
   { rule: { month: 5, day: 1 }, title: 'Día del Trabajo', area: 'Día festivo', official: true, note: 'Descanso obligatorio.' },
   { rule: { month: 5, day: 10 }, title: 'Día de las Madres', area: 'Familia y crianza', note: 'Maternidad, autocuidado y salud emocional de mamá.', afines: ['Luis', 'Martha Elena'] },
-  { rule: { month: 5, day: 15 }, title: 'Día Internacional de las Familias', area: 'Familia y crianza', note: 'Dinámica familiar, límites y derecho familiar. También es Día del Maestro en México.', afines: ['Luis', 'Roberto'] },
+  { rule: { month: 5, day: 15 }, title: 'Día Internacional de las Familias', area: 'Familia y crianza', note: 'Dinámica familiar, límites y derecho familiar. También es Día del Maestro en México.', afines: ['Luis'] },
 
   // ---------------- Junio
   { rule: { month: 6, day: 1 }, title: 'Día Mundial de las Madres y los Padres', area: 'Familia y crianza', note: 'Reconocer la crianza compartida (ONU).', afines: ['Luis'] },
   { rule: { month: 6, day: 11 }, title: 'Día Internacional del Juego', area: 'Desarrollo y neurodiversidad', note: 'El juego como motor del desarrollo (ONU).', afines: ['Carina', 'Ana Laura'] },
-  { rule: { month: 6, day: 12 }, title: 'Día Mundial contra el Trabajo Infantil', area: 'Derechos de la infancia', note: 'Derechos de niñas y niños; marco legal.', afines: ['Roberto'] },
+  { rule: { month: 6, day: 12 }, title: 'Día Mundial contra el Trabajo Infantil', area: 'Derechos de la infancia', note: 'Derechos de niñas y niños; marco legal.', afines: [] },
   { rule: { month: 6, day: 18 }, title: 'Día del Orgullo Autista', area: 'Desarrollo y neurodiversidad', note: 'Neurodiversidad desde la mirada de las propias personas autistas.', afines: ['Carina', 'Ana Laura'] },
-  { rule: { month: 6, weekday: 0, n: 3 }, title: 'Día del Padre', area: 'Familia y crianza', note: 'Paternidad presente y corresponsable (tercer domingo de junio).', afines: ['Luis', 'Roberto'] },
+  { rule: { month: 6, weekday: 0, n: 3 }, title: 'Día del Padre', area: 'Familia y crianza', note: 'Paternidad presente y corresponsable (tercer domingo de junio).', afines: ['Luis'] },
 
   // ---------------- Julio
   { rule: { month: 7, day: 13 }, title: 'Día Internacional del TDAH', area: 'Desarrollo y neurodiversidad', note: 'Entender el TDAH en casa y en la escuela.', afines: ['Carina', 'Ana Laura', 'Luis'] },
@@ -109,9 +109,9 @@ export const EFEMERIDES: EfemerideDef[] = [
   { rule: { month: 11, day: 14 }, title: 'Día Mundial de la Diabetes', area: 'Pediatría y salud', note: 'Diabetes tipo 1 en la infancia y prevención.', afines: ['Miriam'] },
   { rule: { month: 11, day: 17 }, title: 'Día Mundial de la Prematuridad', area: 'Pediatría y salud', note: 'Cuidados y seguimiento del bebé prematuro.', afines: ['Miriam', 'Carina'] },
   { rule: { month: 11, weekday: 1, n: 3 }, title: 'Día de la Revolución', area: 'Día festivo', official: true, note: 'Descanso obligatorio (tercer lunes de noviembre).' },
-  { rule: { month: 11, day: 19 }, title: 'Día Mundial para la Prevención del Abuso Sexual Infantil', area: 'Derechos de la infancia', note: 'Prevención, señales y qué hacer legalmente.', afines: ['Roberto', 'Luis'] },
-  { rule: { month: 11, day: 20 }, title: 'Día Universal del Niño', area: 'Derechos de la infancia', note: 'Aniversario de la Convención sobre los Derechos del Niño.', afines: ['Roberto', 'Carina'] },
-  { rule: { month: 11, day: 25 }, title: 'Día para la Eliminación de la Violencia contra la Mujer', area: 'Derechos de la infancia', note: 'Violencia familiar y su impacto en la infancia.', afines: ['Roberto', 'Luis'] },
+  { rule: { month: 11, day: 19 }, title: 'Día Mundial para la Prevención del Abuso Sexual Infantil', area: 'Derechos de la infancia', note: 'Prevención, señales y qué hacer legalmente.', afines: ['Luis'] },
+  { rule: { month: 11, day: 20 }, title: 'Día Universal del Niño', area: 'Derechos de la infancia', note: 'Aniversario de la Convención sobre los Derechos del Niño.', afines: ['Carina'] },
+  { rule: { month: 11, day: 25 }, title: 'Día para la Eliminación de la Violencia contra la Mujer', area: 'Derechos de la infancia', note: 'Violencia familiar y su impacto en la infancia.', afines: ['Luis'] },
 
   // ---------------- Diciembre
   { rule: { month: 12, day: 3 }, title: 'Día Internacional de las Personas con Discapacidad', area: 'Desarrollo y neurodiversidad', note: 'Inclusión escolar y social.', afines: ['Carina', 'Ana Laura'] },

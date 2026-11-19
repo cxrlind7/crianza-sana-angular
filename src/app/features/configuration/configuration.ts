@@ -17,6 +17,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { AwsService } from '../../core/services/aws.service';
 import { getActivePeople } from '../../core/utils/people-visibility';
 import { PersonVideosAdmin } from './person-videos-admin/person-videos-admin';
+import { ImportarLive } from './importar-live/importar-live';
 import { CalendarCreateKind, CalendarEntry, ContentCalendar } from './content-calendar/content-calendar';
 import { GalleryAdmin, GalleryFocus } from './gallery-admin/gallery-admin';
 import { ForoAdmin } from './foro-admin/foro-admin';
@@ -84,7 +85,7 @@ type ModalData = Record<string, any>;
 
 @Component({
   selector: 'app-configuration',
-  imports: [FormsModule, RouterLink, DatePipe, PersonVideosAdmin, ContentCalendar, GalleryAdmin, ForoAdmin, EspecialistasAdmin, ConfigTutorial],
+  imports: [FormsModule, RouterLink, DatePipe, PersonVideosAdmin, ImportarLive, ContentCalendar, GalleryAdmin, ForoAdmin, EspecialistasAdmin, ConfigTutorial],
   templateUrl: './configuration.html',
   styleUrl: './configuration.scss',
 })

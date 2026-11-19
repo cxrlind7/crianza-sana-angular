@@ -1,0 +1,64 @@
+<div class="card border-0 shadow-sm rounded-3 mb-4 importar-live">
+  <div class="card-body p-4">
+    <h5 class="fw-bold mb-1"><i class="bi bi-broadcast me-2"></i>Importar live de Facebook</h5>
+    <p class="text-muted small mb-3">
+      Pega el enlace del live del lunes y sube el flyer. A las 9:00 p. m. se descarga el video, se leen los temas del flyer,
+      se ubica el cambio de especialista, se hacen las portadas y se publican los dos programas.
+    </p>
+    <div class="row g-2 align-items-end">
+      <div class="col-md-6">
+        <label class="form-label fw-semibold small mb-1">Enlace del live</label>
+        <input type="url" class="form-control" placeholder="https://www.facebook.com/maspopfm/videos/..." [ngModel]="fbUrl()" (ngModelChange)="fbUrl.set($event)" [disabled]="enviando()" />
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold small mb-1">Flyer</label>
+        <input type="file" class="form-control" accept="image/*" (change)="onFlyer($event)" [disabled]="enviando()" />
+      </div>
+    </div>
+    <div class="d-flex flex-wrap gap-2 mt-3">
+      <button class="btn btn-primary" (click)="enviar(false)" [disabled]="enviando() || !fbUrl().trim() || !flyer()">
+        @if (enviando()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+        <i class="bi bi-moon-stars me-1"></i> Procesar en la noche
+      </button>
+      <button class="btn btn-outline-primary" (click)="enviar(true)" [disabled]="enviando() || !fbUrl().trim() || !flyer()">
+        <i class="bi bi-lightning-charge me-1"></i> Procesar ahora
+      </button>
+    </div>
+    @if (mensaje(); as m) {
+      <div class="alert alert-{{ m.kind }} py-2 mt-3 mb-0 small">{{ m.text }}</div>
+    }
+
+    @if (importaciones().length) {
+      <ul class="list-unstyled mt-4 mb-0 importaciones">
+        @for (item of importaciones(); track item.id) {
+          <li class="d-flex gap-3 align-items-start py-2">
+            <img [src]="item.flyerUrl" alt="Flyer" class="flyer rounded" />
+            <div class="flex-grow-1 small">
+              <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                <span class="badge {{ estados[item.estado].clase }}">{{ estados[item.estado].label }}</span>
+                @if (item.fecha) { <strong>{{ item.fecha }}</strong> }
+                @if (item.estado === 'pendiente' && fechaDe(item.procesarDesde); as d) {
+                  <span class="text-muted">se procesa {{ d | date: 'EEE d MMM, h:mm a' }}</span>
+                }
+                @if (item.estado === 'procesando' && item.paso) { <span class="text-muted">{{ item.paso }}…</span> }
+              </div>
+              <a [href]="item.fbUrl" target="_blank" rel="noopener" class="text-break">{{ item.fbUrl }}</a>
+              @for (t of item.temas ?? []; track $index) {
+                <div class="text-muted">{{ $index + 1 }}. {{ t.titulo }} — {{ t.especialista }} ({{ minuto(t.inicio) }})</div>
+              }
+              @if (item.estado === 'error') { <div class="text-danger text-break mt-1">{{ item.error }}</div> }
+            </div>
+            <div class="d-flex flex-column gap-1">
+              @if (item.estado === 'pendiente' || item.estado === 'error') {
+                <button class="btn btn-sm btn-outline-primary" (click)="procesar(item)">{{ item.estado === 'error' ? 'Reintentar' : 'Procesar ahora' }}</button>
+              }
+              @if (item.estado !== 'procesando') {
+                <button class="btn btn-sm btn-outline-danger" (click)="borrar(item)" title="Quitar de la lista (no borra programas publicados)"><i class="bi bi-x-lg"></i></button>
+              }
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</div>

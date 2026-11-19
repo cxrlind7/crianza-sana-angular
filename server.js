@@ -24,6 +24,7 @@ import compression from 'compression'
 import { getEspecialistaAnalytics, getTemasPadres } from './utils/analyticsEspecialista.js'
 import { registerForoRoutes, esComentarioVisible } from './utils/foro.js'
 import { registerEspecialistasRoutes } from './utils/especialistas.js'
+import { registerImportarLiveRoutes } from './utils/importar-live.js'
 // --- CONFIGURACIÓN DE RUTAS Y DIRECTORIOS ---
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -229,6 +230,13 @@ app.use('/api', (req, res, next) => {
 
 registerForoRoutes(app, { getDb: () => db, admin, adminEmails: ADMIN_EMAILS })
 registerEspecialistasRoutes(app, { getDb: () => db, admin })
+registerImportarLiveRoutes(app, {
+  getDb: () => db,
+  getS3: () => s3,
+  bucket: process.env.R2_BUCKET_NAME || process.env.AWS_BUCKET_NAME,
+  publicBase: process.env.R2_PUBLIC_URL,
+  requireAdmin,
+})
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 

@@ -126,20 +126,6 @@ const CATEGORIES: Category[] = [
     contactName: 'Luis A. Galván Solís',
     ctaText: 'Agenda valoración terapéutica',
   },
-  {
-    id: 'legal',
-    name: 'Orientación Legal Familiar',
-    emoji: '⚖️',
-    questions: [
-      '¿Estás pasando por separación o conflicto y no sabes cómo organizar lo legal?',
-      '¿Tienes dudas sobre pensión, convivencias o permisos escolares?',
-      '¿Han hecho acuerdos sobre tu hijo, pero la otra parte no los respeta?',
-    ],
-    resultMessage: 'Podría ayudarte una orientación legal familiar. Recibir asesoría te da claridad y respaldo legal.',
-    contactPhone: '526181222244',
-    contactName: 'Roberto Bravo Romo',
-    ctaText: 'Agendar orientación familiar',
-  },
 ];
 
 @Component({

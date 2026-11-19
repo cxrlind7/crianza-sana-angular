@@ -17,6 +17,13 @@ Lista viva de lo que falta. Al terminar algo, se borra de aquí.
   - [ ] Probar con una cuenta real de padre/madre: registro, verificación de correo, pregunta y "Mis publicaciones".
   - [ ] Idea: avisar por correo al admin cuando haya mensajes por aprobar.
 
+## Importar live de Facebook (Configuración → Programas)
+
+Se pega el enlace del live y se sube el flyer; a las 21:00 de Durango (o con "Procesar ahora") el servidor descarga el video con yt-dlp, lee los temas del flyer y ubica el cambio de especialista con la API de Claude, genera las portadas (`assets/portadas`) y publica en `programas`. Código: `utils/importar-live.js` y `utils/live-pipeline.js`; estado en Firestore `importacionesLive`.
+
+- [ ] Agregar `ANTHROPIC_API_KEY` en las variables de Railway.
+- [ ] Primera prueba real en Railway: confirmar que Facebook deja descargar desde la IP del servidor.
+
 ## Arreglos y deuda técnica
 
 - **Proteger `/analytics`**: guard de admin en la ruta, `requireAdmin` en los endpoints de GA (incluidos `/api/analytics/especialista` y `/api/analytics/temas`) y usar `HttpClient` en vez de `fetch`.
